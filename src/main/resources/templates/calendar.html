@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8">
+    <title>Granos</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/icons/G.png"/>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
+    <!-- Libraries Stylesheet -->
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="lib/lightbox/css/lightbox.min.css" rel="stylesheet">
+    <style>
+    	.fc-multimonth-multicol .fc-daygrid-more-link {
+			background-color: #3788d8; 
+		}
+		.fc-more-link {
+			color: white; 
+		}
+        .fc-event-title {
+            white-space: normal !important; /* 强制换行 */
+            word-wrap: break-word; /* 长单词换行 */
+        }
+    </style>
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.0/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.0/index.global.min.js'></script>
+	<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/multimonth@6.1.0/index.global.min.js"></script>
+    <!--<script src="https://code.jquery.com/jquery-3.4.1.js"></script>-->
+	<script>
+//     $.ajax({
+//         url: 'http://localhost:9001/hello',
+//         type: "GET",
+//         success: function (data) {
+//             console.log("跨網域請求成功:"+data);
+//         },
+//         error: function (data) {
+//             console.log("跨網域請求失敗!!");
+//         }
+//     })
+	const currentYear = new Date().getFullYear();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+		timeZone: 'local',
+		initialView: 'multiMonthYear',
+		editable: false,
+		validRange: {
+			start: (currentYear-1) + '-01-01',
+			end: (currentYear+1+1) + '-01-01'
+		},
+		events: 'http://localhost:9001/getTwCalendar'
+        });
+        calendar.render();
+    });
+
+    </script>
+  </head>
+  <body>
+  	  <!-- Navbar Start -->
+    <div class="container-fluid bg-white position-relative">
+        <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
+            <a href="index" class="navbar-brand text-secondary">
+                <h1 class="display-4 ">
+					<span>G</span><span style="color:#ffcc00;">r</span><span>anos</span>
+				</h1>
+            </a>
+            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <div class="navbar-nav ml-auto py-0 pr-3">
+                    <a href="home" class="nav-item nav-link">Home</a>
+                    <a href="calendar" class="nav-item nav-link active">Calendar</a>
+                    <a href="attendance" class="nav-item nav-link">Attendance</a>
+                    <a href="payroll" class="nav-item nav-link">Payroll</a>
+                    <a href="project.html" class="nav-item nav-link">Projects</a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Pages</a>
+                        <div class="dropdown-menu rounded-0 m-0">
+                            <a href="team.html" class="dropdown-item">Meat The Team</a>
+                            <a href="testimonial.html" class="dropdown-item">Testimonial</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!-- Navbar End -->
+    <div id='calendar'></div>
+	   <!-- JavaScript Libraries -->
+	<!--===============================================================================================-->
+	<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/isotope/isotope.pkgd.min.js"></script>
+    <script src="lib/lightbox/js/lightbox.min.js"></script>
+
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+  </body>
+</html>

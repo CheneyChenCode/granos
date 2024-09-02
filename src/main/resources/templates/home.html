@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>Granos</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/icons/G.png"/>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
+    <!-- Libraries Stylesheet -->
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="lib/lightbox/css/lightbox.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+	  <!-- Navbar Start -->
+    <div class="container-fluid bg-white position-relative">
+        <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
+            <a href="index" class="navbar-brand text-secondary">
+                <h1 class="display-4 ">
+					<span>G</span><span style="color:#ffcc00;">r</span><span>anos</span>
+				</h1>
+            </a>
+            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <div class="navbar-nav ml-auto py-0 pr-3">
+                    <a href="home" class="nav-item nav-link active">Home</a>
+                    <a href="calendar" class="nav-item nav-link">Calendar</a>
+                    <a href="attendance" class="nav-item nav-link">Attendance</a>
+                    <a href="payroll" class="nav-item nav-link">Payroll</a>
+                    <a href="project" class="nav-item nav-link">Log Out</a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Pages</a>
+                        <div class="dropdown-menu rounded-0 m-0">
+                            <a href="team.html" class="dropdown-item">Meat The Team</a>
+                            <a href="testimonial.html" class="dropdown-item">Testimonial</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!-- Navbar End -->
+
+
+    <!-- Header Start -->
+    <div class="container-fluid bg-primary py-4 px-0" >
+        <div class="row mx-0 align-items-center">
+            <div class="col-lg-4 px-md-5 text-center">
+                <a href="#popup1" class="btn btn-rainbow text-uppercase mt-1 py-3 px-5">Punch</a>
+            </div>
+            <div class="col-lg-4 px-0 text-center">
+                <h1 class="display-4 mt-3" th:text="'Hi! '+${user.nameEn}"></h1>
+            </div>
+			<div class="col-lg-4 px-0 text-center" >
+                <img class="img-fluid mt-3 mt-lg-0" src="images/header.png" alt="">
+            </div>
+        </div>
+    </div>
+    <!-- Header End -->
+	 <!-- Services Start -->
+    <div class="container-fluid py-3">
+        <div class="container pt-3 pb-3">
+            <div class="row">
+                <div class="col-lg-3 mb-2">
+                    <div class="service-item rounded p-5 mb-4">
+                        <i class="fa fa-3x fa-calendar-check text-primary mb-4"></i>
+                        <h4 class="text-uppercase mb-4">TODAY<span class="d-block text-body">Day Off</span></h4>
+                        <p class="m-0">09:00-18:00</p>
+						<p class="m-0">Regular day off</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 mb-2">
+                    <div class="service-item rounded p-5 mb-4">
+                        <i class="fa fa-3x fa-calendar text-primary mb-4"></i>
+                        <h4 class="text-uppercase mb-4">MON 30<span class="d-block text-body">WORK</span></h4>
+                        <p class="m-0">09:00-18:00</p>
+						<p class="m-0">morning shift</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 mb-2">
+                    <div class="service-item rounded p-5 mb-4">
+                        <i class="fa fa-3x fa-calendar text-primary mb-4"></i>
+                        <h4 class="text-uppercase mb-4">TUE 31<span class="d-block text-body">WORK</span></h4>
+                        <p class="m-0">09:00-18:00</p>
+						<p class="m-0">morning shift</p>
+
+                    </div>
+                </div>
+                <div class="col-lg-3 mb-2">
+                    <div class="service-item rounded p-5 mb-4">
+                        <i class="fa fa-3x fa-calendar text-primary mb-4"></i>
+                        <h4 class="text-uppercase mb-4">WED 01<span class="d-block text-body">WORK</span></h4>
+                        <p class="m-0">09:00-18:00</p>
+						<p class="m-0">morning shift</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	<div id="popup1" class="overlay">
+		<div class="popup">
+			<h2>Here i am</h2>
+			<a class="close" href="#">&times;</a>
+			<div class="content">
+				        <iframe class="position-relative w-100 h-100"
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3001156.4288297426!2d-78.01371936852176!3d42.72876761954724!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4ccc4bf0f123a5a9%3A0xddcfc6c1de189567!2sNew%20York%2C%20USA!5e0!3m2!1sen!2sbd!4v1603794290143!5m2!1sen!2sbd"
+                        frameborder="0" style="border:0;" allowfullscreen="" aria-hidden="false"
+                        tabindex="0"></iframe>
+			</div>
+		</div>
+	</div>
+    <!-- Services End -->
+    <!-- JavaScript Libraries -->
+	<!--===============================================================================================-->
+	<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/isotope/isotope.pkgd.min.js"></script>
+    <script src="lib/lightbox/js/lightbox.min.js"></script>
+
+    <!-- Contact Javascript File -->
+    <script src="mail/jqBootstrapValidation.min.js"></script>
+    <script src="mail/contact.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+</body>
+</html>

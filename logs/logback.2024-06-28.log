@@ -1,0 +1,119 @@
+13:03:15.578 default [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=11h52m33s591ms845µs900ns).
+13:28:21.126 default [RMI TCP Connection(163)-127.0.0.1] WARN  o.a.c.loader.WebappClassLoaderBase - The web application [ROOT] appears to have started a thread named [HikariPool-1 housekeeper] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base@17.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+ java.base@17.0.3/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:252)
+ java.base@17.0.3/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1672)
+ java.base@17.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+ java.base@17.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+ java.base@17.0.3/java.lang.Thread.run(Thread.java:833)
+13:28:21.128 default [RMI TCP Connection(163)-127.0.0.1] WARN  o.a.c.loader.WebappClassLoaderBase - The web application [ROOT] appears to have started a thread named [logback-1] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base@17.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+ java.base@17.0.3/java.util.concurrent.locks.LockSupport.park(LockSupport.java:341)
+ java.base@17.0.3/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:506)
+ java.base@17.0.3/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3463)
+ java.base@17.0.3/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3434)
+ java.base@17.0.3/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1623)
+ java.base@17.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1170)
+ java.base@17.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+ java.base@17.0.3/java.lang.Thread.run(Thread.java:833)
+16:05:47.441 default [http-nio-9001-exec-7] ERROR c.grace.granos.controller.Attendance - Cannot cast java.lang.Double to java.util.Date
+16:06:08.428 default [RMI TCP Connection(4)-127.0.0.1] WARN  o.a.c.loader.WebappClassLoaderBase - The web application [ROOT] appears to have started a thread named [HikariPool-1 housekeeper] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base@17.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+ java.base@17.0.3/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:252)
+ java.base@17.0.3/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1672)
+ java.base@17.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+ java.base@17.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+ java.base@17.0.3/java.lang.Thread.run(Thread.java:833)
+16:10:21.179 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:10:21.266 default [http-nio-9001-exec-3] ERROR c.grace.granos.controller.Attendance - Cannot cast java.lang.Double to java.util.Date
+16:13:04.665 default [RMI TCP Connection(5)-127.0.0.1] WARN  o.a.c.loader.WebappClassLoaderBase - The web application [ROOT] appears to have started a thread named [HikariPool-1 housekeeper] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base@17.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+ java.base@17.0.3/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:252)
+ java.base@17.0.3/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1672)
+ java.base@17.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+ java.base@17.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+ java.base@17.0.3/java.lang.Thread.run(Thread.java:833)
+16:33:22.807 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.891 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 19:14:00 CST 1899
+16:33:22.897 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.898 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:38:00 CST 1899
+16:33:22.904 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.906 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:08:00 CST 1899
+16:33:22.926 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.928 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:30:00 CST 1899
+16:33:22.933 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.935 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:19:00 CST 1899
+16:33:22.941 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.942 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 19:05:00 CST 1899
+16:33:22.948 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.949 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 19:39:00 CST 1899
+16:33:22.954 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.955 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:30:00 CST 1899
+16:33:22.961 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.963 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 20:22:00 CST 1899
+16:33:22.968 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.970 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 19:11:00 CST 1899
+16:33:22.975 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.976 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:42:00 CST 1899
+16:33:22.980 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.982 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:27:00 CST 1899
+16:33:22.986 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.987 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:40:00 CST 1899
+16:33:22.993 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:22.994 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 22:14:00 CST 1899
+16:33:22.999 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:23.000 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:02:00 CST 1899
+16:33:23.010 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:23.011 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 19:23:00 CST 1899
+16:33:23.017 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:23.018 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:05:00 CST 1899
+16:33:23.022 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:23.023 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:17:00 CST 1899
+16:33:23.029 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:23.030 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 18:22:00 CST 1899
+16:33:23.036 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:23.038 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 18:35:00 CST 1899
+16:33:23.042 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:23.043 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:42:00 CST 1899
+16:33:23.048 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:23.050 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:34:00 CST 1899
+16:33:23.054 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:23.056 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 19:15:00 CST 1899
+16:33:23.062 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:23.063 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 20:11:00 CST 1899
+16:33:23.068 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:23.070 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 17:08:00 CST 1899
+16:33:23.075 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overStartTime:Sun Dec 31 17:00:00 CST 1899
+16:33:23.076 default [http-nio-9001-exec-3] ERROR c.g.granos.service.AttendanceService - overEndTime:Sun Dec 31 19:22:00 CST 1899
+16:34:36.570 default [RMI TCP Connection(5)-127.0.0.1] WARN  o.a.c.loader.WebappClassLoaderBase - The web application [ROOT] appears to have started a thread named [HikariPool-1 housekeeper] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base@17.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+ java.base@17.0.3/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:252)
+ java.base@17.0.3/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1672)
+ java.base@17.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+ java.base@17.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+ java.base@17.0.3/java.lang.Thread.run(Thread.java:833)
+17:58:58.550 default [RMI TCP Connection(86)-127.0.0.1] WARN  o.a.c.loader.WebappClassLoaderBase - The web application [ROOT] appears to have started a thread named [HikariPool-1 housekeeper] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base@17.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+ java.base@17.0.3/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:252)
+ java.base@17.0.3/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1672)
+ java.base@17.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+ java.base@17.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+ java.base@17.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+ java.base@17.0.3/java.lang.Thread.run(Thread.java:833)
