@@ -2,6 +2,4 @@ runtime: java17
 instance_class: F1
 service: granos
 automatic_scaling:
-  min_instances: 1
   max_instances: 1
-  idle_timeout: 10m
