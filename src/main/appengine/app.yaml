@@ -1,5 +1,6 @@
 runtime: java17
 instance_class: F1
 service: granos
-manual_scaling:
-  instances: 1
+automatic_scaling:
+  min_instances: 1
+  max_instances: 1
