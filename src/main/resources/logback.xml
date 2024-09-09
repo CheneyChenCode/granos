@@ -5,7 +5,7 @@
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <!--用ThresholdFilter過濾ERROR以上級別才顯示在terminal上~-->
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
+            <level>INFO</level>
         </filter>
         <encoder>
             <!-- 印出Log的格式 -->
@@ -28,7 +28,7 @@
         </rollingPolicy>
         <!--設定WARN以上級別才需要輸出至檔案-->
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>WARN</level>
+            <level>INFO</level>
         </filter>
         <encoder>
             <!--Log的格式-->
@@ -36,7 +36,7 @@
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <!--把appender加上去-->
         <appender-ref ref="console" />
         <appender-ref ref="file" />
