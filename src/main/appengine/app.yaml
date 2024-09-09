@@ -1,6 +1,5 @@
 runtime: java17
 instance_class: F1
-service: granos
 automatic_scaling:
   target_cpu_utilization: 0.65
   min_instances: 0
