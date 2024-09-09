@@ -46,6 +46,11 @@
 			<artifactId>spring-boot-starter-logging</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-logging-logback</artifactId>
+			<version>0.131.8-alpha</version>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
