@@ -1,7 +1,6 @@
 runtime: java17
 instance_class: F1
 automatic_scaling:
-  target_cpu_utilization: 0.65
   min_instances: 0
   max_instances: 1
   max_concurrent_requests: 50
