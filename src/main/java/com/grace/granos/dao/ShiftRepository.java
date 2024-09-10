@@ -20,7 +20,7 @@ public class ShiftRepository {
 		String sql = " SELECT "
 						   + " id,name,start_time,end_time,base_hours,rest_hours,rest_start_hour"
 						   + " FROM "
-						   + " granos.shifts";
+						   + " shifts";
 
 		List<ShiftModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<ShiftModel>(ShiftModel.class));
 		if(result != null && result.size() > 0) {
@@ -32,9 +32,9 @@ public class ShiftRepository {
 		String sql = " SELECT "
 						   + "		id,name,start_time,end_time,base_hours,rest_hours,rest_start_hour "
 						   + " FROM "
-						   + "		granos.shifts"
+						   + " shifts"
 						   + " WHERE "
-						   + "		name = ? ";
+						   + " name = ? ";
 
 		List<ShiftModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<ShiftModel>(ShiftModel.class), new Object[] { model.getName() });
 		if(result != null && result.size() > 0) {

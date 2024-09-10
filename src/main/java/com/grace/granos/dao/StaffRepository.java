@@ -22,7 +22,7 @@ public class StaffRepository {
 	private JdbcTemplate jdbcTemplate;
 	
 	public int addStaff(StaffModel staffModel){
-		String sql = " INSERT INTO test_project.member_account ( "
+		String sql = " INSERT INTO member_account ( "
 			  	   + "		USERNAME, PASSWORD, SALT, "
 			  	   + "		CREATE_BY, CREATE_TIME, UPDATE_BY, UPDATE_TIME "
 			  	   + " ) "

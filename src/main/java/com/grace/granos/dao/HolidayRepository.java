@@ -24,7 +24,7 @@ public class HolidayRepository {
 	private JdbcTemplate jdbcTemplate;
 	
 	public int[] addHolidays(List<HolidaysModel> models){
-		String sql = " INSERT INTO granos.holidays ( "
+		String sql = " INSERT INTO holidays ( "
 			  	   + "		date, description, day_code "
 			  	   + " ) "
 			  	   + " VALUES ( "
@@ -53,7 +53,7 @@ public class HolidayRepository {
 		String sql = " SELECT "
 						   + " date,description,day_code"
 						   + " FROM "
-						   + " granos.holidays"
+						   + " holidays"
 						   + " WHERE"
 						   + " date >= ? order by date";
 
@@ -69,7 +69,7 @@ public class HolidayRepository {
 		String sql = " SELECT "
 						   + " date,description,day_code"
 						   + " FROM "
-						   + " granos.holidays"
+						   + " holidays"
 						   + " WHERE"
 						   + " date >= ? order by date";
 
@@ -85,7 +85,7 @@ public class HolidayRepository {
 		String sql = " SELECT "
 						   + " date,description,day_code"
 						   + " FROM "
-						   + " granos.holidays"
+						   + " holidays"
 						   + " WHERE"
 						   + " date >= ? order by date";
 

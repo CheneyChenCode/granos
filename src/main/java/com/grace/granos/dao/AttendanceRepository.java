@@ -24,7 +24,7 @@ public class AttendanceRepository {
 		String sql = " SELECT "
 						   + " emp_id,year,month,day"
 						   + " FROM "
-						   + " granos.attendance"
+						   + " attendance"
 						   + " WHERE status <> 1"
 						   + " AND year = ? and month = ? and emp_id = ?";
 
@@ -38,7 +38,7 @@ public class AttendanceRepository {
 		String sql = " SELECT "
 						   + " emp_id,year,month,day,seq,work_hours,overtime,shift,day_code,remain_tax_free"
 						   + " FROM "
-						   + " granos.attendance"
+						   + " attendance"
 						   + " WHERE "
 						   + " year = ? and month = ? and emp_id = ? order by day,seq";
 
@@ -52,7 +52,7 @@ public class AttendanceRepository {
 		String sql = " SELECT "
 						   + " emp_id,year,month,day,seq,start_datetime,week,arrival_datetime,end_datetime,leave_datetime,work_hours,overtime,approval,note,reason,shift,day_code,status"
 						   + " FROM "
-						   + " granos.attendance"
+						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ? order by day,seq";
 
@@ -65,7 +65,7 @@ public class AttendanceRepository {
 	public int deleteAttendanceByUserMon(AttendanceModel att){
 		String sql = " DELETE "
 						   + " FROM "
-						   + " granos.attendance"
+						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ? ";
 		int result = jdbcTemplate.update(sql, att.getYear(),att.getMonth(),att.getEmpId());
@@ -75,7 +75,7 @@ public class AttendanceRepository {
 		String sql = " SELECT "
 						   + " COUNT(0)"
 						   + " FROM "
-						   + " granos.attendance"
+						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ? and shift ='DXF'"
 						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and period =1)";
@@ -87,7 +87,7 @@ public class AttendanceRepository {
 		String sql = " SELECT "
 						   + " COUNT(0)"
 						   + " FROM "
-						   + " granos.attendance"
+						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ? and shift ='DLF'"
 						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and period =1)";
@@ -99,7 +99,7 @@ public class AttendanceRepository {
 		String sql = " SELECT "
 						   + " COUNT(0)"
 						   + " FROM "
-						   + " granos.attendance"
+						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ? and work_hours  <> 0"
 						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and work_hours > 0)";
@@ -111,7 +111,7 @@ public class AttendanceRepository {
 		String sql = " SELECT "
 						   + " period"
 						   + " FROM "
-						   + " granos.attendance"
+						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ?"
 						   + " AND day = (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ?)";
@@ -120,7 +120,7 @@ public class AttendanceRepository {
 		return result;
 	}
 	public int[] addAttendance(List<AttendanceModel> models){
-		String sql = " INSERT INTO granos.attendance ( "
+		String sql = " INSERT INTO attendance ( "
 			  	   + "		emp_id, year, month, "
 			  	   + "		day, seq, arrival_datetime, leave_datetime,"
 			  	   + "		work_hours, note, approval,"

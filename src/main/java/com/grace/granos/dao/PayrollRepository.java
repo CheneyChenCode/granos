@@ -21,7 +21,7 @@ public class PayrollRepository {
 		String sql = " SELECT "
 						   + " r.emp_id,r.year,r.month,r.day,r.pay_code,p.title,SUM(r.hours) hours,p.coefficient"
 						   + " FROM "
-						   + " granos.payroll r inner join granos.pay_code p on p.id=r.pay_code"
+						   + " payroll r inner join pay_code p on p.id=r.pay_code"
 						   + " WHERE"
 						   + " r.year = ? and r.month = ? and r.emp_id = ?"
 						   + " GROUP BY r.emp_id,r.year,r.month,r.day,r.pay_code,p.title,p.coefficient"

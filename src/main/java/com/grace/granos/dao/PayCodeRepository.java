@@ -21,7 +21,7 @@ public class PayCodeRepository {
 		String sql = " SELECT "
 						   + " p.id,p.day_code,p.shift,p.hour_part_greater,p.hour_part_less,p.coefficient,p.description,p.title,d.description day_code_desc"
 						   + " FROM"
-						   + " granos.pay_code p inner join granos.day_code d on d.id =p.day_code"
+						   + " pay_code p inner join granos.day_code d on d.id =p.day_code"
 						   + " WHERE"
 						   + " now() >= p.active_time and (now() <= p.disable_time or p.disable_time is null)"
 						   + " ORDER BY p.day_code,p.id";
