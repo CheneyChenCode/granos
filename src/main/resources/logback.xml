@@ -2,18 +2,18 @@
 <configuration>
 	<!-- 設置變數，將檔案位置設為./logs -->
 	<property name="LOG_PATH" value="./logs" />
-<!-- 		<appender name="CLOUD"
+		<appender name="CLOUD"
 			class="com.google.cloud.logging.logback.LoggingAppender">
-			Optional : filter logs at or above a level
+			<!--Optional : filter logs at or above a level-->
 			<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
 				<level>INFO</level>
 			</filter>
-			<log>application.log</log> Optional : default java.log
-			<resourceType>gae_app</resourceType> Optional : default: auto-detected, fallback: global
+			<log>application.log</log> <!-- Optional : default java.log -->
+			<resourceType>gae_app</resourceType> <!-- Optional : default: auto-detected, fallback: global -->
 			<enhancer>com.example.logging.logback.enhancers.ExampleEnhancer
-			</enhancer> Optional
-			<flushLevel>WARN</flushLevel> Optional : default ERROR
-		</appender> -->
+			</enhancer> <!-- Optional -->
+			<flushLevel>WARN</flushLevel> <!-- Optional : default ERROR -->
+		</appender> 
 		<appender name="console"
 			class="ch.qos.logback.core.ConsoleAppender">
 	<!-- 用ThresholdFilter過濾ERROR以上級別才顯示在terminal上~ -->
