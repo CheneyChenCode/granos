@@ -52,7 +52,7 @@ public class StaffRepository {
 	}
 	public Iterable<StaffModel> findAll(){
 		String sql = " SELECT "
-						   + "		emp_id,name_en,name_cn,email,create_time,change_time,entry_date,status,leave_date,password,last_name_en,last_name_cn,username "
+						   + "		emp_id,name_en,name_cn,email,create_time,entry_date,status,leave_date,password,last_name_en,last_name_cn,username "
 						   + " FROM "
 						   + "		employees";
 

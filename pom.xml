@@ -36,6 +36,11 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>spring-cloud-gcp-starter-sql-mysql</artifactId>
+			<version>4.1.4</version>
+		</dependency>
 		<!-- For DataBase connection -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
