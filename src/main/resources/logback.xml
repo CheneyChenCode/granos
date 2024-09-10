@@ -14,45 +14,45 @@
 			</enhancer> <!-- Optional -->
 			<flushLevel>WARN</flushLevel> <!-- Optional : default ERROR -->
 		</appender> 
-		<appender name="console"
+<!-- 		<appender name="console"
 			class="ch.qos.logback.core.ConsoleAppender">
-	<!-- 用ThresholdFilter過濾ERROR以上級別才顯示在terminal上~ -->
+	用ThresholdFilter過濾ERROR以上級別才顯示在terminal上~
 			<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
 				<level>INFO</level>
 			</filter>
 			<encoder>
-<!-- 				印出Log的格式
+				印出Log的格式
 				%d{YYYY-MM-dd HH: mm:ss.SSS} log 時間
 				%thread 執行緒名字
 				%highlight 顯示高亮顏色
 				%-5level log級別且顯示5個字，靠左對齊
 				%logger log的名字
-				%msg log訊息 -->
+				%msg log訊息
 				<pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level)
 					%logger{36} - %msg%n</pattern>
 			</encoder>
-		</appender>
+		</appender> -->
 		<!-- 输出到文件 -->
-		<appender name="file"
+<!-- 		<appender name="file"
 			class="ch.qos.logback.core.rolling.RollingFileAppender">
 			<rollingPolicy
 				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-				<!-- 輸出文件的位置，以每一天做切割 -->
+				輸出文件的位置，以每一天做切割
 				<fileNamePattern>${LOG_PATH}/logback.%d{yyyy-MM-dd}.log
 				</fileNamePattern>
-				<!-- 保留30天的歷史紀錄 -->
+				保留30天的歷史紀錄
 				<maxHistory>30</maxHistory>
 			</rollingPolicy>
-			<!-- 設定WARN以上級別才需要輸出至檔案 -->
+			設定WARN以上級別才需要輸出至檔案
 			<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
 				<level>INFO</level>
 			</filter>
 			<encoder>
-				<!-- Log的格式 -->
+				Log的格式
 				<pattern>%d{HH:mm:ss.SSS} %contextName [%thread] %-5level
 					%logger{36} - %msg%n</pattern>
 			</encoder>
-		</appender>
+		</appender> -->
 
 		<root level="INFO">
 			<!--把appender加上去 -->
