@@ -66,13 +66,16 @@
 	var currentDate = new Date();
 
 	// 获取当前年份
-	var currentYear = currentDate.getFullYear();
+	const currentYear = currentDate.getFullYear();
 
 	// 获取当前月份（注意，月份是从 0 开始计数的，所以需要加 1）
-	var currentMonth = currentDate.getMonth() + 1;
+	const currentMonth = currentDate.getMonth() + 1;
 	
 	var specMonth=currentMonth;
-
+	const protocol = window.location.protocol;  
+	const hostname = window.location.hostname;  
+	const port = window.location.port ? ':' + window.location.port : '';
+	const newUrl = protocol+'//'+hostname+port;
 $(document).ready(function() {
 		let dropdownMenu = $('#monthDropdown');
     
@@ -90,7 +93,7 @@ $(document).ready(function() {
         processing: true, // 显示加载状态
         serverSide: true, // 开启服务器端处理模式
         ajax: {
-                    url: "http://localhost:9001/getPayroll", // 外部数据源的URL
+                    url: newUrl+"/getPayroll", // 外部数据源的URL
                     type: "GET", 
                     data: function(d){
 							d.year = currentYear;
