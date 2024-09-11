@@ -44,7 +44,7 @@ public class FileStorageService {
 			// 获取指定 bucket
 			Bucket bucket = storage.get(BUCKET_NAME);
 			if (bucket != null) {
-				return BUCKET_NAME + "//" + folderName;
+				return folderName;
 			}
 
 		} else {
