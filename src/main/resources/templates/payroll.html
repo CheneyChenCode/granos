@@ -236,6 +236,14 @@ $(document).ready(function() {
 		table.ajax.reload(); // 重新加载数据
 	}
     function exportToExcel() {
+    	event.preventDefault(); // 阻止表单的默认提交行为
+		let spinner = $('<span>', {
+			'class': 'spinner-border text-light',
+			'role': 'status',
+			'aria-hidden': 'true'
+		});
+		let submitButton = $('#downloadExcel');
+		submitButton.prop('disabled', true).empty().append(spinner);
         $.ajax({
             url: '/downloadPayroll',
             type: 'GET', // 或 'POST'，取决于你的 Controller 定义
@@ -261,8 +269,10 @@ $(document).ready(function() {
                 a.click();
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url); // Clean up
+                submitButton.prop('disabled', false).empty();
             },
             error: function(xhr, status, error) {
+            	submitButton.prop('disabled', false).empty()
                 console.error('Download failed:', error);
                 alert('Failed to download the Excel file.');
             }
@@ -306,7 +316,7 @@ $(document).ready(function() {
 			<div class="col">
 				<!-- Bootstrap 标签页 -->
 				<button class="btn btn-primary" type="button" onclick="switchTab()"><i id="icon" class="fas fa-list"></i></button>
-				<button class="btn btn-primary" type="button" onclick="exportToExcel()"><i class="fa fa-download"></i></button>
+				<button class="btn btn-primary" type="button" onclick="exportToExcel()" id="downloadExcel"><i class="fa fa-download"></i></button>
 			</div>
 			<div class="col d-flex justify-content-end">
 			  <div class="dropdown">

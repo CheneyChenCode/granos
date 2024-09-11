@@ -437,9 +437,7 @@ public class AttendanceService {
 			if (arrivalTime != null) {
 				// 解析时间字符串为 LocalTime 对象
 				LocalTime arrivalLocalTime = arrivalTime.toInstant().atZone(ZoneId.of("Asia/Taipei")).toLocalTime();
-				logger.info(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(arrivalLocalTime));
 				LocalDateTime arrivalDateTime = LocalDateTime.of(startDate, arrivalLocalTime);
-				logger.info(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(arrivalDateTime));
 				Timestamp arrivalDateTimeStamp = Timestamp.valueOf(arrivalDateTime);
 				logger.info(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(arrivalDateTimeStamp));
 				at.setArrivalDatetime(arrivalDateTimeStamp);
