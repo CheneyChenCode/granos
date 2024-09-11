@@ -181,6 +181,9 @@ public class PayrollService {
 		payroll.setMonth(month);
 		payroll.setEmpId(empid);
 		List<PayrollModel> payrolls = payrollRepository.findPayrollByUserMon(payroll);
+		if(payrolls==null) {
+			return null;
+		}
 		// 创建 Excel 工作簿
 		Workbook workbook = new XSSFWorkbook();
 

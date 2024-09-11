@@ -30,7 +30,6 @@ import com.grace.granos.service.AttendanceService;
 import com.grace.granos.service.PayrollService;
 import com.grace.granos.service.StaffService;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -105,7 +104,9 @@ public class Payroll {
 		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
 		try {
 			out = payrollService.exportUsersToExcel(year, month, empid);
-
+			if(out==null) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(messageSource.getMessage("3001", null, locale));
+			}
 			HttpHeaders header = new HttpHeaders();
 			header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + finlename + ".xlsx");
 			header.add("Cache-Control", "no-cache, no-store, must-revalidate");
