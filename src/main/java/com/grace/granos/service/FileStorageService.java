@@ -43,7 +43,7 @@ public class FileStorageService {
 		if (isRunningOnGCP()) {
 			// 获取指定 bucket
 			Bucket bucket = storage.get(BUCKET_NAME);
-			if (bucket == null) {
+			if (bucket != null) {
 				return BUCKET_NAME + "//" + folderName;
 			}
 
