@@ -60,12 +60,19 @@
 	$('#loginForm').submit(function (event) {
 
 		event.preventDefault(); // 阻止表单的默认提交行为
+		let spinner = $('<span>', {
+			'class': 'spinner-border text-light',
+			'role': 'status',
+			'aria-hidden': 'true'
+		});
+		let submitButton = $('#loginForm button[type="submit"]');
+		// Store original button text
+		let originalButtonText = submitButton.text();
 		let check = validateForm();
 		if(!check){
 			return;
 		}
-		console.log(check);
-		let queryString = window.location.search;
+		submitButton.prop('disabled', true).empty().append(spinner).append(' Loading...');
 		let formData = new FormData($('#loginForm')[0]);
 
 		$.ajax({
@@ -76,6 +83,7 @@
 			processData: false,
 			success: function (response) {
 				// 上传成功
+				submitButton.prop('disabled', false).empty().text(originalButtonText);
 				window.location.href = window.location.origin+"/"+response.data
 			},
 			error: function (xhr, status, error) {
@@ -95,6 +103,7 @@
 				  	errorMessage = $('#errorPassword');
 					errorMessage.text(message);
 				}
+				submitButton.prop('disabled', false).empty().text(originalButtonText);
 			}
 		});
 	});
