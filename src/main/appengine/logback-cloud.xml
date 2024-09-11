@@ -12,7 +12,7 @@
 			<resourceType>gae_app</resourceType> <!-- Optional : default: auto-detected, fallback: global -->
 			<enhancer>com.example.logging.logback.enhancers.ExampleEnhancer
 			</enhancer> <!-- Optional -->
-			<flushLevel>WARN</flushLevel> <!-- Optional : default ERROR -->
+			<flushLevel>ERROR</flushLevel> <!-- Optional : default ERROR -->
 		</appender> 
 <!-- 		<appender name="console"
 			class="ch.qos.logback.core.ConsoleAppender">
