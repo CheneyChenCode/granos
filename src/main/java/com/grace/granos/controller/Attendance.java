@@ -81,7 +81,7 @@ public class Attendance {
 
             // 使用 DateTimeFormatter 格式化日期为 "yyyyMMdd" 格式的字符串
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-            String folderName = currentDate.format(formatter)+"\\attendance";
+            String folderName = currentDate.format(formatter)+"/attendance";
 
     		// 创建文件夹
             String folderPath=fileStorageService.doesFolderExist(folderName);
@@ -108,7 +108,7 @@ public class Attendance {
             // 将上传的文件保存到临时位置
             //Path tempFilePath = Files.createTempFile(filename+"_", extension);
             try {
-                fileStorageService.createFile(folderPath+"\\"+filename,file.getBytes());
+                fileStorageService.createFile(folderPath+"/"+filename,file.getBytes());
 	            // 解析Excel文件并处理数据
 	            List<AttendanceModel> attendances = attendanceService.parseExcel(file.getInputStream(),user);
 	            

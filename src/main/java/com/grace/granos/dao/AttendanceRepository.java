@@ -2,7 +2,7 @@ package com.grace.granos.dao;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -145,18 +145,21 @@ public class AttendanceRepository {
 
 			@Override
 			public void setValues(PreparedStatement ps, int i) throws SQLException {
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				ps.setInt(1, models.get(i).getEmpId());//emp_id
 				ps.setInt(2, models.get(i).getYear());//year
 				ps.setInt(3,models.get(i).getMonth());//month
 				ps.setInt(4,models.get(i).getDay());//day
 				ps.setInt(5, models.get(i).getSeq());//seq
 				if(models.get(i).getArrivalDatetime()!=null) {
-					ps.setTimestamp(6, Timestamp.valueOf(models.get(i).getArrivalDatetime().toLocalDateTime().plusHours(8)));//arrival_datetime
+					//ps.setTimestamp(6, Timestamp.valueOf(models.get(i).getArrivalDatetime().toLocalDateTime().plusHours(8)));//arrival_datetime
+					ps.setString(6,dateFormat.format(models.get(i).getArrivalDatetime()));
 				}else {
 					ps.setTimestamp(6, null);//arrival_datetime
 				}
 				if(models.get(i).getLeaveDatetime()!=null) {
-					ps.setTimestamp(7, Timestamp.valueOf(models.get(i).getLeaveDatetime().toLocalDateTime().plusHours(8)));//leave_datetime
+					//ps.setTimestamp(7, Timestamp.valueOf(models.get(i).getLeaveDatetime().toLocalDateTime().plusHours(8)));//leave_datetime
+					ps.setString(7,dateFormat.format(models.get(i).getLeaveDatetime()));
 				}else {
 					ps.setTimestamp(7, null);//leave_datetime
 				}
@@ -167,12 +170,14 @@ public class AttendanceRepository {
 				ps.setInt(12, models.get(i).getDayCode());//dayCode
 				ps.setFloat(13, models.get(i).getOvertime());//overTime
 				if(models.get(i).getStartDatetime()!=null) {
-					ps.setTimestamp(14, Timestamp.valueOf(models.get(i).getStartDatetime().toLocalDateTime().plusHours(8)));//startDatetime
+					//ps.setTimestamp(14, Timestamp.valueOf(models.get(i).getStartDatetime().toLocalDateTime().plusHours(8)));//startDatetime
+					ps.setString(14,dateFormat.format(models.get(i).getStartDatetime()));
 				}else {
 					ps.setTimestamp(14, null);//startDatetime
 				}
 				if(models.get(i).getEndDatetime()!=null) {
-					ps.setTimestamp(15, Timestamp.valueOf(models.get(i).getEndDatetime().toLocalDateTime().plusHours(8)));//endDatetime
+					//ps.setTimestamp(15, Timestamp.valueOf(models.get(i).getEndDatetime().toLocalDateTime().plusHours(8)));//endDatetime
+					ps.setString(15,dateFormat.format(models.get(i).getEndDatetime()));
 				}else {
 					ps.setTimestamp(15, null);//endDatetime
 				}
@@ -186,12 +191,14 @@ public class AttendanceRepository {
 				ps.setFloat(23, models.get(i).getPaidLeave());//paid_leave
 				ps.setFloat(24, models.get(i).getRemainTaxFree());//remain_tax_free
 				if(models.get(i).getOverStartDatetime()!=null) {
-					ps.setTimestamp(25, Timestamp.valueOf(models.get(i).getOverStartDatetime().toLocalDateTime().plusHours(8)));//overStartDatetime
+					//ps.setTimestamp(25, Timestamp.valueOf(models.get(i).getOverStartDatetime().toLocalDateTime().plusHours(8)));//overStartDatetime
+					ps.setString(25,dateFormat.format(models.get(i).getOverStartDatetime()));
 				}else {
 					ps.setTimestamp(25, null);//overStartDatetime
 				}
 				if(models.get(i).getOverEndDatetime()!=null) {
-					ps.setTimestamp(26, Timestamp.valueOf(models.get(i).getOverEndDatetime().toLocalDateTime().plusHours(8)));//overEndDatetime
+					//ps.setTimestamp(26, Timestamp.valueOf(models.get(i).getOverEndDatetime().toLocalDateTime().plusHours(8)));//overEndDatetime
+					ps.setString(26,dateFormat.format(models.get(i).getOverEndDatetime()));
 				}else {
 					ps.setTimestamp(26, null);//overEndDatetime
 				}
