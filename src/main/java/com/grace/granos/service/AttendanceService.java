@@ -36,6 +36,8 @@ import org.apache.poi.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import com.grace.granos.dao.AttendanceRepository;
 import com.grace.granos.dao.HolidayRepository;
@@ -45,7 +47,7 @@ import com.grace.granos.model.AttendanceModel;
 import com.grace.granos.model.HolidaysModel;
 import com.grace.granos.model.ShiftModel;
 import com.grace.granos.model.User;
-
+@PropertySource("classpath:application.properties") // 指定属性文件的位置
 @Service
 public class AttendanceService {
 	private static final Logger logger = LoggerFactory.getLogger(AttendanceService.class);
@@ -55,7 +57,9 @@ public class AttendanceService {
 	private ShiftRepository shiftRepository;
 	@Autowired
 	private HolidayRepository holidayRepository;
-
+	@Value("${time.zone}") 
+	private String zoneName;
+	private final ZoneId timeZone=ZoneId.of(zoneName);
 	public List<AttendanceModel> checkAttendanceForPayByUserMon(int year, int month, int empid) throws Exception {
 		AttendanceModel att = new AttendanceModel();
 		att.setEmpId(empid);
@@ -244,8 +248,8 @@ public class AttendanceService {
 			}
 			if (datePre != null) {
 				// 将 Date 对象转换为 LocalDate 对象
-				LocalDate localDate1 = date.toInstant().atZone(ZoneId.of("Asia/Taipei")).toLocalDate();
-				LocalDate localDate2 = datePre.toInstant().atZone(ZoneId.of("Asia/Taipei")).toLocalDate();
+				LocalDate localDate1 = date.toInstant().atZone(timeZone).toLocalDate();
+				LocalDate localDate2 = datePre.toInstant().atZone(timeZone).toLocalDate();
 				// 使用 equals 方法比较两个 LocalDate 对象是否相等
 				if (localDate1.equals(localDate2)) {
 					seq = seq + 1;
@@ -411,10 +415,10 @@ public class AttendanceService {
 			at.setDay_code(dayCode);
 
 			// 将日期和时间字符串转换为 LocalDate 和 LocalTime 对象
-			LocalDate startDate = date.toInstant().atZone(ZoneId.of("Asia/Taipei")).toLocalDate();
+			LocalDate startDate = date.toInstant().atZone(timeZone).toLocalDate();
 			LocalDate endLocalDate = null;
 
-			LocalTime time = shift.getStartTime().toInstant().atZone(ZoneId.of("Asia/Taipei")).toLocalTime();
+			LocalTime time = shift.getStartTime().toInstant().atZone(timeZone).toLocalTime();
 			// 将日期和时间组合成 LocalDateTime 对象
 			LocalDateTime startDateTime = LocalDateTime.of(startDate, time);
 			// 将 LocalDateTime 对象转换为 Timestamp 对象
@@ -436,7 +440,7 @@ public class AttendanceService {
 			Date arrivalTime = getCellValue(formulaEvaluator, row.getCell(5), Date.class);
 			if (arrivalTime != null) {
 				// 解析时间字符串为 LocalTime 对象
-				LocalTime arrivalLocalTime = arrivalTime.toInstant().atZone(ZoneId.of("Asia/Taipei")).toLocalTime();
+				LocalTime arrivalLocalTime = arrivalTime.toInstant().atZone(timeZone).toLocalTime();
 				LocalDateTime arrivalDateTime = LocalDateTime.of(startDate, arrivalLocalTime);
 				Timestamp arrivalDateTimeStamp = Timestamp.valueOf(arrivalDateTime);
 				logger.info(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(arrivalDateTimeStamp));
@@ -458,7 +462,7 @@ public class AttendanceService {
 			Date leaveTime = getCellValue(formulaEvaluator, row.getCell(7), Date.class);
 			if (leaveTime != null) {
 				LocalDateTime leaveDateTime = LocalDateTime.of(endLocalDate,
-						leaveTime.toInstant().atZone(ZoneId.of("Asia/Taipei")).toLocalTime());
+						leaveTime.toInstant().atZone(timeZone).toLocalTime());
 				Timestamp leaveDateTimeStamp = Timestamp.valueOf(leaveDateTime);
 				at.setLeaveDatetime(leaveDateTimeStamp);
 			}
@@ -506,9 +510,9 @@ public class AttendanceService {
 				Date overEndTime = getCellValue(formulaEvaluator, row.getCell(11), Date.class);
 				if (overStartTime != null && overEndTime != null) {
 					LocalDateTime overStartDateTime = LocalDateTime.of(endLocalDate,
-							overStartTime.toInstant().atZone(ZoneId.of("Asia/Taipei")).toLocalTime());
+							overStartTime.toInstant().atZone(timeZone).toLocalTime());
 					LocalDateTime overEndDateTime = LocalDateTime.of(endLocalDate,
-							overEndTime.toInstant().atZone(ZoneId.of("Asia/Taipei")).toLocalTime());
+							overEndTime.toInstant().atZone(timeZone).toLocalTime());
 					if (at.getEndDatetime().compareTo(Timestamp.valueOf(overStartDateTime)) >= 0) {
 						overStartDateTime = endLocalDateTime;
 					}
