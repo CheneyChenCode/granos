@@ -57,7 +57,7 @@ public class AttendanceService {
 	private ShiftRepository shiftRepository;
 	@Autowired
 	private HolidayRepository holidayRepository;
-	@Value("${time.zone}") 
+	@Value("${spring.time.zone}") 
 	private String zoneName;
 	private final ZoneId timeZone=ZoneId.of(zoneName);
 	public List<AttendanceModel> checkAttendanceForPayByUserMon(int year, int month, int empid) throws Exception {
