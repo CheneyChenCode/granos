@@ -50,7 +50,7 @@ public class AttendanceRepository {
 	}
 	public List<AttendanceModel> findAttendanceByUserMon(AttendanceModel att){
 		String sql = " SELECT "
-						   + " emp_id,year,month,day,seq,start_datetime,week,arrival_datetime,end_datetime,leave_datetime,work_hours,overtime,approval,note,reason,shift,day_code,status"
+						   + " emp_id,year,month,day,seq,start_datetime,week,arrival_datetime,end_datetime,leave_datetime,work_hours,overtime,approval,note,reason,shift,day_code,status,comp_reason,comp_time,paid_leave,period,remain_tax_free,over_start_datetime,over_end_datetime"
 						   + " FROM "
 						   + " attendance"
 						   + " WHERE"

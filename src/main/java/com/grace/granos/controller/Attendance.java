@@ -31,6 +31,7 @@ import com.grace.granos.model.AttendanceModel;
 import com.grace.granos.model.JsonResponse;
 import com.grace.granos.model.User;
 import com.grace.granos.service.AttendanceService;
+import com.grace.granos.service.FileStorageService;
 import com.grace.granos.service.StaffService;
 
 import jakarta.servlet.http.Cookie;
@@ -42,14 +43,15 @@ import org.apache.commons.io.FilenameUtils;
 @Controller
 public class Attendance {
 	private static final Logger logger = LoggerFactory.getLogger(Attendance.class);
+
     @Autowired
     private MessageSource messageSource;
-    @Value("${temp.folder.attendance}") // 从属性文件中注入 temp 文件夹路径的值
-    private String tempFolderPath;
 	@Autowired
 	private AttendanceService attendanceService;
     @Autowired
     private StaffService staffService;
+    @Autowired
+	private FileStorageService fileStorageService;
 	@RequestMapping("/attendance")
 	public String attendance(Model model){
 		return "attendance";
@@ -64,19 +66,7 @@ public class Attendance {
     public ResponseEntity<JsonResponse> uploadExcelFile(@RequestParam("file") MultipartFile file,Model model,HttpServletRequest request){
     	JsonResponse rs=new JsonResponse();
         // 获取客户端发送的 Cookie
-        Cookie[] cookies = request.getCookies();
-        User user=null;
-        if (cookies != null) {
-            // 遍历所有 Cookie
-            for (Cookie cookie : cookies) {
-                if ("user".equals(cookie.getName())) {
-                    // 如果找到名为 "user" 的 Cookie，则获取其值
-                    String userValue = cookie.getValue();
-                    user = staffService.jsonToUser(userValue);
-                    request.setAttribute("user", user);
-                }
-            }
-        }
+    	User user=staffService.getUser(request);
     	// 从 CookieLocaleResolver 中获取用户的语言环境
         Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
             // 检查文件是否为空
@@ -92,19 +82,14 @@ public class Attendance {
             // 使用 DateTimeFormatter 格式化日期为 "yyyyMMdd" 格式的字符串
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
             String folderName = currentDate.format(formatter)+"/attendance";
-            File folder = new File(tempFolderPath+folderName);
 
-            // 创建文件夹
-            if (!folder.exists()) {
-                boolean created = folder.mkdirs();
-                if (!created) {
-                    // 将获取到的字符串添加到模型中，以便在视图中使用
-                	//throw new IllegalArgumentException("Failed to create folder.");
-                	rs.setStatus(2001);
-                	rs.setMessage(messageSource.getMessage("2001", null, locale));
-                	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
-                } 
-            } 
+    		// 创建文件夹
+            String folderPath=fileStorageService.doesFolderExist(folderName);
+    		if (folderPath==null) {
+    		    	rs.setStatus(2001);
+    		    	rs.setMessage(messageSource.getMessage("2001", null, locale));
+    		    	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
+    		}
             
             // 获取上传文件的原始文件名
             String originalFilename = file.getOriginalFilename();
@@ -122,13 +107,10 @@ public class Attendance {
             }
             // 将上传的文件保存到临时位置
             //Path tempFilePath = Files.createTempFile(filename+"_", extension);
-            // 将字符串转换为 Path 对象
-            Path path = Paths.get(folder.getPath()+"\\"+filename);
-
             try {
-				Files.write(path, file.getBytes());
+                fileStorageService.createFile(folderPath+"\\"+filename,file.getBytes());
 	            // 解析Excel文件并处理数据
-	            List<AttendanceModel> attendances = attendanceService.parseExcel(path.toString(),user);
+	            List<AttendanceModel> attendances = attendanceService.parseExcel(file.getInputStream(),user);
 	            
 	            attendanceService.addAttendances(attendances);
 			} catch (Exception e) {
@@ -149,4 +131,5 @@ public class Attendance {
         	rs.setMessage(messageSource.getMessage("2000", null, locale));
             return ResponseEntity.ok(rs);
     }
+
 }

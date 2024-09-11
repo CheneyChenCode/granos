@@ -13,6 +13,7 @@ public class PayrollModel {
 	private int payCode;
 	private float hours;
 	private float taxFreeHours;
+	private String creater;
 	//pay_code table
 	private String title;
 	private float coefficient;
@@ -69,6 +70,12 @@ public class PayrollModel {
 	}
 	public void setTaxFreeHours(float taxFreeHours) {
 		this.taxFreeHours = taxFreeHours;
+	}
+	public String getCreater() {
+		return creater;
+	}
+	public void setCreater(String creater) {
+		this.creater = creater;
 	}
 	@Override
     public boolean equals(Object o) {

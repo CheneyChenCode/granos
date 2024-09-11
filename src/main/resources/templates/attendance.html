@@ -72,10 +72,6 @@
 	const currentMonth = currentDate.getMonth() + 1;
 	
 	var specMonth=currentMonth;
-	const protocol = window.location.protocol;  
-	const hostname = window.location.hostname;  
-	const port = window.location.port ? ':' + window.location.port : '';
-	const newUrl = protocol+'//'+hostname+port;
 $(document).ready(function() {
        // 点击上传按钮时执行
         $('#uploadForm').submit(function (event) {
@@ -145,7 +141,7 @@ $(document).ready(function() {
         processing: true, // 显示加载状态
         serverSide: true, // 开启服务器端处理模式
         ajax: {
-                    url: newUrl+"/getAttendance", // 外部数据源的URL
+                    url: "/getAttendance", // 外部数据源的URL
                     type: "GET", 
                     data: function(d){
 							d.year = currentYear;

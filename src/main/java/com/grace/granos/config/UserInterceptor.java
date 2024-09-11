@@ -23,20 +23,7 @@ public class UserInterceptor implements HandlerInterceptor {
             throws Exception {
         String requestURI = request.getRequestURI().replaceAll("/", "");
         String queryString = request.getQueryString();
-        User user=null;
-        // 获取客户端发送的 Cookie
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            // 遍历所有 Cookie
-            for (Cookie cookie : cookies) {
-                if ("user".equals(cookie.getName())) {
-                    // 如果找到名为 "user" 的 Cookie，则获取其值
-                    String userValue = cookie.getValue();
-                    user = staffService.jsonToUser(userValue);
-                    request.setAttribute("user", user);
-                }
-            }
-        }
+        User user=staffService.getUser(request);
         if (user == null) {
             // 用户未登录，重定向到登录页面
         	String url=requestURI;

@@ -72,10 +72,6 @@
 	const currentMonth = currentDate.getMonth() + 1;
 	
 	var specMonth=currentMonth;
-	const protocol = window.location.protocol;  
-	const hostname = window.location.hostname;  
-	const port = window.location.port ? ':' + window.location.port : '';
-	const newUrl = protocol+'//'+hostname+port;
 $(document).ready(function() {
 		let dropdownMenu = $('#monthDropdown');
     
@@ -93,7 +89,7 @@ $(document).ready(function() {
         processing: true, // 显示加载状态
         serverSide: true, // 开启服务器端处理模式
         ajax: {
-                    url: newUrl+"/getPayroll", // 外部数据源的URL
+                    url: "/getPayroll", // 外部数据源的URL
                     type: "GET", 
                     data: function(d){
 							d.year = currentYear;
@@ -239,7 +235,39 @@ $(document).ready(function() {
 		specMonth=month;
 		table.ajax.reload(); // 重新加载数据
 	}
+    function exportToExcel() {
+        $.ajax({
+            url: '/downloadPayroll',
+            type: 'GET', // 或 'POST'，取决于你的 Controller 定义
+            data: {
+                year: currentYear,
+                month: specMonth,
+                user: user.empId
+            },
+            xhrFields: {
+                responseType: 'blob' // 用于处理二进制文件（如 Excel）
+            },
+            success: function(data, status, xhr) {
+                var contentDisposition = xhr.getResponseHeader('Content-Disposition');
+                var filename = contentDisposition.split('filename=')[1];
 
+                // Create a link element and set its href to the blob URL
+                var blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                var url = window.URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url); // Clean up
+            },
+            error: function(xhr, status, error) {
+                console.error('Download failed:', error);
+                alert('Failed to download the Excel file.');
+            }
+        });
+    }
     </script>
   </head>
   <body>
@@ -278,7 +306,7 @@ $(document).ready(function() {
 			<div class="col">
 				<!-- Bootstrap 标签页 -->
 				<button class="btn btn-primary" type="button" onclick="switchTab()"><i id="icon" class="fas fa-list"></i></button>
-				<button class="btn btn-primary" type="button" onclick="switchTab()"><i class="fa fa-download"></i></button>
+				<button class="btn btn-primary" type="button" onclick="exportToExcel()"><i class="fa fa-download"></i></button>
 			</div>
 			<div class="col d-flex justify-content-end">
 			  <div class="dropdown">

@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 import com.grace.granos.model.StaffModel;
 import com.grace.granos.model.User;
 import com.grace.granos.util.EncryptUtil;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grace.granos.dao.StaffRepository;
@@ -89,5 +93,22 @@ public class StaffService {
 			e.printStackTrace();
 		}
     	return user;
+    }
+    public User getUser(HttpServletRequest request) {
+    	Cookie[] cookies = request.getCookies();
+        User user=null;
+        if (cookies != null) {
+            // 遍历所有 Cookie
+            for (Cookie cookie : cookies) {
+                if ("user".equals(cookie.getName())) {
+                    // 如果找到名为 "user" 的 Cookie，则获取其值
+                    String userValue = cookie.getValue();
+                    user = jsonToUser(userValue);
+                    request.setAttribute("user", user);
+                }
+            }
+        }
+		return user;
+    	
     }
 }
