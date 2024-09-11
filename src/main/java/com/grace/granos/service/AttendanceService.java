@@ -22,6 +22,8 @@ import java.util.Optional;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellValue;
@@ -47,8 +49,9 @@ import com.grace.granos.model.AttendanceModel;
 import com.grace.granos.model.HolidaysModel;
 import com.grace.granos.model.ShiftModel;
 import com.grace.granos.model.User;
-@PropertySource("classpath:application.properties") // 指定属性文件的位置
+
 @Service
+@PropertySource("classpath:application.properties") // 指定属性文件的位置
 public class AttendanceService {
 	private static final Logger logger = LoggerFactory.getLogger(AttendanceService.class);
 	@Autowired
@@ -59,7 +62,12 @@ public class AttendanceService {
 	private HolidayRepository holidayRepository;
 	@Value("${spring.time.zone}") 
 	private String zoneName;
-	private final ZoneId timeZone=ZoneId.of(zoneName);
+    private ZoneId timeZone;
+    @PostConstruct
+    private void init() {
+        // 确保在属性注入完成后进行初始化
+        this.timeZone = ZoneId.of(zoneName);
+    }
 	public List<AttendanceModel> checkAttendanceForPayByUserMon(int year, int month, int empid) throws Exception {
 		AttendanceModel att = new AttendanceModel();
 		att.setEmpId(empid);
@@ -101,9 +109,9 @@ public class AttendanceService {
 			}
 			// 創建SimpleDateFormat對象來定義日期格式
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-			dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // 设置时区为 UTC
+			dateFormat.setTimeZone(TimeZone.getTimeZone(zoneName)); // 设置时区为 UTC
 			SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.ENGLISH);
-			timeFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // 设置时区为 UTC
+			timeFormat.setTimeZone(TimeZone.getTimeZone(zoneName)); // 设置时区为 UTC
 			String[] weekStr = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 			String[] monStr = { "Jan", "Feb", "Wed", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 			float totalWork = 0;
