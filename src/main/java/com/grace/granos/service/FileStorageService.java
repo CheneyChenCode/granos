@@ -27,7 +27,7 @@ public class FileStorageService {
 	private final Storage storage;
 	@Value("${temp.folder.attendance}") // 从属性文件中注入 temp 文件夹路径的值
 	private String tempFolderPath;
-	@Value("${tspring.profiles.active}") // 从属性文件中注入 temp 文件夹路径的值
+	@Value("${spring.profiles.active}") // 从属性文件中注入 temp 文件夹路径的值
 	private String environment;
 	public FileStorageService() {
 		// 初始化 Storage 客户端
