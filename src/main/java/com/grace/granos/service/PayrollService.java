@@ -11,6 +11,9 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -180,6 +183,11 @@ public class PayrollService {
 		List<PayrollModel> payrolls = payrollRepository.findPayrollByUserMon(payroll);
 		// 创建 Excel 工作簿
 		Workbook workbook = new XSSFWorkbook();
+
+		CellStyle dateTimeCellStyle = workbook.createCellStyle();
+		CreationHelper createHelper = workbook.getCreationHelper();
+		dateTimeCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("yyyy-MM-dd HH:mm:ss"));
+
 		Sheet sheet1 = workbook.createSheet("Payroll");
 		// 创建表头
 		Row header1 = sheet1.createRow(0);
@@ -243,15 +251,23 @@ public class PayrollService {
 			row2.createCell(2).setCellValue(att.getMonth());
 			row2.createCell(3).setCellValue(att.getDay());
 			row2.createCell(4).setCellValue(att.getSeq());
-			row2.createCell(5).setCellValue(att.getArrivalDatetime());
-			row2.createCell(6).setCellValue(att.getLeaveDatetime());
+			Cell cellArrivalDatetime=row2.createCell(5);
+			cellArrivalDatetime.setCellValue(att.getArrivalDatetime());
+			cellArrivalDatetime.setCellStyle(dateTimeCellStyle);
+			Cell cellLeaveDatetime=row2.createCell(6);
+			cellLeaveDatetime.setCellValue(att.getLeaveDatetime());
+			cellLeaveDatetime.setCellStyle(dateTimeCellStyle);
 			row2.createCell(7).setCellValue(att.getWorkHours());
 			row2.createCell(8).setCellValue(att.getNote());
 			row2.createCell(9).setCellValue(att.getApproval());
 			row2.createCell(10).setCellValue(att.getDayCode());
 			row2.createCell(11).setCellValue(att.getOvertime());
-			row2.createCell(12).setCellValue(att.getStartDatetime());
-			row2.createCell(13).setCellValue(att.getEndDatetime());
+			Cell cellStartDatetime=row2.createCell(12);
+			cellStartDatetime.setCellValue(att.getStartDatetime());
+			cellStartDatetime.setCellStyle(dateTimeCellStyle);
+			Cell cellEndDatetime=row2.createCell(13);
+			cellEndDatetime.setCellValue(att.getEndDatetime());
+			cellEndDatetime.setCellStyle(dateTimeCellStyle);
 			row2.createCell(14).setCellValue(att.getWeek());
 			row2.createCell(15).setCellValue(att.getReason());
 			row2.createCell(16).setCellValue(att.getShift());
@@ -261,8 +277,12 @@ public class PayrollService {
 			row2.createCell(20).setCellValue(att.getPeriod());
 			row2.createCell(21).setCellValue(att.getPaidLeave());
 			row2.createCell(22).setCellValue(att.getRemainTaxFree());
-			row2.createCell(23).setCellValue(att.getOverStartDatetime());
-			row2.createCell(24).setCellValue(att.getOverEndDatetime());
+			Cell cellOverStartDatetime=row2.createCell(23);
+			cellOverStartDatetime.setCellValue(att.getOverStartDatetime());
+			cellOverStartDatetime.setCellStyle(dateTimeCellStyle);
+			Cell cellOverEndDatetime=row2.createCell(24);
+			cellOverEndDatetime.setCellValue(att.getOverEndDatetime());
+			cellOverEndDatetime.setCellStyle(dateTimeCellStyle);
 		}
         // 2. 将 Excel 写入 ByteArrayOutputStream
         ByteArrayOutputStream out = new ByteArrayOutputStream();
