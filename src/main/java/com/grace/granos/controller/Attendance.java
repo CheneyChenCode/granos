@@ -81,7 +81,7 @@ public class Attendance {
 
             // 使用 DateTimeFormatter 格式化日期为 "yyyyMMdd" 格式的字符串
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-            String folderName = currentDate.format(formatter)+"/attendance";
+            String folderName = currentDate.format(formatter)+"\\attendance";
 
     		// 创建文件夹
             String folderPath=fileStorageService.doesFolderExist(folderName);
