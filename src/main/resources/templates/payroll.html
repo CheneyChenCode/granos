@@ -242,7 +242,7 @@ $(document).ready(function() {
 		});
 		let submitButton = $('#downloadExcel');
 		// Store original button text
-		let originalButtonText = submitButton.text();
+		let icon = $('#downloadExcel i');
 		submitButton.prop('disabled', true).empty().append(spinner);
         $.ajax({
             url: '/downloadPayroll',
@@ -269,10 +269,10 @@ $(document).ready(function() {
                 a.click();
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url); // Clean up
-                submitButton.prop('disabled', false).empty().text(originalButtonText);
+                submitButton.prop('disabled', false).empty().append(icon);
             },
             error: function(xhr, status, error) {
-            	submitButton.prop('disabled', false).empty().text(originalButtonText);
+            	submitButton.prop('disabled', false).empty().append(icon);
                 console.error('Download failed:', error);
                 alert('Failed to download the Excel file.');
             }
