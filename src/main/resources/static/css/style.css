@@ -10033,3 +10033,30 @@ h6,
   max-height: 30%;
   overflow: auto;
 }
+@media (max-width: 768px) {
+    .dropdown-menu {
+    	width: 100vw;
+        right: 0;       /* 右对齐 */
+        top: 0;         /* 从页面顶部开始 */
+    }
+
+    .dropdown-item {
+        padding: 1.5rem; /* 增加按钮的点击区域 */
+    }
+}
+@media (max-width: 576px) {
+    .dropdown-menu {
+    	width: 100vw;
+        right: 0;       /* 右对齐 */
+        top: 0;         /* 从页面顶部开始 */
+    }
+
+    .dropdown-item {
+        padding: 1.5rem; /* 增加按钮的点击区域 */
+    }
+}
+@media (max-width: 768px) {
+    .content {
+        padding-top: 40px; /* 确保内容区域与关闭按钮有足够间距 */
+    }
+}
