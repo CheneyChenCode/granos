@@ -78,6 +78,8 @@ $(document).ready(function() {
 			const monthItem = '<a href="#" class="dropdown-item" onclick="updateDataTableAjax('+ month +')">' +currentYear+ '-' + month.toString().padStart(2, '0'); +'</a>';
 			dropdownMenu.append(monthItem);
 		}
+	// 禁用 DataTables 的默认警告提示
+	$.fn.dataTable.ext.errMode = 'none';
     // 初始化 DataTables
     let table = $('#payrollTable').DataTable({
 		info: false,
@@ -93,7 +95,15 @@ $(document).ready(function() {
 							d.year = currentYear;
 							d.month = specMonth;
 							d.user = user.empId
-					}
+					},
+			        error: function(xhr, error, thrown) {
+						const response = JSON.parse(xhr.responseText);
+						// 获取message属性的值
+						const message = response.message;
+						let errorMessage = $('#errorMessage');
+						errorMessage.removeAttr('hidden').show();
+	                    errorMessage.text(message);
+			        }
               },
         // 指定列定义
         columns: [
@@ -182,23 +192,6 @@ $(document).ready(function() {
 		let table2 = $('#table2');
 		table2.empty().append(newRow);
 	});
-	// 监听链接点击事件
-	$('#preMonth').click(function(event) {
-		// 阻止链接的默认行为
-		event.preventDefault();
-		
-		// 调用相应的函数或执行其他操作
-		// 这里调用你想要触发的函数
-		updateDataTableAjax(currentMonth-1);
-	});
-	$('#currMonth').click(function(event) {
-		// 阻止链接的默认行为
-		event.preventDefault();
-		
-		// 调用相应的函数或执行其他操作
-		// 这里调用你想要触发的函数
-		updateDataTableAjax(currentMonth);
-	});
 	if (isMobileDevice()) {
          activeTab2(); // 根据您的选项卡的ID进行修改
     }else{
@@ -231,6 +224,8 @@ $(document).ready(function() {
 		// 获取 DataTable 实例
 		let table = $('#payrollTable').DataTable();
 		specMonth=month;
+		let errorMessage = $('#errorMessage');
+		errorMessage.hide();
 		table.ajax.reload(); // 重新加载数据
 	}
     function exportToExcel() {
@@ -257,7 +252,7 @@ $(document).ready(function() {
             },
             success: function(data, status, xhr) {
                 var contentDisposition = xhr.getResponseHeader('Content-Disposition');
-                var filename = contentDisposition.split('filename=')[1];
+                var filename = contentDisposition?contentDisposition.split('filename=')[1]:'error_please_download_again';
 
                 // Create a link element and set its href to the blob URL
                 var blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -293,7 +288,7 @@ $(document).ready(function() {
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarCollapse">
-                <div class="navbar-nav ms-auto py-0 pr-3">
+                <div class="navbar-nav ml-auto py-0 pr-3">
                     <a href="home" class="nav-item nav-link">Home</a>
                     <a href="calendar" class="nav-item nav-link">Calendar</a>
                     <a href="attendance" class="nav-item nav-link">Attendance</a>
@@ -325,6 +320,9 @@ $(document).ready(function() {
 					</div>
 			  </div>
 			</div>
+		</div>
+		<div class="row">
+			<div id="errorMessage" class="alert alert-danger" role="alert" hidden=true></div>
 		</div>
 		<div class="row">
 			<ul class="nav nav-tabs" id="myTab" role="tablist">

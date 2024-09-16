@@ -75,7 +75,7 @@ public class Payroll {
 			if (!CollectionUtils.isEmpty(atts)) {
 				rs.setStatus(3002);
 				rs.setMessage(messageSource.getMessage("3002", null, locale));
-				return ResponseEntity.ok(rs);
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
 			} else {
 				List<PayrollModel> pm = payrollService.calculatePayroll(year, month, empid,user);
 				payrollService.deletePayroll(year, month, empid);

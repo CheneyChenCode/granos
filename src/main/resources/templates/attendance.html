@@ -71,6 +71,13 @@
 	
 	var specMonth=currentMonth;
 $(document).ready(function() {
+	let dropdownMenu = $('#monthDropdown');
+    
+	// Add each month up to the current month to the dropdown
+	for (let month = 1; month <= currentMonth; month++) {
+		const monthItem = '<a href="#" class="dropdown-item" onclick="updateDataTableAjax('+ month +')">' +currentYear+ '-' + month.toString().padStart(2, '0'); +'</a>';
+		dropdownMenu.append(monthItem);
+	}
        // 点击上传按钮时执行
         $('#uploadForm').submit(function (event) {
 			event.preventDefault(); // 阻止表单的默认提交行为
@@ -84,9 +91,13 @@ $(document).ready(function() {
 			// Store original button text
 			let originalButtonText = submitButton.text();
 			let errorMessage = $('#errorMessage');
+			let errorMessage2 = $('#errorMessage2');
 			errorMessage.hide();
+			errorMessage2.hide();
 			let successMessage = $('#successMessage');
+			let successMessage2 = $('#successMessage2');
 			successMessage.hide();
+			successMessage2.hide();
 			let input = $(this).find('input');
 			for (let i = 0; i < input.length; i++) {
 				let inq=$(input[i]);
@@ -112,8 +123,14 @@ $(document).ready(function() {
                     // 上传成功
                     // 在这里执行成功时的操作
 					errorMessage.hide();
+					errorMessage2.hide();
 					successMessage.removeAttr('hidden').show();
 					successMessage.text(response.message);
+					if (response.data) {
+					   successMessage2.removeAttr('hidden').show();
+					   successMessage2.text(response.data);
+					}
+					updateDataTableAjax(parseInt(response.message.split('-')[1], 10));
 					submitButton.prop('disabled', false).empty().text(originalButtonText);
                 },
                 error: function (xhr, status, error) {
@@ -123,8 +140,11 @@ $(document).ready(function() {
 					// 获取message属性的值
 					const message = response.message;
 					successMessage.hide();
+					successMessage2.hide();
 					errorMessage.removeAttr('hidden').show();
                     errorMessage.text(message);
+					errorMessage2.removeAttr('hidden').show();
+                    errorMessage2.text(response.data);
 					submitButton.prop('disabled', false).empty().text(originalButtonText);
                 }
             });
@@ -168,7 +188,8 @@ $(document).ready(function() {
             { data: 'hours' },
 			{ data: 'totalHours' },
 			{ data: 'overtime' },
-			{ data: 'totalOverTime' }
+			{ data: 'totalOverTime' },
+			{ data: 'reason' }
         ],
 		columnDefs: [
             { type: 'time', targets: 2 } // 將第三個欄位（索引為2）設置為時間類型
@@ -177,7 +198,12 @@ $(document).ready(function() {
 		// 在列渲染完成后执行回调函数
         "createdRow": function(row, data, dataIndex) {
             // 检查特定列的数据值，并根据条件添加样式
+            // 检查 status 属性是否为 2，若是，则将整行背景色改为粉红色
+	        if (data.status === 2) {
+	        	$(row).find('td').css('background-color', 'pink'); // 为每一个 <td> 设置粉红色背景
+	        }
            $('td', row).eq(0).css('background-color', '#ffc107'); // 设置背景色为黄色
+           
         }
     });
 
@@ -302,23 +328,6 @@ $(document).ready(function() {
 				cardItem3.textContent = data.week;
 				
 				let cardItem4 = document.createElement('i');
-				switch (data.status) {
-				  case 1:
-					cardItem4.className='fas fa-check-circle';
-					cardItem4.style.color = 'green';
-					break;
-				  default:
-					cardItem4.className='fas fa-exclamation-triangle';
-					cardItem4.style.color = 'red';
-				}
-				// 创建 img 元素
-				//let calImg = document.createElement('img');
-				//calImg.src = 'D:\\IT\\demo\\images\\icons\\sep1.png'; // 设置图片的源
-				//calImg.alt = 'Card image'; // 设置图片的替代文本
-				//calImg.className = 'card-img-top'; // 添加 card-img-top 类
-				// 设置图像尺寸
-				//calImg.style.width = '50px'; // 设置宽度为100像素
-				//calImg.style.height = '50px'; // 设置高度为100像素
 				let calendarColUp = document.createElement('div');
 				calendarColUp.className='rounded-rectangle-up';
 				
@@ -330,6 +339,18 @@ $(document).ready(function() {
 				
 				let statusCol = document.createElement('div');
 				statusCol.className='rounded-rectangle border-white text-center';
+				switch (data.status) {
+				  case 1:
+					cardItem4.className='fas fa-check-circle';
+					cardItem4.style.color = 'green';
+					break;
+				  default:
+					cardItem4.className='fas fa-exclamation-triangle';
+					cardItem4.style.color = 'red';
+					cardBody.style.backgroundColor = 'pink'; 
+					statusCol.style.backgroundColor = 'pink'; 
+					statusCol.style.border = 'pink'; 
+				}
 				// 将标题和文本内容添加到 card-body 中
 				calendarColUp.appendChild(cardItem1);
 				cardCol1.appendChild(calendarColUp);
@@ -372,23 +393,6 @@ $(document).ready(function() {
 				previousCellValue = currentCellValue; // 更新上一行的内容
 			}
 		});
-	});
-	// 监听链接点击事件
-	$('#preMonth').click(function(event) {
-		// 阻止链接的默认行为
-		event.preventDefault();
-		
-		// 调用相应的函数或执行其他操作
-		// 这里调用你想要触发的函数
-		updateDataTableAjax(currentMonth-1);
-	});
-	$('#currMonth').click(function(event) {
-		// 阻止链接的默认行为
-		event.preventDefault();
-		
-		// 调用相应的函数或执行其他操作
-		// 这里调用你想要触发的函数
-		updateDataTableAjax(currentMonth);
 	});
 	if (isMobileDevice()) {
          activeTab2(); // 根据您的选项卡的ID进行修改
@@ -449,7 +453,7 @@ $(document).ready(function() {
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarCollapse">
-                <div class="navbar-nav ms-auto py-0 pr-3">
+                <div class="navbar-nav ml-auto py-0 pr-3">
                     <a href="home" class="nav-item nav-link">Home</a>
                     <a href="calendar" class="nav-item nav-link">Calendar</a>
                     <a href="attendance" class="nav-item nav-link active">Attendance</a>
@@ -477,9 +481,7 @@ $(document).ready(function() {
 			<div class="col d-flex justify-content-end">
 			  <div class="dropdown">
 					<a href="#" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"><i class="far fa-clock"></i></a>
-					<div class="dropdown-menu rounded-0 m-0">
-						<a id="preMonth" href="#" class="dropdown-item">Pre period</a>
-						<a id="currMonth" href="#" class="dropdown-item">current period</a>
+					<div id="monthDropdown" class="dropdown-menu rounded-0 m-0">
 					</div>
 			  </div>
 			</div>
@@ -509,6 +511,7 @@ $(document).ready(function() {
 							<th>TOTAL WH</th>
 							<th>OVER TIME</th>
 							<th>TOTAL OT</th>
+							<th>REASON</th>
 						</tr>
 						</thead>
 						<tbody>
@@ -537,7 +540,9 @@ $(document).ready(function() {
 			</form>
 			<!-- 错误消息显示 -->
 			<div id="errorMessage" class="alert alert-danger" role="alert" hidden=true></div>
+			<div id="errorMessage2" class="alert alert-danger" style="white-space: pre-line;" role="alert" hidden=true></div>
 			<div id="successMessage" class="alert alert-success" role="alert" hidden=true></div>
+			<div id="successMessage2" class="alert alert-danger" style="white-space: pre-line;" role="alert" hidden=true></div>
 			</div>
 		</div>
 	</div>

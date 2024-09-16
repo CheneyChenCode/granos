@@ -8,6 +8,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -116,7 +117,12 @@ public class AttendanceRepository {
 						   + " year = ? and month = ? and emp_id = ?"
 						   + " AND day = (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ?)";
 
-		int result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
+		int result =0;
+		try{
+			result=jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
+		}catch (EmptyResultDataAccessException e) {
+			result=0;
+		}
 		return result;
 	}
 	public int[] addAttendance(List<AttendanceModel> models){

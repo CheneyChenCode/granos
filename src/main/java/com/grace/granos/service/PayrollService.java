@@ -2,12 +2,13 @@ package com.grace.granos.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -73,6 +74,7 @@ public class PayrollService {
 					pl.setYear(att.getYear());
 					pl.setTitle(pc.getTitle());
 					pl.setCoefficient(pc.getCoefficient());
+					logger.info("month:"+pl.getMonth()+",day:"+pl.getDay()+",shift:"+pc.getShift()+",payCode:"+pl.getPayCode());
 					float s = Float.parseFloat(pc.getHourPartGreater());
 					float workHours = att.getWorkHours();
 					if (att.getPaidLeave() > 0) {
@@ -106,6 +108,7 @@ public class PayrollService {
 						pl.setTaxFreeHours(taxFreeOverTime);
 						payrolls.add(pl);
 					}
+					logger.info("workHours:"+pl.getHours()+",TaxFreeHours:"+pl.getTaxFreeHours());
 				}
 			}
 		}
@@ -255,10 +258,18 @@ public class PayrollService {
 			row2.createCell(3).setCellValue(att.getDay());
 			row2.createCell(4).setCellValue(att.getSeq());
 			Cell cellArrivalDatetime=row2.createCell(5);
-			cellArrivalDatetime.setCellValue(att.getArrivalDatetime());
+			if(att.getArrivalDatetime()!=null) {
+				cellArrivalDatetime.setCellValue(Timestamp.valueOf(att.getArrivalDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+			}else {
+				cellArrivalDatetime.setCellValue(att.getArrivalDatetime());
+			}
 			cellArrivalDatetime.setCellStyle(dateTimeCellStyle);
 			Cell cellLeaveDatetime=row2.createCell(6);
-			cellLeaveDatetime.setCellValue(att.getLeaveDatetime());
+			if(att.getLeaveDatetime()!=null) {
+				cellLeaveDatetime.setCellValue(Timestamp.valueOf(att.getLeaveDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+			}else {
+				cellLeaveDatetime.setCellValue(att.getLeaveDatetime());
+			}
 			cellLeaveDatetime.setCellStyle(dateTimeCellStyle);
 			row2.createCell(7).setCellValue(att.getWorkHours());
 			row2.createCell(8).setCellValue(att.getNote());
@@ -266,10 +277,18 @@ public class PayrollService {
 			row2.createCell(10).setCellValue(att.getDayCode());
 			row2.createCell(11).setCellValue(att.getOvertime());
 			Cell cellStartDatetime=row2.createCell(12);
-			cellStartDatetime.setCellValue(att.getStartDatetime());
+			if(att.getStartDatetime()!=null) {
+				cellStartDatetime.setCellValue(Timestamp.valueOf(att.getStartDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+			}else {
+				cellStartDatetime.setCellValue(att.getStartDatetime());
+			}
 			cellStartDatetime.setCellStyle(dateTimeCellStyle);
 			Cell cellEndDatetime=row2.createCell(13);
-			cellEndDatetime.setCellValue(att.getEndDatetime());
+			if(att.getEndDatetime()!=null) {
+				cellEndDatetime.setCellValue(Timestamp.valueOf(att.getEndDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+			}else {
+				cellEndDatetime.setCellValue(att.getEndDatetime());
+			}
 			cellEndDatetime.setCellStyle(dateTimeCellStyle);
 			row2.createCell(14).setCellValue(att.getWeek());
 			row2.createCell(15).setCellValue(att.getReason());
@@ -281,10 +300,18 @@ public class PayrollService {
 			row2.createCell(21).setCellValue(att.getPaidLeave());
 			row2.createCell(22).setCellValue(att.getRemainTaxFree());
 			Cell cellOverStartDatetime=row2.createCell(23);
-			cellOverStartDatetime.setCellValue(att.getOverStartDatetime());
+			if(att.getOverStartDatetime()!=null) {
+				cellOverStartDatetime.setCellValue(Timestamp.valueOf(att.getOverStartDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+			}else {
+				cellOverStartDatetime.setCellValue(att.getOverStartDatetime());
+			}
 			cellOverStartDatetime.setCellStyle(dateTimeCellStyle);
 			Cell cellOverEndDatetime=row2.createCell(24);
-			cellOverEndDatetime.setCellValue(att.getOverEndDatetime());
+			if(att.getOverStartDatetime()!=null) {
+				cellOverEndDatetime.setCellValue(Timestamp.valueOf(att.getOverEndDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+			}else {
+				cellOverEndDatetime.setCellValue(att.getOverStartDatetime());
+			}
 			cellOverEndDatetime.setCellStyle(dateTimeCellStyle);
 		}
         // 2. 将 Excel 写入 ByteArrayOutputStream

@@ -1,9 +1,5 @@
 package com.grace.granos.controller;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -12,7 +8,6 @@ import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
@@ -34,10 +29,11 @@ import com.grace.granos.service.AttendanceService;
 import com.grace.granos.service.FileStorageService;
 import com.grace.granos.service.StaffService;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.util.StringUtil;
 
 @PropertySource("classpath:application.properties") // 指定属性文件的位置
 @Controller
@@ -69,6 +65,7 @@ public class Attendance {
     	User user=staffService.getUser(request);
     	// 从 CookieLocaleResolver 中获取用户的语言环境
         Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
+        String uploadMonth="";
             // 检查文件是否为空
             if (file.isEmpty()) {
             	//model.addAttribute("error","file");
@@ -113,10 +110,21 @@ public class Attendance {
 	            List<AttendanceModel> attendances = attendanceService.parseExcel(file.getInputStream(),user);
 	            
 	            attendanceService.addAttendances(attendances);
-			} catch (Exception e) {
+	            uploadMonth=attendances.get(0).getYear()+"-"+StringUtils.leftPad(String.valueOf(attendances.get(0).getMonth()),2,"0");
+	            String abnormalMessage="";
+	        	for(AttendanceModel att:attendances) {
+	        		if(att.getStatus()!=1) {
+	        			abnormalMessage=abnormalMessage+"\n"+StringUtils.leftPad(String.valueOf(att.getMonth()),2,"0")+"-"+StringUtils.leftPad(String.valueOf(att.getDay()),2,"0")+": "+att.getReason();
+	        		}
+	        	}
+	        	if(StringUtil.isNotBlank(abnormalMessage)) {
+	        		rs.setData("But there are some abnormal in attendance:"+abnormalMessage);
+	        	}
+            } catch (Exception e) {
 				logger.error(e.getMessage());
             	rs.setStatus(2003);
             	rs.setMessage(messageSource.getMessage("2003", null, locale));
+            	rs.setData(e.getMessage());
             	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
 			}
 
@@ -128,7 +136,7 @@ public class Attendance {
             // 返回成功消息
             //return ResponseEntity.ok("Upload file successfully.");
         	rs.setStatus(2000);
-        	rs.setMessage(messageSource.getMessage("2000", null, locale));
+        	rs.setMessage(uploadMonth+" "+messageSource.getMessage("2000", null, locale));
             return ResponseEntity.ok(rs);
     }
 

@@ -1,7 +1,5 @@
 package com.grace.granos.service;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
@@ -108,10 +106,10 @@ public class AttendanceService {
 				return caledarEvents;
 			}
 			// 創建SimpleDateFormat對象來定義日期格式
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-			dateFormat.setTimeZone(TimeZone.getTimeZone(zoneName)); // 设置时区为 UTC
-			SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.ENGLISH);
-			timeFormat.setTimeZone(TimeZone.getTimeZone(zoneName)); // 设置时区为 UTC
+			//SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			//dateFormat.setTimeZone(TimeZone.getTimeZone(zoneName)); // 设置时区为 UTC
+			SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+			timeFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // 设置时区为 UTC
 			String[] weekStr = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 			String[] monStr = { "Jan", "Feb", "Wed", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 			float totalWork = 0;
@@ -129,15 +127,23 @@ public class AttendanceService {
 				caledarEvent.setStatus(att.getStatus());
 				if (att.getStartDatetime() != null) {
 					caledarEvent.setStartDate(timeFormat.format(att.getStartDatetime()));
+				}else {
+					caledarEvent.setStartDate("");
 				}
 				if (att.getEndDatetime() != null) {
 					caledarEvent.setEndDate(timeFormat.format(att.getEndDatetime()));
+				}else {
+					caledarEvent.setEndDate("");
 				}
 				if (att.getArrivalDatetime() != null) {
 					caledarEvent.setArrivalDate(timeFormat.format(att.getArrivalDatetime()));
+				}else {
+					caledarEvent.setArrivalDate("");
 				}
 				if (att.getLeaveDatetime() != null) {
 					caledarEvent.setLeaveDate(timeFormat.format(att.getLeaveDatetime()));
+				}else {
+					caledarEvent.setLeaveDate("");
 				}
 				// 計算時間差並轉換為小時數
 				// Timestamp actualStartTime=att.getStartDatetime();
@@ -178,6 +184,7 @@ public class AttendanceService {
 				long totalOtHour = (int) totalOverTime;
 				long totalOtMinutes = Math.round((totalOverTime - totalOtHour) * 60);
 				caledarEvent.setTotalOverTime(df.format(totalOtHour) + ":" + df.format(totalOtMinutes));
+				caledarEvent.setReason(att.getReason());
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -187,7 +194,7 @@ public class AttendanceService {
 	}
 
 	public List<AttendanceModel> parseExcel(InputStream fileInputStream, User user)
-			throws FileNotFoundException, IOException {
+			throws Exception {
 		List<AttendanceModel> attendanceDatas = new ArrayList<AttendanceModel>();
 
 		Workbook workbook = WorkbookFactory.create(fileInputStream);
@@ -234,8 +241,11 @@ public class AttendanceService {
 		int accumulateWorkDayInPeriod = 0;
 		int fixedDayOffInPeriod = 0;
 		int flexibleDayOffInPeriod = 0;
+		int conversionDayOffCurrentMonth=0;
+		int shiftCurrentMonthIndex=0;
 		int period = 0;
 		float remainTaxHours = 46;
+		String shiftCurrentMonth=null;
 		String shiftNamePre = null;
 		List<ShiftModel> shifts = shiftRepository.findShift();
 		Map<String, ShiftModel> shiftModelMap = shifts.stream()
@@ -287,18 +297,31 @@ public class AttendanceService {
 			if (rowIndex == 4) {
 				attendanceRepository.deleteAttendanceByUserMon(at);
 				period = attendanceRepository.findLastPeriodWdByUserMon(at);
+				if(period==0) {
+					throw new Exception("There are no attendance records in the previous month.");
+				}
 				accumulateWorkDay = attendanceRepository.findLastAccumulateByUserMon(at);
 				fixedDayOffInPeriod = attendanceRepository.findLastfixedDayOffInPeriod(at);
 				flexibleDayOffInPeriod = attendanceRepository.findLastflexibleDayOffInPeriod(at);
 				accumulateWorkDayInPeriod = period - fixedDayOffInPeriod - flexibleDayOffInPeriod;
 			}
-			if (period == 7) {
-				fixedDayOffInPeriod = 0;
-				flexibleDayOffInPeriod = 0;
-				accumulateWorkDayInPeriod = 0;
-				period = 1;
-			} else {
-				period = period + 1;
+			Double excelPeriod = getCellValue(formulaEvaluator, row.getCell(17), Double.class);
+			if(excelPeriod!=null) {
+				period=(int)Math.floor(excelPeriod);
+				if (period == 1) {
+					fixedDayOffInPeriod = 0;
+					flexibleDayOffInPeriod = 0;
+					accumulateWorkDayInPeriod = 0;
+				}
+			}else {
+				if (period == 7) {
+					fixedDayOffInPeriod = 0;
+					flexibleDayOffInPeriod = 0;
+					accumulateWorkDayInPeriod = 0;
+					period = 1;
+				} else {
+					period = period + 1;
+				}
 			}
 			at.setPeriod(period);
 			// 获取星期几（1 表示星期日，2 表示星期一，以此类推）
@@ -401,10 +424,47 @@ public class AttendanceService {
 					at.setDay_code(dayCode);
 					accumulateWorkDay = 0;
 					continue;
+				case "DCF":
+					if (conversionDayOffCurrentMonth >= 2) {
+						at.setStatus(2);
+						at.setReason("over two conversion day off a month");
+					}
+					conversionDayOffCurrentMonth=1;
+					at.setDay_code(dayCode);
+					accumulateWorkDay = 0;
+					continue;
 				default:
 					at.setDay_code(dayCode);
 				}
 			}
+			
+			if(StringUtil.isNotBlank(shiftCurrentMonth)) {
+				if(!shiftCurrentMonth.substring(0, 1).equals(shiftName.substring(0, 1))&&conversionDayOffCurrentMonth<2) {
+					for(int i=attendanceDatas.size()-1;i>shiftCurrentMonthIndex;i--) {
+						AttendanceModel temAt = attendanceDatas.get(i);
+						if(StringUtil.isBlank(temAt.getShift())&&temAt.getStatus()==2&&conversionDayOffCurrentMonth<2) {
+							temAt.setShift("DCF");
+							temAt.setStatus(1);
+							temAt.setReason(null);
+							conversionDayOffCurrentMonth=conversionDayOffCurrentMonth+1;
+						}
+						if("DXF".equals(temAt.getShift())&&conversionDayOffCurrentMonth<2) {
+							temAt.setShift("DCF");
+							temAt.setDay_code(1);
+							fixedDayOffInPeriod=fixedDayOffInPeriod-1;
+							conversionDayOffCurrentMonth=conversionDayOffCurrentMonth+1;
+						}
+						if("DLF".equals(temAt.getShift())&&conversionDayOffCurrentMonth<2) {
+							temAt.setShift("DCF");
+							temAt.setDay_code(1);
+							flexibleDayOffInPeriod=flexibleDayOffInPeriod-1;
+							conversionDayOffCurrentMonth=conversionDayOffCurrentMonth+1;
+						}
+					}
+				}
+			}
+			shiftCurrentMonth=shiftName;
+			shiftCurrentMonthIndex=rowIndex-4;
 			accumulateWorkDay = accumulateWorkDay + 1;
 			accumulateWorkDayInPeriod = accumulateWorkDayInPeriod + 1;
 			if (accumulateWorkDay >= 7) {
@@ -451,7 +511,6 @@ public class AttendanceService {
 				LocalTime arrivalLocalTime = arrivalTime.toInstant().atZone(timeZone).toLocalTime();
 				LocalDateTime arrivalDateTime = LocalDateTime.of(startDate, arrivalLocalTime);
 				Timestamp arrivalDateTimeStamp = Timestamp.valueOf(arrivalDateTime);
-				logger.info(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(arrivalDateTimeStamp));
 				at.setArrivalDatetime(arrivalDateTimeStamp);
 
 				// 比较两个时间字符串
