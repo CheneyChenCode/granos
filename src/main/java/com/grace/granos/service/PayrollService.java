@@ -82,13 +82,16 @@ public class PayrollService {
 					}
 					if (workHours > s) {
 						float e = workHours;
-						if (StringUtils.isNotEmpty(pc.getHourPartLess())
-								&& workHours > Float.parseFloat(pc.getHourPartLess())) {
-							e = Float.parseFloat(pc.getHourPartLess());
+						float l = 0;
+						if (StringUtils.isNotEmpty(pc.getHourPartLess())) {
+							l = Float.parseFloat(pc.getHourPartLess());
+							if(workHours > l) {
+								e = l;
+							}
 						}
 						pl.setHours(e - s);
 						float taxFreeOverTime = e - s;
-						if (pc.getCoefficient() == 1 && (pc.getDayCode() == 1 || pc.getDayCode() == 5)) {
+						if (s==0 && l == 8 && (pc.getDayCode() == 1 || pc.getDayCode() == 5)) {
 							taxFreeOverTime = 0;
 						} else {
 							if (att.getRemainTaxFree() < 0) {
