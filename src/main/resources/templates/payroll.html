@@ -293,20 +293,15 @@ $(document).ready(function() {
                     <a href="calendar" class="nav-item nav-link">Calendar</a>
                     <a href="attendance" class="nav-item nav-link">Attendance</a>
                     <a href="payroll" class="nav-item nav-link active">Payroll</a>
-                    <a href="project.html" class="nav-item nav-link">Projects</a>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
-                        <div class="dropdown-menu rounded-0 m-0">
-                            <a href="team.html" class="dropdown-item">Meat The Team</a>
-                            <a href="testimonial.html" class="dropdown-item">Testimonial</a>
-                        </div>
-                    </div>
+                    <a href="administrator" class="nav-item nav-link circle-background" >
+                    	<span class="border border-warning rounded-lg p-3" th:text="${user.characterNameEn}"></span>
+                    </a>
                 </div>
             </div>
         </nav>
     </div>
     <!-- Navbar End -->
-	<div class="container">
+	<div class="container-fluid py-4">
 		<div class="row">
 			<div class="col">
 				<!-- Bootstrap 标签页 -->

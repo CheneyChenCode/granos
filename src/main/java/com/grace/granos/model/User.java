@@ -13,7 +13,28 @@ public class User {
 	private String position;
 	private String loginMessage;
 	private String email;
+	private int character;
+	private String characterNameEn;
+	private String characterNameCn;
 	
+	public String getCharacterNameEn() {
+		return characterNameEn;
+	}
+	public void setCharacterNameEn(String characterNameEn) {
+		this.characterNameEn = characterNameEn;
+	}
+	public String getCharacterNameCn() {
+		return characterNameCn;
+	}
+	public void setCharacterNameCn(String characterNameCn) {
+		this.characterNameCn = characterNameCn;
+	}
+	public int getCharacter() {
+		return character;
+	}
+	public void setCharacter(int character) {
+		this.character = character;
+	}
 	public int getEmpId() {
 		return empId;
 	}

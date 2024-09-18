@@ -77,7 +77,9 @@ public class AttendanceService {
 	public void addAttendances(List<AttendanceModel> models) {
 		attendanceRepository.addAttendance(models);
 	}
-
+	public int deleteAttendances(AttendanceModel attendance) {
+		return attendanceRepository.deleteAttendanceByUserMon(attendance);
+	}
 	public List<AttendanceModel> findAttendanceByUserMon(AttendanceModel att) throws Exception {
 		if (att.getYear() < 1) {
 			throw new Exception("there is no year");
@@ -185,6 +187,9 @@ public class AttendanceService {
 				long totalOtMinutes = Math.round((totalOverTime - totalOtHour) * 60);
 				caledarEvent.setTotalOverTime(df.format(totalOtHour) + ":" + df.format(totalOtMinutes));
 				caledarEvent.setReason(att.getReason());
+				caledarEvent.setNote(att.getNote());
+				caledarEvent.setDayCode(att.getDayCode());
+				caledarEvent.setPeriod(att.getPeriod());
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -295,7 +300,6 @@ public class AttendanceService {
 			at.setMonth(month);
 			// Sequence of period
 			if (rowIndex == 4) {
-				attendanceRepository.deleteAttendanceByUserMon(at);
 				period = attendanceRepository.findLastPeriodWdByUserMon(at);
 				if(period==0) {
 					throw new Exception("There are no attendance records in the previous month.");

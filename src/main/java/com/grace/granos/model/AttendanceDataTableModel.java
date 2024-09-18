@@ -23,7 +23,21 @@ public class AttendanceDataTableModel {
 	private String totalHours;
 	private String totalOverTime;
 	private int status;
+	private int dayCode;
+	private int period;
 	
+	public int getPeriod() {
+		return period;
+	}
+	public void setPeriod(int period) {
+		this.period = period;
+	}
+	public int getDayCode() {
+		return dayCode;
+	}
+	public void setDayCode(int dayCode) {
+		this.dayCode = dayCode;
+	}
 	public int getStatus() {
 		return status;
 	}

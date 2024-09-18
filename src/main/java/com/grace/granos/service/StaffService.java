@@ -50,6 +50,9 @@ public class StaffService {
     	userF.setNameEn(loger.getNameEn());
     	userF.setLastNameCn(loger.getLastNameCn());
     	userF.setLastNameEn(loger.getLastNameEn());
+    	userF.setCharacter(loger.getEmpId());
+    	userF.setCharacterNameEn(loger.getNameEn());
+    	userF.setCharacterNameCn(loger.getNameCn());
     	EncryptUtil util=new EncryptUtil();
     	String password=loger.getPassword();
     	if(StringUtils.isNotEmpty(password)) {

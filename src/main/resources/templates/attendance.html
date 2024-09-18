@@ -179,7 +179,11 @@ $(document).ready(function() {
 			{ data: null,
 			  render: function(data, type, row){
 				if (type === 'display') {
-					return data.startDate+' - '+data.endDate;
+					if (data.shift.length > 2) {
+						return data.shift;
+					}else{
+						return data.startDate+' - '+data.endDate;
+					}
 				}
 			  }
 			},
@@ -189,7 +193,8 @@ $(document).ready(function() {
 			{ data: 'totalHours' },
 			{ data: 'overtime' },
 			{ data: 'totalOverTime' },
-			{ data: 'reason' }
+			{ data: 'reason' },
+			{ data: 'note' }
         ],
 		columnDefs: [
             { type: 'time', targets: 2 } // 將第三個欄位（索引為2）設置為時間類型
@@ -198,12 +203,17 @@ $(document).ready(function() {
 		// 在列渲染完成后执行回调函数
         "createdRow": function(row, data, dataIndex) {
             // 检查特定列的数据值，并根据条件添加样式
+            $('td', row).eq(0).css('background-color', '#ffc107'); // 设置背景色为黄色
             // 检查 status 属性是否为 2，若是，则将整行背景色改为粉红色
 	        if (data.status === 2) {
 	        	$(row).find('td').css('background-color', 'pink'); // 为每一个 <td> 设置粉红色背景
 	        }
-           $('td', row).eq(0).css('background-color', '#ffc107'); // 设置背景色为黄色
-           
+	        if (data.dayCode === 3) {
+	        	$(row).find('td').css('color', 'deepskyblue'); 
+	        }
+	        if (data.period === 1) {
+		        $(row).find('td').css('border-top', 'solid limegreen'); // 为整行添加上方绿色粗线
+	        }
         }
     });
 
@@ -232,6 +242,10 @@ $(document).ready(function() {
 			cardCol2Row1Label.textContent='Schedule:';
 			let cardCol2Row1Text = document.createElement('div');
 			cardCol2Row1Text.className='col-8 form-control-plaintext font-weight-bold';
+			if(data.dayCode===3){
+				 cardCol2Row1Label.style.color = 'deepskyblue';
+				 cardCol2Row1Text.style.color = 'deepskyblue';
+			}
 			cardCol2Row1Text.textContent = data.startDate+' - '+data.endDate;
 			
 			let cardCol2Row2Label = document.createElement('div');
@@ -458,20 +472,15 @@ $(document).ready(function() {
                     <a href="calendar" class="nav-item nav-link">Calendar</a>
                     <a href="attendance" class="nav-item nav-link active">Attendance</a>
                     <a href="payroll" class="nav-item nav-link">Payroll</a>
-                    <a href="project.html" class="nav-item nav-link">Projects</a>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
-                        <div class="dropdown-menu rounded-0 m-0">
-                            <a href="team.html" class="dropdown-item">Meat The Team</a>
-                            <a href="testimonial.html" class="dropdown-item">Testimonial</a>
-                        </div>
-                    </div>
+                    <a href="administrator" class="nav-item nav-link circle-background" >
+                    	<span class="border border-warning rounded-lg p-3" th:text="${user.characterNameEn}"></span>
+                    </a>
                 </div>
             </div>
         </nav>
     </div>
     <!-- Navbar End -->
-	<div class="container">
+	<div class="container-fluid py-4">
 		<div class="row">
 			<div class="col">
 				<!-- Bootstrap 标签页 -->
@@ -512,6 +521,7 @@ $(document).ready(function() {
 							<th>OVER TIME</th>
 							<th>TOTAL OT</th>
 							<th>REASON</th>
+							<th>NOTE</th>
 						</tr>
 						</thead>
 						<tbody>

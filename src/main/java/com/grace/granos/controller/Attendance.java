@@ -27,6 +27,7 @@ import com.grace.granos.model.JsonResponse;
 import com.grace.granos.model.User;
 import com.grace.granos.service.AttendanceService;
 import com.grace.granos.service.FileStorageService;
+import com.grace.granos.service.PayrollService;
 import com.grace.granos.service.StaffService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,104 +41,120 @@ import org.apache.poi.util.StringUtil;
 public class Attendance {
 	private static final Logger logger = LoggerFactory.getLogger(Attendance.class);
 
-    @Autowired
-    private MessageSource messageSource;
+	@Autowired
+	private MessageSource messageSource;
 	@Autowired
 	private AttendanceService attendanceService;
-    @Autowired
-    private StaffService staffService;
-    @Autowired
+	@Autowired
+	private StaffService staffService;
+	@Autowired
 	private FileStorageService fileStorageService;
+	@Autowired
+	private PayrollService payrollService;
 	@RequestMapping("/attendance")
-	public String attendance(Model model){
+	public String attendance(Model model) {
 		return "attendance";
 	}
-    @CrossOrigin(origins = "*", allowedHeaders = "*")
-    @RequestMapping("/getAttendance")
-	public ResponseEntity<JsonResponse> getAttendance(@RequestParam("year") int year,@RequestParam("month") int month,@RequestParam("user") int empid){
-    	List<AttendanceDataTableModel> attendances = attendanceService.getAttendancesEvent(year, month, empid);
+
+	@CrossOrigin(origins = "*", allowedHeaders = "*")
+	@RequestMapping("/getAttendance")
+	public ResponseEntity<JsonResponse> getAttendance(@RequestParam("year") int year, @RequestParam("month") int month,
+			@RequestParam("user") int empid) {
+		List<AttendanceDataTableModel> attendances = attendanceService.getAttendancesEvent(year, month, empid);
 		return ResponseEntity.ok(new JsonResponse(attendances));
 	}
-    @PostMapping("/uploadExcel")
-    public ResponseEntity<JsonResponse> uploadExcelFile(@RequestParam("file") MultipartFile file,Model model,HttpServletRequest request){
-    	JsonResponse rs=new JsonResponse();
-        // 获取客户端发送的 Cookie
-    	User user=staffService.getUser(request);
-    	// 从 CookieLocaleResolver 中获取用户的语言环境
-        Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
-        String uploadMonth="";
-            // 检查文件是否为空
-            if (file.isEmpty()) {
-            	//model.addAttribute("error","file");
-            	rs.setStatus(2004);
-            	rs.setMessage(messageSource.getMessage("2004", null, locale));
-            	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
-            }
-            // 获取当前日期
-            LocalDate currentDate = LocalDate.now();
 
-            // 使用 DateTimeFormatter 格式化日期为 "yyyyMMdd" 格式的字符串
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-            String folderName = currentDate.format(formatter)+"/attendance";
+	@PostMapping("/uploadExcel")
+	public ResponseEntity<JsonResponse> uploadExcelFile(@RequestParam("file") MultipartFile file, Model model,
+			HttpServletRequest request) {
+		JsonResponse rs = new JsonResponse();
+		// 获取客户端发送的 Cookie
+		User user = staffService.getUser(request);
+		// 从 CookieLocaleResolver 中获取用户的语言环境
+		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
+		String uploadMonth = "";
+		// 检查文件是否为空
+		if (file.isEmpty()) {
+			// model.addAttribute("error","file");
+			rs.setStatus(2004);
+			rs.setMessage(messageSource.getMessage("2004", null, locale));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
+		}
+		// 获取当前日期
+		LocalDate currentDate = LocalDate.now();
 
-    		// 创建文件夹
-            String folderPath=fileStorageService.doesFolderExist(folderName);
-    		if (folderPath==null) {
-    		    	rs.setStatus(2001);
-    		    	rs.setMessage(messageSource.getMessage("2001", null, locale));
-    		    	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
-    		}
-            
-            // 获取上传文件的原始文件名
-            String originalFilename = file.getOriginalFilename();
-            // 获取文件扩展名
-            String extension = FilenameUtils.getExtension(originalFilename);
-            String filename=FilenameUtils.getName(originalFilename);
-            
-            // 验证文件类型是否为.xlsx或.xls
-            if (!"xlsx".equalsIgnoreCase(extension) && !"xls".equalsIgnoreCase(extension)) {
-                // 文件类型不符合要求，抛出异常或者做相应的处理
-                //throw new IllegalArgumentException("Only .xlsx or .xls files are allowed.");
-            	rs.setStatus(2002);
-            	rs.setMessage(messageSource.getMessage("2002", null, locale));
-            	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
-            }
-            // 将上传的文件保存到临时位置
-            //Path tempFilePath = Files.createTempFile(filename+"_", extension);
-            try {
-                fileStorageService.createFile(folderPath+"/"+filename,file.getBytes());
-	            // 解析Excel文件并处理数据
-	            List<AttendanceModel> attendances = attendanceService.parseExcel(file.getInputStream(),user);
-	            
-	            attendanceService.addAttendances(attendances);
-	            uploadMonth=attendances.get(0).getYear()+"-"+StringUtils.leftPad(String.valueOf(attendances.get(0).getMonth()),2,"0");
-	            String abnormalMessage="";
-	        	for(AttendanceModel att:attendances) {
-	        		if(att.getStatus()!=1) {
-	        			abnormalMessage=abnormalMessage+"\n"+StringUtils.leftPad(String.valueOf(att.getMonth()),2,"0")+"-"+StringUtils.leftPad(String.valueOf(att.getDay()),2,"0")+": "+att.getReason();
-	        		}
-	        	}
-	        	if(StringUtil.isNotBlank(abnormalMessage)) {
-	        		rs.setData("But there are some abnormal in attendance:"+abnormalMessage);
-	        	}
-            } catch (Exception e) {
-				logger.error(e.getMessage());
-            	rs.setStatus(2003);
-            	rs.setMessage(messageSource.getMessage("2003", null, locale));
-            	rs.setData(e.getMessage());
-            	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
+		// 使用 DateTimeFormatter 格式化日期为 "yyyyMMdd" 格式的字符串
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+		String folderName = currentDate.format(formatter) + "/attendance";
+
+		// 创建文件夹
+		String folderPath = fileStorageService.doesFolderExist(folderName);
+		if (folderPath == null) {
+			rs.setStatus(2001);
+			rs.setMessage(messageSource.getMessage("2001", null, locale));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
+		}
+
+		// 获取上传文件的原始文件名
+		String originalFilename = file.getOriginalFilename();
+		// 获取文件扩展名
+		String extension = FilenameUtils.getExtension(originalFilename);
+		String filename = FilenameUtils.getName(originalFilename);
+
+		// 验证文件类型是否为.xlsx或.xls
+		if (!"xlsx".equalsIgnoreCase(extension) && !"xls".equalsIgnoreCase(extension)) {
+			// 文件类型不符合要求，抛出异常或者做相应的处理
+			// throw new IllegalArgumentException("Only .xlsx or .xls files are allowed.");
+			rs.setStatus(2002);
+			rs.setMessage(messageSource.getMessage("2002", null, locale));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
+		}
+		// 将上传的文件保存到临时位置
+		// Path tempFilePath = Files.createTempFile(filename+"_", extension);
+		try {
+			fileStorageService.createFile(folderPath + "/" + filename, file.getBytes());
+			// 解析Excel文件并处理数据
+			List<AttendanceModel> attendances = attendanceService.parseExcel(file.getInputStream(), user);
+			if (attendances != null && !attendances.isEmpty()) {
+				int year = attendances.get(0).getYear();
+				int month = attendances.get(0).getMonth();
+				int empid = attendances.get(0).getEmpId();
+				AttendanceModel attendance=new AttendanceModel();
+				attendance.setYear(year);
+				attendance.setMonth(month);
+				attendance.setEmpId(empid);
+				attendanceService.deleteAttendances(attendance);
+				attendanceService.addAttendances(attendances);
+				payrollService.deletePayroll(year,month,empid);
+				uploadMonth = year + "-" + StringUtils.leftPad(String.valueOf(month), 2, "0")+" ";
+				String abnormalMessage = "";
+				for (AttendanceModel att : attendances) {
+					if (att.getStatus() != 1) {
+						abnormalMessage = abnormalMessage + "\n"
+								+ StringUtils.leftPad(String.valueOf(att.getMonth()), 2, "0") + "-"
+								+ StringUtils.leftPad(String.valueOf(att.getDay()), 2, "0") + ": " + att.getReason();
+					}
+				}
+				if (StringUtil.isNotBlank(abnormalMessage)) {
+					rs.setData("But there are some abnormal in attendance:" + abnormalMessage);
+				}
 			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			rs.setStatus(2003);
+			rs.setMessage(uploadMonth+messageSource.getMessage("2003", null, locale));
+			rs.setData(e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
+		}
 
+		// 将数据存储到数据库或执行其他操作
+		// attendanceService.saveAttendances(attendances);
 
-
-            // 将数据存储到数据库或执行其他操作
-            // attendanceService.saveAttendances(attendances);
-
-            // 返回成功消息
-            //return ResponseEntity.ok("Upload file successfully.");
-        	rs.setStatus(2000);
-        	rs.setMessage(uploadMonth+" "+messageSource.getMessage("2000", null, locale));
-            return ResponseEntity.ok(rs);
-    }
+		// 返回成功消息
+		// return ResponseEntity.ok("Upload file successfully.");
+		rs.setStatus(2000);
+		rs.setMessage(uploadMonth+messageSource.getMessage("2000", null, locale));
+		return ResponseEntity.ok(rs);
+	}
 
 }

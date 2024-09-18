@@ -49,12 +49,13 @@ public class WebConfig implements WebMvcConfigurer {
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(localeChangeInterceptor());
-		registry.addInterceptor(userInterceptor).addPathPatterns("/calendar");
-		registry.addInterceptor(userInterceptor).addPathPatterns("/home");
-		registry.addInterceptor(userInterceptor).addPathPatterns("/attendance");
-		registry.addInterceptor(userInterceptor).addPathPatterns("/payroll");
-		registry.addInterceptor(userInterceptor).addPathPatterns("/getAttendance");
-		registry.addInterceptor(userInterceptor).addPathPatterns("/getTwCalendar");
+//		registry.addInterceptor(userInterceptor).addPathPatterns("/calendar");
+//		registry.addInterceptor(userInterceptor).addPathPatterns("/home");
+//		registry.addInterceptor(userInterceptor).addPathPatterns("/attendance");
+//		registry.addInterceptor(userInterceptor).addPathPatterns("/payroll");
+//		registry.addInterceptor(userInterceptor).addPathPatterns("/getAttendance");
+//		registry.addInterceptor(userInterceptor).addPathPatterns("/getTwCalendar");
+		registry.addInterceptor(userInterceptor).addPathPatterns("/**").excludePathPatterns("/index","/login").excludePathPatterns("/css/**", "/js/**", "/images/**", "/fonts/**", "/lang/**", "/lib/**", "/vendor/**").excludePathPatterns("/favicon.ico");; // 匹配所有路径
 	}
 
 }
