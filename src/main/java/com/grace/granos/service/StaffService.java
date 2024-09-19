@@ -1,5 +1,8 @@
 package com.grace.granos.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,31 +31,62 @@ public class StaffService {
 	public void addStaff(StaffModel staffModel){
 		staffRepository.addStaff(staffModel);
 	}
-    public Iterable<StaffModel> getStaff() {
+    public List<StaffModel> getStaff() {
         return staffRepository.findAll();
     }
-    public StaffModel findStaffByUsername(StaffModel user) throws Exception {
-    	if(StringUtils.isEmpty(user.getUsername())) {
-    		throw new Exception("there is no username");
+    public StaffModel findStaffByUserName(String username){
+        return staffRepository.findStaffByUserName(username);
+    }
+    public StaffModel findStaffById(int empId){
+        return staffRepository.findStaffById(empId);
+    }
+    public User findUserById(int empId){
+    	StaffModel staff=staffRepository.findStaffById(empId);
+    	User userF = staffToUser(staff);
+        return userF;
+    }
+	private User staffToUser(StaffModel staff) {
+    	User userF=null;
+		if(staff!=null) {
+    		userF=new User();
+	    	userF.setEmpId(staff.getEmpId());
+	    	userF.setUsername(staff.getUsername());
+	    	userF.setNameCn(staff.getNameCn());
+	    	userF.setNameEn(staff.getNameEn());
+	    	userF.setLastNameCn(staff.getLastNameCn());
+	    	userF.setLastNameEn(staff.getLastNameEn());
+	    	userF.setJobId(staff.getJobId());
+	    	userF.setPosition(staff.getTitle());
+	    	userF.setOrganization(staff.getOrganization());
     	}
-        return staffRepository.findStaffByusername(user);
+		return userF;
+	}
+    public List<User> findAllStaff(){
+    	List<User> userN=new ArrayList<User>();
+    	List<StaffModel> users=staffRepository.findAll();
+		if(users!=null&&!users.isEmpty()) {
+			for(StaffModel ss:users) {
+				User user= new User();
+				user.setEmpId(ss.getEmpId());
+				user.setLastNameCn(ss.getLastNameCn());
+				user.setNameEn(ss.getNameEn());
+				user.setLastNameEn(ss.getLastNameEn());
+				user.setNameCn(ss.getNameCn());
+				user.setUsername(ss.getUsername());
+				userN.add(user);
+			}
+		}
+        return userN;
     }
     public User Login(StaffModel user) {
     	logger.info("Service:Login["+user.getUsername()+"]");
-    	StaffModel loger=staffRepository.findStaffByusername(user);
+    	StaffModel loger=findStaffByUserName(user.getUsername());
     	if(loger==null) {
     		return null;
     	}
-    	User userF=new User();
-    	userF.setEmpId(loger.getEmpId());
-    	userF.setUsername(loger.getUsername());
-    	userF.setNameCn(loger.getNameCn());
-    	userF.setNameEn(loger.getNameEn());
-    	userF.setLastNameCn(loger.getLastNameCn());
-    	userF.setLastNameEn(loger.getLastNameEn());
-    	userF.setCharacter(loger.getEmpId());
-    	userF.setCharacterNameEn(loger.getNameEn());
-    	userF.setCharacterNameCn(loger.getNameCn());
+    	User userF= staffToUser(loger);
+    	User userG=staffToUser(loger);
+    	userF.setCharacter(userG);
     	EncryptUtil util=new EncryptUtil();
     	String password=loger.getPassword();
     	if(StringUtils.isNotEmpty(password)) {
@@ -103,7 +137,7 @@ public class StaffService {
         if (cookies != null) {
             // 遍历所有 Cookie
             for (Cookie cookie : cookies) {
-                if ("user".equals(cookie.getName())) {
+                if ("granosUser".equals(cookie.getName())) {
                     // 如果找到名为 "user" 的 Cookie，则获取其值
                     String userValue = cookie.getValue();
                     user = jsonToUser(userValue);

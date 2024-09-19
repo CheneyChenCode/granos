@@ -24,7 +24,6 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import com.grace.granos.model.AttendanceModel;
 import com.grace.granos.model.JsonResponse;
 import com.grace.granos.model.PayrollDataTableModel;
-import com.grace.granos.model.PayrollModel;
 import com.grace.granos.model.User;
 import com.grace.granos.service.AttendanceService;
 import com.grace.granos.service.PayrollService;
@@ -53,19 +52,18 @@ public class Payroll {
 
 	@CrossOrigin(origins = "*", allowedHeaders = "*")
 	@RequestMapping("/getPayroll")
-	public ResponseEntity<JsonResponse> getPayroll(@RequestParam("year") int year, @RequestParam("month") int month,
-			@RequestParam("user") int empid, HttpServletRequest request) {
+	public ResponseEntity<JsonResponse> getPayroll(@RequestParam("year") int year, @RequestParam("month") int month,HttpServletRequest request) {
 		logger.info("Controller:getPayroll[" + year + "]");
-		List<PayrollDataTableModel> pay = payrollService.getPayroll(year, month, empid);
 		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
-		JsonResponse rs = new JsonResponse(pay);
         User user=staffService.getUser(request);
+        List<PayrollDataTableModel> pay = payrollService.getPayroll(year, month, user.getCharacter().getEmpId());
+        JsonResponse rs = new JsonResponse(pay);
 		if (pay.size() > 0) {
 			ResponseEntity.ok(new JsonResponse(pay));
 		} else {
 			List<AttendanceModel> atts;
 			try {
-				atts = attendanceService.checkAttendanceForPayByUserMon(year, month, empid);
+				atts = attendanceService.checkAttendanceForPayByUserMon(year, month, user.getCharacter().getEmpId());
 			} catch (Exception e) {
 				logger.error(e.getMessage());
 				rs.setStatus(3001);
@@ -77,21 +75,9 @@ public class Payroll {
 				rs.setMessage(messageSource.getMessage("3002", null, locale));
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
 			} else {
-				List<PayrollModel> pm = payrollService.calculatePayroll(year, month, empid,user);
-				payrollService.deletePayroll(year, month, empid);
-				payrollService.addPayroll(pm);
-				pay = payrollService.PayrollModelToDataTable(pm);
+				pay = payrollService.calculatePayroll(year, month,user);
 			}
 		}
-		return ResponseEntity.ok(new JsonResponse(pay));
-	}
-
-	@RequestMapping("/getPayrollConfirmed")
-	public ResponseEntity<JsonResponse> getPayrollConfirmed(@RequestParam("year") int year,
-			@RequestParam("month") int month, @RequestParam("user") int empid, HttpServletRequest request) {
-		User user=staffService.getUser(request);
-		List<PayrollModel> pm = payrollService.calculatePayroll(year, month, empid,user);
-		List<PayrollDataTableModel> pay = payrollService.PayrollModelToDataTable(pm);
 		return ResponseEntity.ok(new JsonResponse(pay));
 	}
 

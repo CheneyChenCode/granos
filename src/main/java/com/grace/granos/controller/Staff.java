@@ -2,6 +2,7 @@ package com.grace.granos.controller;
 
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,18 +36,50 @@ public class Staff {
 	@Autowired
 	StaffService staffService;
 
-	@GetMapping("/addStaff")
-	public String hello() {
+    @GetMapping("/logout")
+    public String deleteCookie(HttpServletResponse response) {
+        // 要刪除的 Cookie 名稱
+        Cookie cookieToDelete = new Cookie("granosUser", null);
+        
+        // 設置 Cookie 過期時間為 0
+        cookieToDelete.setMaxAge(0);
+        
+        // 設置 Cookie 的路徑
+        cookieToDelete.setPath("/");
 
-		return "home";
+        // 添加這個過期的 Cookie 到回應中，這樣它就會被瀏覽器刪除
+        response.addCookie(cookieToDelete);
+
+        return "index";
+    }
+
+	@PostMapping("/changeCharacter")
+	public ResponseEntity<JsonResponse> staff(int empId,HttpServletRequest request,Model model,HttpServletResponse response) {
+		JsonResponse rs = new JsonResponse();
+		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
+		User user=staffService.getUser(request);
+		User userF=staffService.findUserById(empId);
+		if(userF!=null) {
+			user.setCharacter(userF);
+			String json = staffService.userToJson(user);
+			Cookie cookie = new Cookie("granosUser", json);
+			model.addAttribute("user", user);
+			// 将 Cookie 添加到响应中
+			rs.setStatus(1000);
+			rs.setMessage(messageSource.getMessage("1000", null, locale));
+			rs.setData(user);
+			response.addCookie(cookie);
+			return ResponseEntity.ok(rs);
+		}
+		rs.setStatus(1001);
+		rs.setMessage(messageSource.getMessage("1001", null, locale));
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
 	}
-
-	@GetMapping("/staff")
-	public String staff(Model model) {
-
-		return "todolist";
+	@GetMapping("/findAllUser")
+	public ResponseEntity<JsonResponse> findAllUser() {
+		List<User> userN=staffService.findAllStaff();
+		return ResponseEntity.ok(new JsonResponse(userN));
 	}
-
 	@PostMapping("/login")
 	public ResponseEntity<JsonResponse> Login(@ModelAttribute StaffModel user, Model model, HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
@@ -88,7 +121,7 @@ public class Staff {
 				logger.info("Controller:Staff[" + user.getUsername() + "] login succeed");
 				String json = staffService.userToJson(staff);
 				// 创建一个新的 Cookie 对象
-				Cookie cookie = new Cookie("user", json);
+				Cookie cookie = new Cookie("granosUser", json);
 				model.addAttribute("user", user);
 				// 将 Cookie 添加到响应中
 				rs.setStatus(1000);

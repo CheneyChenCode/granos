@@ -25,6 +25,24 @@ public class StaffModel {
 	private String updater;
 	private int jobId;
 	private int orgId;
+	private String title;
+	private String organization;
+	
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public String getOrganization() {
+		return organization;
+	}
+
+	public void setOrganization(String organization) {
+		this.organization = organization;
+	}
 
 	public int getJobId() {
 		return jobId;

@@ -191,9 +191,6 @@ public class AttendanceModel {
 	public int getDayCode() {
 		return dayCode;
 	}
-	public void setDay_code(int dayCode) {
-		this.dayCode = dayCode;
-	}
 	public float getRemainTaxFree() {
 		return remainTaxFree;
 	}

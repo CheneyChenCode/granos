@@ -46,16 +46,17 @@ public class PayrollService {
 	@Autowired
 	private AttendanceRepository attendanceRepository;
 
-	public List<PayrollModel> calculatePayroll(int year, int month, int empid,User user) {
+	public List<PayrollDataTableModel> calculatePayroll(int year, int month, User user) {
 		logger.info("Service:calculatePayroll[" + year + "/" + month + "]");
+		List<PayrollDataTableModel> payrolltable= new ArrayList<PayrollDataTableModel>();
 		List<PayrollModel> payrolls = new ArrayList<>();
 		AttendanceModel attendanceModel = new AttendanceModel();
-		attendanceModel.setEmpId(empid);
+		attendanceModel.setEmpId(user.getCharacter().getEmpId());
 		attendanceModel.setYear(year);
 		attendanceModel.setMonth(month);
 		List<AttendanceModel> atts = attendanceRepository.findAttendanceForPayByUserMon(attendanceModel);
 		if (CollectionUtils.isEmpty(atts)) {
-			return payrolls;
+			return payrolltable;
 		}
 		List<DayCodeModel> dayCodes = payCodeRepository.findPayCodeByNow();
 		for (DayCodeModel dc : dayCodes) {
@@ -115,8 +116,13 @@ public class PayrollService {
 				}
 			}
 		}
-
-		return payrolls;
+		if(payrolls.isEmpty()) {
+			return payrolltable;
+		}
+		deletePayroll(year, month, user.getCharacter().getEmpId());
+		addPayroll(payrolls);
+		payrolltable=PayrollModelToDataTable(payrolls);
+		return payrolltable;
 	}
 
 	public List<PayrollDataTableModel> PayrollModelToDataTable(List<PayrollModel> pls) {
@@ -143,12 +149,12 @@ public class PayrollService {
 		return payrollDataTable;
 	}
 
-	public List<PayrollDataTableModel> getPayroll(int year, int month, int empid) {
+	public List<PayrollDataTableModel> getPayroll(int year, int month, int empId) {
 		logger.info("Service:getPayroll[" + year + "/" + month + "]");
 		PayrollModel payroll = new PayrollModel();
 		payroll.setYear(year);
 		payroll.setMonth(month);
-		payroll.setEmpId(empid);
+		payroll.setEmpId(empId);
 		List<PayrollModel> payrolls = null;
 		List<PayrollDataTableModel> payrollDataTable = new ArrayList<>();
 		try {

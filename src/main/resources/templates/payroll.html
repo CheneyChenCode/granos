@@ -94,7 +94,6 @@ $(document).ready(function() {
                     data: function(d){
 							d.year = currentYear;
 							d.month = specMonth;
-							d.user = user.empId
 					},
 			        error: function(xhr, error, thrown) {
 						const response = JSON.parse(xhr.responseText);
@@ -142,6 +141,10 @@ $(document).ready(function() {
 			cardCol2Row2.className='row';
 			let cardCol2Row3 = document.createElement('div');
 			cardCol2Row3.className='row';
+			let cardCol2Row4 = document.createElement('div');
+			cardCol2Row4.className='row';
+			let cardCol2Row5 = document.createElement('div');
+			cardCol2Row5.className='row';
 			let cardCol2Row1Label = document.createElement('div');
 			cardCol2Row1Label.className='col-4 col-form-label px-1';
 			cardCol2Row1Label.textContent='Title:';
@@ -159,7 +162,19 @@ $(document).ready(function() {
 			cardCol2Row3Label.textContent='Weighted:';
 			let cardCol2Row3Text = document.createElement('div');
 			cardCol2Row3Text.className='col-2 form-control-plaintext font-weight-bold';
-			cardCol2Row3Text.textContent = data.weighted;			
+			cardCol2Row3Text.textContent = data.weighted;		
+			let cardCol2Row4Label = document.createElement('div');
+			cardCol2Row4Label.className='col-4 col-form-label px-1';
+			cardCol2Row4Label.textContent='Tax Free Overtime:';
+			let cardCol2Row4Text = document.createElement('div');
+			cardCol2Row4Text.className='col-2 form-control-plaintext font-weight-bold';
+			cardCol2Row4Text.textContent = data.taxFreeOverTime;
+			let cardCol2Row5Label = document.createElement('div');
+			cardCol2Row5Label.className='col-4 col-form-label px-1';
+			cardCol2Row5Label.textContent='Tax Free Ot Wt:';
+			let cardCol2Row5Text = document.createElement('div');
+			cardCol2Row5Text.className='col-2 form-control-plaintext font-weight-bold';
+			cardCol2Row5Text.textContent = data.taxFreeOverTimeWeighted;	
 			
 			cardCol2Row1.appendChild(cardCol2Row1Label);
 			cardCol2Row1.appendChild(cardCol2Row1Text);
@@ -167,12 +182,18 @@ $(document).ready(function() {
 			cardCol2Row2.appendChild(cardCol2Row2Text);
 			cardCol2Row3.appendChild(cardCol2Row3Label);
 			cardCol2Row3.appendChild(cardCol2Row3Text);
+			cardCol2Row4.appendChild(cardCol2Row4Label);
+			cardCol2Row4.appendChild(cardCol2Row4Text);
+			cardCol2Row5.appendChild(cardCol2Row5Label);
+			cardCol2Row5.appendChild(cardCol2Row5Text);
 			
 			let cardCol2 = document.createElement('div');
 			cardCol2.className='col-10';
 			cardCol2.appendChild(cardCol2Row1);
 			cardCol2.appendChild(cardCol2Row2);
 			cardCol2.appendChild(cardCol2Row3);
+			cardCol2.appendChild(cardCol2Row4);
+			cardCol2.appendChild(cardCol2Row5);
 			// 创建 card 元素
 			let newCol = document.createElement('div');
 			newCol.className='col-sm-5 mb-4'; 
@@ -245,7 +266,7 @@ $(document).ready(function() {
             data: {
                 year: currentYear,
                 month: specMonth,
-                user: user.empId
+                user: user.character.empId
             },
             xhrFields: {
                 responseType: 'blob' // 用于处理二进制文件（如 Excel）
@@ -294,8 +315,9 @@ $(document).ready(function() {
                     <a href="attendance" class="nav-item nav-link">Attendance</a>
                     <a href="payroll" class="nav-item nav-link active">Payroll</a>
                     <a href="administrator" class="nav-item nav-link circle-background" >
-                    	<span class="border border-warning rounded-lg p-3" th:text="${user.characterNameEn}"></span>
+                    	<span class="border border-warning rounded-lg p-3" th:text="${user.character.nameEn}"></span>
                     </a>
+                    <a href="logout" class="nav-item nav-link">Logout</a>
                 </div>
             </div>
         </nav>

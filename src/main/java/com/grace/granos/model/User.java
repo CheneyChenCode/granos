@@ -1,9 +1,17 @@
 package com.grace.granos.model;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 @Component
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class User {
+	private static final AtomicLong idCounter = new AtomicLong();  // 全局的自增计数器
+	private long id;
 	private int empId;
 	private String username;
 	private String nameEn;
@@ -13,27 +21,35 @@ public class User {
 	private String position;
 	private String loginMessage;
 	private String email;
-	private int character;
-	private String characterNameEn;
-	private String characterNameCn;
+//	private int character;
+//	private String characterNameEn;
+//	private String characterNameCn;
+//	private String characterLastNameEn;
+//	private String characterLastNameCn;
+	private int jobId;
+	private String organization;
+	private User character;
 	
-	public String getCharacterNameEn() {
-		return characterNameEn;
+	public User() {
+		this.id=idCounter.incrementAndGet();
 	}
-	public void setCharacterNameEn(String characterNameEn) {
-		this.characterNameEn = characterNameEn;
-	}
-	public String getCharacterNameCn() {
-		return characterNameCn;
-	}
-	public void setCharacterNameCn(String characterNameCn) {
-		this.characterNameCn = characterNameCn;
-	}
-	public int getCharacter() {
+	public User getCharacter() {
 		return character;
 	}
-	public void setCharacter(int character) {
+	public void setCharacter(User character) {
 		this.character = character;
+	}
+	public String getOrganization() {
+		return organization;
+	}
+	public void setOrganization(String organization) {
+		this.organization = organization;
+	}
+	public int getJobId() {
+		return jobId;
+	}
+	public void setJobId(int jobId) {
+		this.jobId = jobId;
 	}
 	public int getEmpId() {
 		return empId;
@@ -88,6 +104,12 @@ public class User {
 	}
 	public void setLoginMessage(String loginMessage) {
 		this.loginMessage = loginMessage;
+	}
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
 	}
 
 }

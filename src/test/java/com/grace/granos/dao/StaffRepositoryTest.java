@@ -21,8 +21,9 @@ public class StaffRepositoryTest {
 	public void findStaffByusername() throws Exception {
 		StaffModel user =new StaffModel();
 		user.setUsername("0001");
+		user.setEmpId(1);;
 	        //檢查結果
-		user=staffDao.findStaffByusername(user);
+		user=staffDao.findStaffByUserName(user.getUsername());
 		System.out.println(user.getEmail());
 		System.out.println(user.getCreateTime());
 		System.out.println(user.getEntryDate());

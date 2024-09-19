@@ -25,6 +25,7 @@ public class AttendanceDataTableModel {
 	private int status;
 	private int dayCode;
 	private int period;
+	private String description;
 	
 	public int getPeriod() {
 		return period;
