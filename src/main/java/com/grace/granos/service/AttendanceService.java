@@ -299,9 +299,10 @@ public class AttendanceService {
 			at.setDay(day);
 			at.setMonth(month);
 			// Sequence of period
+			Double excelPeriod = getCellValue(formulaEvaluator, row.getCell(17), Double.class);
 			if (rowIndex == 4) {
 				period = attendanceRepository.findLastPeriodWdByUserMon(at);
-				if(period==0) {
+				if(period==-1&&excelPeriod==null) {
 					throw new Exception("There are no attendance records in the previous month.");
 				}
 				accumulateWorkDay = attendanceRepository.findLastAccumulateByUserMon(at);
@@ -309,7 +310,7 @@ public class AttendanceService {
 				flexibleDayOffInPeriod = attendanceRepository.findLastflexibleDayOffInPeriod(at);
 				accumulateWorkDayInPeriod = period - fixedDayOffInPeriod - flexibleDayOffInPeriod;
 			}
-			Double excelPeriod = getCellValue(formulaEvaluator, row.getCell(17), Double.class);
+			
 			if(excelPeriod!=null) {
 				period=(int)Math.floor(excelPeriod);
 				if (period <= 1 ) {
@@ -549,13 +550,14 @@ public class AttendanceService {
 			} else {
 				at.setEndDatetime(Timestamp.valueOf(endLocalDateTime));
 			}
-			AttendanceModel at2 = new AttendanceModel();
+			AttendanceModel at2 = null;
 			// leave time
 			Date leaveTime = getCellValue(formulaEvaluator, row.getCell(7), Date.class);
 			if (leaveTime != null) {
 				LocalTime leaveTimeJudge= leaveTime.toInstant().atZone(timeZone).toLocalTime();
 				if(leaveTimeJudge.isBefore(at.getArrivalDatetime().toLocalDateTime().toLocalTime())) {
 					if(dayCode!=endDayCode && (dayCode==5 || endDayCode==5)) {
+						at2 = new AttendanceModel();
 						attendanceDatas.add(at2);
 						seq=seq+1;
 						at2.setSeq(seq);
@@ -577,8 +579,8 @@ public class AttendanceService {
 						at2.setStartDatetime(at.getStartDatetime());
 						at2.setEndDatetime(at.getEndDatetime());
 						
-						at.setLeaveDatetime(Timestamp.valueOf(LocalDateTime.of(startDate,
-								LocalTime.of(23, 59, 59))));
+						at.setLeaveDatetime(Timestamp.valueOf(LocalDateTime.of(endLocalDate,
+								LocalTime.of(00, 00, 00))));
 						
 						at2.setArrivalDatetime(Timestamp.valueOf(LocalDateTime.of(endLocalDate,
 								LocalTime.of(0, 0, 0))));
@@ -613,7 +615,7 @@ public class AttendanceService {
 				}
 				continue;
 			}
-			if(dayCode!=endDayCode) {
+			if(at2!=null) {
 				remainTaxHours = calculateWork(formulaEvaluator, remainTaxHours, row, at, shift, endLocalDate,
 						endLocalDateTime,false);
 				remainTaxHours = calculateWork(formulaEvaluator, remainTaxHours, row, at2, shift, endLocalDate,
@@ -640,15 +642,27 @@ public class AttendanceService {
 				return remainTaxHours;
 			}
 			long comparisonResult=0;
-			if(at.getLeaveDatetime().toLocalDateTime().compareTo(at.getEndDatetime().toLocalDateTime())>=0) {
-				comparisonResult = ChronoUnit.MINUTES.between(at.getArrivalDatetime().toLocalDateTime(),
-						at.getEndDatetime().toLocalDateTime());
+			if(latsSeq) {
+				if(at.getLeaveDatetime().toLocalDateTime().compareTo(at.getEndDatetime().toLocalDateTime())>=0) {
+					comparisonResult = ChronoUnit.MINUTES.between(at.getArrivalDatetime().toLocalDateTime(),
+							at.getEndDatetime().toLocalDateTime());
+				}else {
+					comparisonResult = ChronoUnit.MINUTES.between(at.getArrivalDatetime().toLocalDateTime(),
+							at.getLeaveDatetime().toLocalDateTime());
+				}
 			}else {
-				comparisonResult = ChronoUnit.MINUTES.between(at.getArrivalDatetime().toLocalDateTime(),
-						at.getLeaveDatetime().toLocalDateTime());
+				if(at.getArrivalDatetime().toLocalDateTime().compareTo(at.getStartDatetime().toLocalDateTime())<=0) {
+					comparisonResult = ChronoUnit.MINUTES.between(at.getStartDatetime().toLocalDateTime(),
+							at.getLeaveDatetime().toLocalDateTime());
+				}else {
+					comparisonResult = ChronoUnit.MINUTES.between(at.getArrivalDatetime().toLocalDateTime(),
+							at.getLeaveDatetime().toLocalDateTime());
+				}
 			}
+
 			LocalDateTime restStartTime = at.getStartDatetime().toLocalDateTime()
 					.plusSeconds(Math.round(shift.getRestStartHour() * 60 * 60));
+
 			if (at.getLeaveDatetime().toLocalDateTime().compareTo(restStartTime) > 0 && at.getArrivalDatetime().toLocalDateTime().compareTo(restStartTime)<=0) {
 				comparisonResult = (long) (comparisonResult - shift.getRestHours() * 60);
 			}

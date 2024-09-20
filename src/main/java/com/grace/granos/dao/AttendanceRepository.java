@@ -117,11 +117,11 @@ public class AttendanceRepository {
 						   + " year = ? and month = ? and emp_id = ?"
 						   + " AND day = (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ?)";
 
-		int result =0;
+		int result =-1;
 		try{
 			result=jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
 		}catch (EmptyResultDataAccessException e) {
-			result=0;
+			result=-1;
 		}
 		return result;
 	}

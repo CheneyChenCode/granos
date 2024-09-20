@@ -27,8 +27,4 @@ public class Login {
 	public String hello(Model model,HttpServletRequest request) throws Exception {
 		return "home";
 	}
-	public StaffModel login() {
-		return null;
-		
-	}
 }

@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
@@ -34,8 +35,6 @@ import com.grace.granos.model.PayrollDataTableModel;
 import com.grace.granos.model.PayrollModel;
 import com.grace.granos.model.User;
 
-import io.micrometer.common.util.StringUtils;
-
 @Service
 public class PayrollService {
 	private static final Logger logger = LoggerFactory.getLogger(PayrollService.class);
@@ -48,7 +47,7 @@ public class PayrollService {
 
 	public List<PayrollDataTableModel> calculatePayroll(int year, int month, User user) {
 		logger.info("Service:calculatePayroll[" + year + "/" + month + "]");
-		List<PayrollDataTableModel> payrolltable= new ArrayList<PayrollDataTableModel>();
+		List<PayrollDataTableModel> payrolltable = new ArrayList<PayrollDataTableModel>();
 		List<PayrollModel> payrolls = new ArrayList<>();
 		AttendanceModel attendanceModel = new AttendanceModel();
 		attendanceModel.setEmpId(user.getCharacter().getEmpId());
@@ -59,40 +58,54 @@ public class PayrollService {
 			return payrolltable;
 		}
 		List<DayCodeModel> dayCodes = payCodeRepository.findPayCodeByNow();
-		for (DayCodeModel dc : dayCodes) {
-			List<AttendanceModel> filAttsByDc = atts.stream().filter(x -> dc.getDayCode() == x.getDayCode())
+		float totalWorkhours = 0;
+		float totalPaidLeave = 0;
+		int day = 0;
+		for (AttendanceModel att : atts) {
+			float workHours = att.getWorkHours();
+			float paidLeave = att.getPaidLeave();
+			if (day != att.getDay()) {
+				day = att.getDay();
+				totalWorkhours = workHours;
+				totalPaidLeave = paidLeave;
+			} else {
+				totalWorkhours = totalWorkhours + workHours;
+				totalPaidLeave = totalPaidLeave + paidLeave;
+			}
+			List<DayCodeModel> filAttsByDc = dayCodes.stream().filter(x -> att.getDayCode() == x.getDayCode())
 					.collect(Collectors.toList());
-			for (PayCodeModel pc : dc.getPayCode()) {
-				List<AttendanceModel> filAttsByShift = filAttsByDc.stream()
-						.filter(x -> pc.getShift().equals(x.getShift())).collect(Collectors.toList());
-				for (AttendanceModel att : filAttsByShift) {
-					PayrollModel pl = new PayrollModel();
-					pl.setEmpId(att.getEmpId());
-					pl.setDay(att.getDay());
-					pl.setMonth(att.getMonth());
-					pl.setCreater(user.getUsername());
-					pl.setPayCode(pc.getId());
-					pl.setYear(att.getYear());
-					pl.setTitle(pc.getTitle());
-					pl.setCoefficient(pc.getCoefficient());
-					logger.info("month:"+pl.getMonth()+",day:"+pl.getDay()+",shift:"+pc.getShift()+",payCode:"+pl.getPayCode());
-					float s = Float.parseFloat(pc.getHourPartGreater());
-					float workHours = att.getWorkHours();
-					if (att.getPaidLeave() > 0) {
-						workHours = att.getPaidLeave();
-					}
-					if (workHours > s) {
-						float e = workHours;
-						float l = 0;
-						if (StringUtils.isNotEmpty(pc.getHourPartLess())) {
-							l = Float.parseFloat(pc.getHourPartLess());
-							if(workHours > l) {
-								e = l;
-							}
+			for (DayCodeModel dc : filAttsByDc) {
+				List<PayCodeModel> filAttsByShift = dc.getPayCode().stream()
+						.filter(x -> att.getDayCode()==x.getDayCode()&& att.getShift().equals(x.getShift())).collect(Collectors.toList());
+				for (PayCodeModel pc : filAttsByShift) {
+					float hours=0;
+					float currentHourPartGreater = StringUtils.isNotEmpty(pc.getHourPartGreater())
+							? Float.parseFloat(pc.getHourPartGreater())
+							: 0;
+					float currentHourPartLess = StringUtils.isNotEmpty(pc.getHourPartLess())
+							? Float.parseFloat(pc.getHourPartLess())
+							: 0;
+					if (paidLeave > 0 && totalPaidLeave > currentHourPartGreater) {
+						hours=calculateHours(payrolls, totalPaidLeave, att, pc, currentHourPartGreater, currentHourPartLess);
+						if(hours>0) {
+							PayrollModel pl = createPayrollModel(user, payrolls, att, pc, hours);
+							logger.info("month:" + pl.getMonth() + ",day:" + pl.getDay() + ",seq" + att.getSeq() + ",shift:"
+									+ pc.getShift() + ",payCode:" + pl.getPayCode());
+							logger.info("workHours:" + pl.getHours() + ",TaxFreeHours:" + pl.getTaxFreeHours());
 						}
-						pl.setHours(e - s);
-						float taxFreeOverTime = e - s;
-						if (s==0 && l == 8 && (pc.getDayCode() == 1 || pc.getDayCode() == 5)) {
+						continue;
+					}
+	
+					if (totalWorkhours > currentHourPartGreater) {
+						hours=calculateHours(payrolls, totalWorkhours, att, pc, currentHourPartGreater, currentHourPartLess);
+						if(hours<=0) {
+							continue;
+						}
+						
+						PayrollModel pl = createPayrollModel(user, payrolls, att, pc, hours);
+						float taxFreeOverTime = pl.getHours();
+						if (currentHourPartGreater == 0 && currentHourPartLess == 8
+								&& (pc.getDayCode() == 1 || pc.getDayCode() == 5)) {
 							taxFreeOverTime = 0;
 						} else {
 							if (att.getRemainTaxFree() < 0) {
@@ -110,19 +123,70 @@ public class PayrollService {
 							}
 						}
 						pl.setTaxFreeHours(taxFreeOverTime);
-						payrolls.add(pl);
+						logger.info("month:" + pl.getMonth() + ",day:" + pl.getDay() + ",seq" + att.getSeq() + ",shift:"
+								+ pc.getShift() + ",payCode:" + pl.getPayCode());
+						logger.info("workHours:" + pl.getHours() + ",TaxFreeHours:" + pl.getTaxFreeHours());
 					}
-					logger.info("workHours:"+pl.getHours()+",TaxFreeHours:"+pl.getTaxFreeHours());
+					
 				}
 			}
 		}
-		if(payrolls.isEmpty()) {
+		if (payrolls.isEmpty()) {
 			return payrolltable;
 		}
 		deletePayroll(year, month, user.getCharacter().getEmpId());
 		addPayroll(payrolls);
-		payrolltable=PayrollModelToDataTable(payrolls);
+		payrolltable = PayrollModelToDataTable(payrolls);
 		return payrolltable;
+	}
+
+	private PayrollModel createPayrollModel(User user, List<PayrollModel> payrolls, AttendanceModel att,
+			PayCodeModel pc, float hours) {
+		PayrollModel pl = new PayrollModel();
+		payrolls.add(pl);
+		pl.setEmpId(att.getEmpId());
+		pl.setDay(att.getDay());
+		pl.setMonth(att.getMonth());
+		pl.setCreater(user.getUsername());
+		pl.setPayCode(pc.getId());
+		pl.setYear(att.getYear());
+		pl.setTitle(pc.getTitle());
+		pl.setCoefficient(pc.getCoefficient());
+		pl.setHourPartGreater(pc.getHourPartGreater());
+		pl.setHourPartLess(pc.getHourPartLess());
+		pl.setHours(hours);
+		return pl;
+	}
+
+	private float calculateHours(List<PayrollModel> payrolls, float totalHours, AttendanceModel att, PayCodeModel pc,
+			float currentHourPartGreater, float currentHourPartLess) {
+		float e = totalHours;
+		float l = 0;
+		if (currentHourPartLess > 0) {
+			l = currentHourPartLess;
+			if (totalHours > l) {
+				e = l;
+			}
+		}
+		float hours=0;
+		hours=e - currentHourPartGreater;
+		if (att.getSeq() > 1) {
+			List<PayrollModel> matchingPayrolls = payrolls.stream()
+					.filter(p -> p.getPayCode() != pc.getId() && p.getDay() == att.getDay()
+							&& StringUtils.equals(p.getHourPartGreater(), pc.getHourPartGreater())
+							&& StringUtils.equals(p.getHourPartLess(), pc.getHourPartLess()))
+					.collect(Collectors.toList());
+
+			if (!matchingPayrolls.isEmpty()) {
+				for (PayrollModel matchingPl : matchingPayrolls) {
+					logger.info("PayCode" + matchingPl.getPayCode() + ",day: " + matchingPl.getDay() + ", month: "
+							+ matchingPl.getMonth() + ",HourPartGreater:" + pc.getHourPartGreater() + ",HourPartLess:"
+							+ pc.getHourPartLess());
+					hours=hours - matchingPl.getHours();
+				}
+			}
+		}
+		return hours;
 	}
 
 	public List<PayrollDataTableModel> PayrollModelToDataTable(List<PayrollModel> pls) {
@@ -162,7 +226,7 @@ public class PayrollService {
 			if (payrolls == null) {
 				return payrollDataTable;
 			}
-			payrollDataTable=PayrollModelToDataTable(payrolls);
+			payrollDataTable = PayrollModelToDataTable(payrolls);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		}
@@ -193,7 +257,7 @@ public class PayrollService {
 		payroll.setMonth(month);
 		payroll.setEmpId(empid);
 		List<PayrollModel> payrolls = payrollRepository.findPayrollByUserMon(payroll);
-		if(payrolls==null) {
+		if (payrolls == null) {
 			return null;
 		}
 		// 创建 Excel 工作簿
@@ -266,17 +330,19 @@ public class PayrollService {
 			row2.createCell(2).setCellValue(att.getMonth());
 			row2.createCell(3).setCellValue(att.getDay());
 			row2.createCell(4).setCellValue(att.getSeq());
-			Cell cellArrivalDatetime=row2.createCell(5);
-			if(att.getArrivalDatetime()!=null) {
-				cellArrivalDatetime.setCellValue(Timestamp.valueOf(att.getArrivalDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
-			}else {
+			Cell cellArrivalDatetime = row2.createCell(5);
+			if (att.getArrivalDatetime() != null) {
+				cellArrivalDatetime.setCellValue(Timestamp
+						.valueOf(att.getArrivalDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+			} else {
 				cellArrivalDatetime.setCellValue(att.getArrivalDatetime());
 			}
 			cellArrivalDatetime.setCellStyle(dateTimeCellStyle);
-			Cell cellLeaveDatetime=row2.createCell(6);
-			if(att.getLeaveDatetime()!=null) {
-				cellLeaveDatetime.setCellValue(Timestamp.valueOf(att.getLeaveDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
-			}else {
+			Cell cellLeaveDatetime = row2.createCell(6);
+			if (att.getLeaveDatetime() != null) {
+				cellLeaveDatetime.setCellValue(Timestamp
+						.valueOf(att.getLeaveDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+			} else {
 				cellLeaveDatetime.setCellValue(att.getLeaveDatetime());
 			}
 			cellLeaveDatetime.setCellStyle(dateTimeCellStyle);
@@ -285,17 +351,19 @@ public class PayrollService {
 			row2.createCell(9).setCellValue(att.getApproval());
 			row2.createCell(10).setCellValue(att.getDayCode());
 			row2.createCell(11).setCellValue(att.getOvertime());
-			Cell cellStartDatetime=row2.createCell(12);
-			if(att.getStartDatetime()!=null) {
-				cellStartDatetime.setCellValue(Timestamp.valueOf(att.getStartDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
-			}else {
+			Cell cellStartDatetime = row2.createCell(12);
+			if (att.getStartDatetime() != null) {
+				cellStartDatetime.setCellValue(Timestamp
+						.valueOf(att.getStartDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+			} else {
 				cellStartDatetime.setCellValue(att.getStartDatetime());
 			}
 			cellStartDatetime.setCellStyle(dateTimeCellStyle);
-			Cell cellEndDatetime=row2.createCell(13);
-			if(att.getEndDatetime()!=null) {
-				cellEndDatetime.setCellValue(Timestamp.valueOf(att.getEndDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
-			}else {
+			Cell cellEndDatetime = row2.createCell(13);
+			if (att.getEndDatetime() != null) {
+				cellEndDatetime.setCellValue(
+						Timestamp.valueOf(att.getEndDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+			} else {
 				cellEndDatetime.setCellValue(att.getEndDatetime());
 			}
 			cellEndDatetime.setCellStyle(dateTimeCellStyle);
@@ -308,25 +376,27 @@ public class PayrollService {
 			row2.createCell(20).setCellValue(att.getPeriod());
 			row2.createCell(21).setCellValue(att.getPaidLeave());
 			row2.createCell(22).setCellValue(att.getRemainTaxFree());
-			Cell cellOverStartDatetime=row2.createCell(23);
-			if(att.getOverStartDatetime()!=null) {
-				cellOverStartDatetime.setCellValue(Timestamp.valueOf(att.getOverStartDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
-			}else {
+			Cell cellOverStartDatetime = row2.createCell(23);
+			if (att.getOverStartDatetime() != null) {
+				cellOverStartDatetime.setCellValue(Timestamp
+						.valueOf(att.getOverStartDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+			} else {
 				cellOverStartDatetime.setCellValue(att.getOverStartDatetime());
 			}
 			cellOverStartDatetime.setCellStyle(dateTimeCellStyle);
-			Cell cellOverEndDatetime=row2.createCell(24);
-			if(att.getOverStartDatetime()!=null) {
-				cellOverEndDatetime.setCellValue(Timestamp.valueOf(att.getOverEndDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
-			}else {
+			Cell cellOverEndDatetime = row2.createCell(24);
+			if (att.getOverStartDatetime() != null) {
+				cellOverEndDatetime.setCellValue(Timestamp
+						.valueOf(att.getOverEndDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+			} else {
 				cellOverEndDatetime.setCellValue(att.getOverStartDatetime());
 			}
 			cellOverEndDatetime.setCellStyle(dateTimeCellStyle);
 		}
-        // 2. 将 Excel 写入 ByteArrayOutputStream
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        workbook.write(out);
-        workbook.close();
+		// 2. 将 Excel 写入 ByteArrayOutputStream
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		workbook.write(out);
+		workbook.close();
 		return out;
 	}
 }

@@ -113,7 +113,7 @@ public class Attendance {
 		// Path tempFilePath = Files.createTempFile(filename+"_", extension);
 		try {
 			fileStorageService.createFile(folderPath + "/" + filename, file.getBytes());
-			// 解析Excel文件并处理数据
+			logger.info("Controller:uploadExcel["+folderPath + "/" + filename+"]"+"["+user.getUsername()+"]");
 			List<AttendanceModel> attendances = attendanceService.parseExcel(file.getInputStream(), user);
 			if (attendances != null && !attendances.isEmpty()) {
 				int year = attendances.get(0).getYear();
@@ -127,6 +127,7 @@ public class Attendance {
 				attendanceService.addAttendances(attendances);
 				payrollService.deletePayroll(year,month,empid);
 				uploadMonth = year + "-" + StringUtils.leftPad(String.valueOf(month), 2, "0")+" ";
+				logger.info("Controller:uploadExcel["+uploadMonth +"]");
 				String abnormalMessage = "";
 				for (AttendanceModel att : attendances) {
 					if (att.getStatus() != 1) {

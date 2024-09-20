@@ -1,5 +1,7 @@
 package com.grace.granos.model;
 
+import java.util.Objects;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -77,4 +79,17 @@ public class PayCodeModel {
 		this.title = title;
 	}
 
+    // 覆寫equals和hashCode基於id和shift
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PayCodeModel that = (PayCodeModel) o;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

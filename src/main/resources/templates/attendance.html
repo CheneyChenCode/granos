@@ -488,7 +488,7 @@ $(document).ready(function() {
                     <a href="calendar" class="nav-item nav-link">Calendar</a>
                     <a href="attendance" class="nav-item nav-link active">Attendance</a>
                     <a href="payroll" class="nav-item nav-link">Payroll</a>
-                    <a href="administrator" class="nav-item nav-link circle-background" >
+                    <a href="administrator" class="nav-item nav-link circle-background" th:classappend="${user.jobId != 1} ? 'disabled'" >
                     	<span class="border border-warning rounded-lg p-3" th:text="${user.character.nameEn}"></span>
                     </a>
                     <a href="logout" class="nav-item nav-link">Logout</a>

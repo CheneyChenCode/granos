@@ -58,6 +58,11 @@ public class Staff {
 		JsonResponse rs = new JsonResponse();
 		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
 		User user=staffService.getUser(request);
+		if(user.getJobId()!=1) {
+			rs.setStatus(1004);
+			rs.setMessage(messageSource.getMessage("1004", null, locale));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
+		}
 		User userF=staffService.findUserById(empId);
 		if(userF!=null) {
 			user.setCharacter(userF);
@@ -76,7 +81,15 @@ public class Staff {
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
 	}
 	@GetMapping("/findAllUser")
-	public ResponseEntity<JsonResponse> findAllUser() {
+	public ResponseEntity<JsonResponse> findAllUser(Model model,HttpServletRequest request) {
+		JsonResponse rs = new JsonResponse();
+		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
+		User user=staffService.getUser(request);
+		if(user.getJobId()!=1) {
+			rs.setStatus(1004);
+			rs.setMessage(messageSource.getMessage("1004", null, locale));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
+		}
 		List<User> userN=staffService.findAllStaff();
 		return ResponseEntity.ok(new JsonResponse(userN));
 	}

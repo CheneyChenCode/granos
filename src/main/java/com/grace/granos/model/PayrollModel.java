@@ -17,6 +17,21 @@ public class PayrollModel {
 	//pay_code table
 	private String title;
 	private float coefficient;
+	private String hourPartGreater;
+	private String hourPartLess;
+	
+	public String getHourPartGreater() {
+		return hourPartGreater;
+	}
+	public void setHourPartGreater(String hourPartGreater) {
+		this.hourPartGreater = hourPartGreater;
+	}
+	public String getHourPartLess() {
+		return hourPartLess;
+	}
+	public void setHourPartLess(String hourPartLess) {
+		this.hourPartLess = hourPartLess;
+	}
 	public float getCoefficient() {
 		return coefficient;
 	}

@@ -32,71 +32,108 @@
 <!-- Template Javascript -->
 <script src="js/main.js"></script>
 <script>
-$(document).ready(function() {
-	const searchInput = $('#searchInput');
-	const dropdownMenu = $('#dropdownMenu');
-	const dropdownButton = $('#dropdownMenuButton');
-	function populateDropdown(items) {
-		dropdownMenu.empty(); // Clear existing options
-		$.each(items, function(index, item) {
-			const newName = item.nameEn + ' ' + item.lastNameEn + ' (' + item.lastNameCn + item.nameCn + ')';
-			const li = $('<li>').addClass('dropdown-item').text(newName) // Visible text
-			.attr('data-value', item.empId); // Hidden value (e.g., user ID)
-
-			// Add click event to capture the selected value
-			li.on('click',
+	$(document)
+			.ready(
 					function() {
-						const selectedValue = $(this).data('value');
-						const characterName=$('#characterName');
+						const searchInput = $('#searchInput');
+						const dropdownMenu = $('#dropdownMenu');
+						const dropdownButton = $('#dropdownMenuButton');
+						function populateDropdown(items) {
+							dropdownMenu.empty(); // Clear existing options
+							$
+									.each(
+											items,
+											function(index, item) {
+												const newName = item.nameEn
+														+ ' ' + item.lastNameEn
+														+ ' ('
+														+ item.lastNameCn
+														+ item.nameCn + ')';
+												const li = $('<li>').addClass(
+														'dropdown-item').text(
+														newName) // Visible text
+												.attr('data-value', item.empId); // Hidden value (e.g., user ID)
+
+												// Add click event to capture the selected value
+												li
+														.on(
+																'click',
+																function() {
+																	const selectedValue = $(
+																			this)
+																			.data(
+																					'value');
+																	const characterName = $('#characterName');
+																	$
+																			.ajax({
+																				url : '/changeCharacter', // 這是你的Controller映射的URL
+																				type : 'POST', // 或者 'POST'，根據你的需求
+																				data : {
+																					empId : selectedValue
+																				}, // 傳遞empId作為請求參數
+																				success : function(
+																						response) {
+																					const newName = response.data.character.nameEn
+																							+ ' '
+																							+ response.data.character.lastNameEn
+																							+ ' ('
+																							+ response.data.character.lastNameCn
+																							+ ' '
+																							+ response.data.character.nameCn
+																							+ ')';
+																					// 更新 h2 的文本
+																					$(
+																							'#navCharacter')
+																							.text(
+																									response.data.character.nameEn);
+																					characterName
+																							.text(newName);
+																				},
+																				error : function(
+																						xhr,
+																						status,
+																						error) {
+																					const response = JSON
+																							.parse(xhr.responseText);
+																					// 获取message属性的值
+																					const message = response.message;
+																					characterName
+																							.text(message);
+																				}
+																			});
+																});
+
+												dropdownMenu.append(li);
+											});
+						}
+						let items = []; // Store the dropdown items locally
 						$.ajax({
-						    url: '/changeCharacter',  // 這是你的Controller映射的URL
-						    type: 'POST',    // 或者 'POST'，根據你的需求
-						    data: { empId: selectedValue }, // 傳遞empId作為請求參數
-						    success: function(response) {
-				              const newName = response.data.character.nameEn + ' ' + response.data.character.lastNameEn + ' (' + response.data.character.lastNameCn + ' ' + response.data.character.nameCn + ')';
-				                    // 更新 h2 的文本
-				              $('#navCharacter').text(response.data.character.nameEn);
-				              characterName.text(newName);
-						    },
-						    error: function(xhr, status, error) {
-								const response = JSON.parse(xhr.responseText);
-								// 获取message属性的值
-								const message = response.message;
-								characterName.text(message);
-						    }
+							url : '/findAllUser', // Your controller URL
+							method : 'GET',
+							dataType : 'json', // Expecting a JSON response
+							success : function(response) {
+								items = response.data;
+								populateDropdown(items); // Populate dropdown with response data
+							},
+							error : function(error) {
+								populateDropdown(items);
+							}
+						});
+
+						searchInput.on('input', function() {
+							const searchTerm = searchInput.val().toLowerCase();
+							const filteredItems = items.filter(function(item) {
+								return item.username.toLowerCase().includes(
+										searchTerm);
+							});
+							populateDropdown(filteredItems);
+							if (filteredItems.length > 0) {
+								dropdownMenu.addClass('show');
+							} else {
+								dropdownMenu.removeClass('show');
+							}
 						});
 					});
-
-			dropdownMenu.append(li);
-		});
-	}
-	let items = []; // Store the dropdown items locally
-		$.ajax({
-			url : '/findAllUser', // Your controller URL
-			method : 'GET',
-			dataType : 'json', // Expecting a JSON response
-			success : function(response) {
-				items=response.data;
-				populateDropdown(items); // Populate dropdown with response data
-			},
-			error : function(error) {
-				populateDropdown(items);
-			}
-		});
-
-		searchInput.on('input', function() {
-			const searchTerm = searchInput.val().toLowerCase();
-			const filteredItems = items.filter(function(item) {
-				return item.username.toLowerCase().includes(searchTerm);
-			});
-			populateDropdown(filteredItems);
-	        if (filteredItems.length > 0) {
-	            dropdownMenu.addClass('show');
-	        } else {
-	            dropdownMenu.removeClass('show');
-	        }
-		});
-	});
 </script>
 </head>
 <body>
@@ -119,18 +156,19 @@ $(document).ready(function() {
 						href="calendar" class="nav-item nav-link">Calendar</a> <a
 						href="attendance" class="nav-item nav-link">Attendance</a> <a
 						href="payroll" class="nav-item nav-link">Payroll</a> <a
-						href="administrator" class="nav-item nav-link circle-background">
-						<span id="navCharacter" class="border border-warning rounded-lg p-3"
+						href="administrator" class="nav-item nav-link circle-background" th:classappend="${user.jobId != 1} ? 'disabled'">
+						<span id="navCharacter"
+						class="border border-warning rounded-lg p-3"
 						th:text="${user.character.nameEn}"></span>
-					</a>
-					<a href="logout" class="nav-item nav-link">Logout</a>
+					</a> <a href="logout" class="nav-item nav-link">Logout</a>
 				</div>
 			</div>
 		</nav>
 	</div>
 	<!-- Navbar End -->
 	<div class="container-fluid py-4">
-		<h2 id="characterName" th:text="@{${user.character.nameEn} + ' ' + ${user.character.lastNameEn} + '(' + ${user.character.lastNameCn} + ${user.character.nameCn}} + ')' "></h2>
+		<h2 id="characterName"
+			th:text="@{${user.character.nameEn} + ' ' + ${user.character.lastNameEn} + '(' + ${user.character.lastNameCn} + ${user.character.nameCn}} + ')' "></h2>
 		<!-- Input and Dropdown -->
 		<div class="mb-3">
 			<label for="searchInput" class="form-label">Search:</label> <input
