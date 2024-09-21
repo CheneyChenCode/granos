@@ -25,8 +25,14 @@ public class AttendanceDataTableModel {
 	private int status;
 	private int dayCode;
 	private int period;
-	private String description;
+	private String taxFreeOverTime;
 	
+	public String getTaxFreeOverTime() {
+		return taxFreeOverTime;
+	}
+	public void setTaxFreeOverTime(String taxFreeOverTime) {
+		this.taxFreeOverTime = taxFreeOverTime;
+	}
 	public int getPeriod() {
 		return period;
 	}

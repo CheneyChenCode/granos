@@ -84,25 +84,23 @@ public class PayrollService {
 							: 0;
 					float currentHourPartLess = StringUtils.isNotEmpty(pc.getHourPartLess())
 							? Float.parseFloat(pc.getHourPartLess())
-							: 0;
+							: Float.MAX_VALUE;
 					if (paidLeave > 0 && totalPaidLeave > currentHourPartGreater) {
-						hours=calculateHours(payrolls, totalPaidLeave, att, pc, currentHourPartGreater, currentHourPartLess);
-						if(hours>0) {
-							PayrollModel pl = createPayrollModel(user, payrolls, att, pc, hours);
-							logger.info("month:" + pl.getMonth() + ",day:" + pl.getDay() + ",seq" + att.getSeq() + ",shift:"
-									+ pc.getShift() + ",payCode:" + pl.getPayCode());
-							logger.info("workHours:" + pl.getHours() + ",TaxFreeHours:" + pl.getTaxFreeHours());
+						PayrollModel pl=createPayrollModel(payrolls, totalPaidLeave, att, pc, currentHourPartGreater, currentHourPartLess,user);
+						if(pl==null) {
+							continue;
 						}
+						logger.info("month:" + pl.getMonth() + ",day:" + pl.getDay() + ",seq" + att.getSeq() + ",shift:"
+								+ pc.getShift() + ",payCode:" + pl.getPayCode());
+						logger.info("workHours:" + pl.getHours() + ",TaxFreeHours:" + pl.getTaxFreeHours());
 						continue;
 					}
 	
 					if (totalWorkhours > currentHourPartGreater) {
-						hours=calculateHours(payrolls, totalWorkhours, att, pc, currentHourPartGreater, currentHourPartLess);
-						if(hours<=0) {
+						PayrollModel pl=createPayrollModel(payrolls, totalWorkhours, att, pc, currentHourPartGreater, currentHourPartLess,user);
+						if(pl==null) {
 							continue;
 						}
-						
-						PayrollModel pl = createPayrollModel(user, payrolls, att, pc, hours);
 						float taxFreeOverTime = pl.getHours();
 						if (currentHourPartGreater == 0 && currentHourPartLess == 8
 								&& (pc.getDayCode() == 1 || pc.getDayCode() == 5)) {
@@ -140,55 +138,48 @@ public class PayrollService {
 		return payrolltable;
 	}
 
-	private PayrollModel createPayrollModel(User user, List<PayrollModel> payrolls, AttendanceModel att,
-			PayCodeModel pc, float hours) {
-		PayrollModel pl = new PayrollModel();
-		payrolls.add(pl);
-		pl.setEmpId(att.getEmpId());
-		pl.setDay(att.getDay());
-		pl.setMonth(att.getMonth());
-		pl.setCreater(user.getUsername());
-		pl.setPayCode(pc.getId());
-		pl.setYear(att.getYear());
-		pl.setTitle(pc.getTitle());
-		pl.setCoefficient(pc.getCoefficient());
-		pl.setHourPartGreater(pc.getHourPartGreater());
-		pl.setHourPartLess(pc.getHourPartLess());
-		pl.setHours(hours);
-		return pl;
-	}
-
-	private float calculateHours(List<PayrollModel> payrolls, float totalHours, AttendanceModel att, PayCodeModel pc,
-			float currentHourPartGreater, float currentHourPartLess) {
-		float e = totalHours;
-		float l = 0;
-		if (currentHourPartLess > 0) {
-			l = currentHourPartLess;
-			if (totalHours > l) {
-				e = l;
-			}
+	private PayrollModel createPayrollModel(List<PayrollModel> payrolls, float totalHours, AttendanceModel att, PayCodeModel pc,
+			float currentHourPartGreater, float currentHourPartLess,User user) {
+		if (totalHours < currentHourPartLess) {
+			currentHourPartLess=totalHours;
 		}
 		float hours=0;
-		hours=e - currentHourPartGreater;
+		hours=currentHourPartLess - currentHourPartGreater;
+		PayrollModel pl=null;
 		if (att.getSeq() > 1) {
 			List<PayrollModel> matchingPayrolls = payrolls.stream()
-					.filter(p -> p.getPayCode() != pc.getId() && p.getDay() == att.getDay()
-							&& StringUtils.equals(p.getHourPartGreater(), pc.getHourPartGreater())
-							&& StringUtils.equals(p.getHourPartLess(), pc.getHourPartLess()))
+					.filter(p -> p.getPayCode() != pc.getId() && p.getDay() == att.getDay())
 					.collect(Collectors.toList());
 
 			if (!matchingPayrolls.isEmpty()) {
 				for (PayrollModel matchingPl : matchingPayrolls) {
-					logger.info("PayCode" + matchingPl.getPayCode() + ",day: " + matchingPl.getDay() + ", month: "
-							+ matchingPl.getMonth() + ",HourPartGreater:" + pc.getHourPartGreater() + ",HourPartLess:"
-							+ pc.getHourPartLess());
-					hours=hours - matchingPl.getHours();
+					if(matchingPl.getToHour()>currentHourPartGreater) {
+						currentHourPartGreater=matchingPl.getToHour();
+					}
+					logger.info("minus:" + matchingPl.getPayCode() + ",day: " + matchingPl.getDay() + ", month: "
+							+ matchingPl.getMonth() + ",from:" + matchingPl.getFromHour()+ ",to:"
+							+ matchingPl.getToHour());
+					hours=currentHourPartLess-currentHourPartGreater;
 				}
 			}
 		}
-		return hours;
+		if(hours>0) {
+			pl = new PayrollModel();
+			payrolls.add(pl);
+			pl.setEmpId(att.getEmpId());
+			pl.setDay(att.getDay());
+			pl.setMonth(att.getMonth());
+			pl.setCreater(user.getUsername());
+			pl.setPayCode(pc.getId());
+			pl.setYear(att.getYear());
+			pl.setTitle(pc.getTitle());
+			pl.setCoefficient(pc.getCoefficient());
+			pl.setFromHour(currentHourPartGreater);
+			pl.setToHour(currentHourPartLess);
+			pl.setHours(hours);
+		}
+		return pl;
 	}
-
 	public List<PayrollDataTableModel> PayrollModelToDataTable(List<PayrollModel> pls) {
 		List<PayrollDataTableModel> payrollDataTable = new ArrayList<>();
 		Map<Integer, Double> payCodeMap = pls.stream().collect(

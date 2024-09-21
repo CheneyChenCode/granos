@@ -193,9 +193,8 @@ $(document).ready(function() {
             { data: 'arrivalDate' },
             { data: 'leaveDate' },
             { data: 'hours' },
-			{ data: 'totalHours' },
 			{ data: 'overtime' },
-			{ data: 'totalOverTime' },
+			{ data: 'taxFreeOverTime' },
 			{ data: 'reason' },
 			{ data: 'note' }
         ],
@@ -294,10 +293,10 @@ $(document).ready(function() {
 			
 			let cardCol2Row4Label2 = document.createElement('div');
 			cardCol2Row4Label2.className='col-2 col-form-label px-1';
-			cardCol2Row4Label2.textContent='Sum:';
+			cardCol2Row4Label2.textContent='TFO:';
 			let cardCol2Row4Text2 = document.createElement('div');
 			cardCol2Row4Text2.className='col-4 form-control-plaintext font-weight-bold';
-			cardCol2Row4Text2.textContent = data.totalOverTime;
+			cardCol2Row4Text2.textContent = data.taxFreeOverTime;
 			
 			cardCol2Row1.appendChild(cardCol2Row1Label);
 			cardCol2Row1.appendChild(cardCol2Row1Text);
@@ -534,9 +533,8 @@ $(document).ready(function() {
 							<th>IN</th>
 							<th>OUT</th>
 							<th>WORK HOURS</th>
-							<th>TOTAL WH</th>
 							<th>OVER TIME</th>
-							<th>TOTAL OT</th>
+							<th>TAX FREE OT</th>
 							<th>REASON</th>
 							<th>NOTE</th>
 						</tr>

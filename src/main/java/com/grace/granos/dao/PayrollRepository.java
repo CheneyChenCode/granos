@@ -46,11 +46,14 @@ public class PayrollRepository {
 		String sql = " INSERT INTO payroll ( " 
 				+ "		emp_id, year, month," 
 				+ "		day, pay_code, hours,"
-				+ "		creater, tax_free_hours" + " ) " 
+				+ "		creater, tax_free_hours,from_hour,"
+				+ "		to_hour"
+				+ " ) " 
 				+ " VALUES ( " 
 				+ "		?, ?, ?, " 
 				+ "		?, ?, ?, "
-				+ "		?, ?" 
+				+ "		?, ?, ?, " 
+				+ "		? " 
 				+ " ) ";
 		return jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
@@ -64,6 +67,8 @@ public class PayrollRepository {
 				ps.setFloat(6, models.get(i).getHours());// hours
 				ps.setString(7, models.get(i).getCreater());// creater
 				ps.setFloat(8, models.get(i).getTaxFreeHours());// taxFreeHours
+				ps.setFloat(9, models.get(i).getFromHour());// fromHour
+				ps.setFloat(10, models.get(i).getToHour());// toHour
 			}
 
 			@Override
