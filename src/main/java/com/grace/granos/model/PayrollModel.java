@@ -14,12 +14,12 @@ public class PayrollModel {
 	private float hours;
 	private float taxFreeHours;
 	private String creater;
+	private float fromHour;
+	private float toHour;
 	//pay_code table
 	private String title;
 	private float coefficient;
-	private float fromHour;
-	private float toHour;
-	
+
 	public float getFromHour() {
 		return fromHour;
 	}

@@ -125,7 +125,7 @@ $(document).ready(function() {
            $('td', row).eq(0).css('background-color', '#ffc107'); // 设置背景色为黄色
         }
     });
-
+    $('#monthTitle').text(currentYear+ '-' + currentMonth.toString().padStart(2, '0'));
 	// 等待 DataTable 加载完成
 	table.on('draw.dt', function () {
 		// 获取数据
@@ -247,6 +247,7 @@ $(document).ready(function() {
 		specMonth=month;
 		let errorMessage = $('#errorMessage');
 		errorMessage.hide();
+		$('#monthTitle').text(currentYear+ '-' + specMonth.toString().padStart(2, '0'));
 		table.ajax.reload(); // 重新加载数据
 	}
     function exportToExcel() {
@@ -329,6 +330,9 @@ $(document).ready(function() {
 				<!-- Bootstrap 标签页 -->
 				<button class="btn btn-primary" type="button" onclick="switchTab()"><i id="icon" class="fas fa-list"></i></button>
 				<button class="btn btn-primary" type="button" onclick="exportToExcel()" id="downloadExcel"><i class="fa fa-download"></i></button>
+			</div>
+			<div class="col text-center">
+			    <h3 id="monthTitle">Title</h3>
 			</div>
 			<div class="col d-flex justify-content-end">
 			  <div class="dropdown">

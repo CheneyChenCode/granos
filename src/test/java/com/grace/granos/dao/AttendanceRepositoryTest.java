@@ -22,13 +22,13 @@ public class AttendanceRepositoryTest {
 		at.setYear(2024);
 		at.setMonth(9);
 		at.setEmpId(1);
-		int testNum=0;
+		AttendanceModel testAtt=null;
 		try {
-			testNum=attendanceRepository.findLastPeriodWdByUserMon(at);
+			testAtt=attendanceRepository.findLastAttByUserMon(at);
 		}catch (EmptyResultDataAccessException e) {
 	        // 查询结果为空时，返回一个默认值
-			testNum= -1;  // 或者你希望的其他默认值
+			testAtt=null;  // 或者你希望的其他默认值
 	    }
-		Assert.assertNotNull(testNum);
+		Assert.assertNotNull(testAtt);
 	}
 }

@@ -133,6 +133,71 @@
 								dropdownMenu.removeClass('show');
 							}
 						});
+
+						$('#downloadButton')
+								.on(
+										'click',
+										function() {
+											const currentYear = new Date()
+													.getFullYear();
+											const specMonth = 7; // Replace with your logic to get the specific month
+											const userId = user.character.empId; // Assuming you have user data available
+
+											$
+													.ajax({
+														url : '/downloadPayroll',
+														type : 'GET', // or 'POST' depending on your controller setup
+														data : {
+															year : currentYear,
+															month : specMonth,
+															user : userId
+														},
+														xhrFields : {
+															responseType : 'blob' // This is important for handling binary data
+														},
+														success : function(
+																data, status,
+																xhr) {
+															// Get filename from the response headers
+															const contentDisposition = xhr
+																	.getResponseHeader('Content-Disposition');
+															const filename = contentDisposition ? contentDisposition
+																	.split('filename=')[1]
+																	.replace(
+																			/"/g,
+																			'')
+																	: 'download.xlsx';
+
+															// Create a blob and download it
+															const blob = new Blob(
+																	[ data ],
+																	{
+																		type : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+																	});
+															const url = window.URL
+																	.createObjectURL(blob);
+															const a = document
+																	.createElement('a');
+															a.href = url;
+															a.download = filename;
+															document.body
+																	.appendChild(a);
+															a.click();
+															document.body
+																	.removeChild(a);
+															window.URL
+																	.revokeObjectURL(url); // Cleanup
+														},
+														error : function(xhr,
+																status, error) {
+															console
+																	.error(
+																			'Download failed:',
+																			error);
+															alert('Failed to download the file.');
+														}
+													});
+										});
 					});
 </script>
 </head>
@@ -156,9 +221,9 @@
 						href="calendar" class="nav-item nav-link">Calendar</a> <a
 						href="attendance" class="nav-item nav-link">Attendance</a> <a
 						href="payroll" class="nav-item nav-link">Payroll</a> <a
-						href="administrator" class="nav-item nav-link circle-background" th:classappend="${user.jobId != 1} ? 'disabled'">
-						<span id="navCharacter"
-						class="border border-warning rounded-lg p-3"
+						href="administrator" class="nav-item nav-link circle-background"
+						th:classappend="${user.jobId != 1} ? 'disabled'"> <span
+						id="navCharacter" class="border border-warning rounded-lg p-3"
 						th:text="${user.character.nameEn}"></span>
 					</a> <a href="logout" class="nav-item nav-link">Logout</a>
 				</div>
@@ -167,25 +232,34 @@
 	</div>
 	<!-- Navbar End -->
 	<div class="container-fluid py-4">
-		<h2 id="characterName"
-			th:text="@{${user.character.nameEn} + ' ' + ${user.character.lastNameEn} + '(' + ${user.character.lastNameCn} + ${user.character.nameCn}} + ')' "></h2>
-		<!-- Input and Dropdown -->
-		<div class="mb-3">
-			<label for="searchInput" class="form-label">Search:</label> <input
-				type="text" id="searchInput" class="form-control"
-				placeholder="Type to filter...">
+		<div class="row">
+			<h2 id="characterName"
+				th:text="@{${user.character.nameEn} + ' ' + ${user.character.lastNameEn} + '(' + ${user.character.lastNameCn} + ${user.character.nameCn}} + ')' "></h2>
 		</div>
-
-		<div class="dropdown">
-			<button class="btn btn-primary dropdown-toggle" type="button"
-				id="dropdownMenuButton" data-bs-toggle="dropdown"
-				aria-expanded="false">Select a character</button>
-			<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton"
-				id="dropdownMenu">
-				<!-- Options will be added here dynamically -->
-			</ul>
+		<div class="row">
+			<div class="mb-3">
+				<label for="searchInput" class="form-label">Search:</label> <input
+					type="text" id="searchInput" class="form-control"
+					placeholder="Type to filter...">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col">
+				<div class="dropdown">
+					<button class="btn btn-primary dropdown-toggle" type="button"
+						id="dropdownMenuButton" data-bs-toggle="dropdown"
+						aria-expanded="false">Select a character</button>
+					<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton"
+						id="dropdownMenu">
+						<!-- Options will be added here dynamically -->
+					</ul>
+				</div>
+			</div>
+			<div class="col">
+				<button id="downloadButton" class="btn btn-primary">Download
+					Payroll</button>
+			</div>
 		</div>
 	</div>
-
 </body>
 </html>

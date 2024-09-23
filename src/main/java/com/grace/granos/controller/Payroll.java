@@ -101,7 +101,7 @@ public class Payroll {
 			ByteArrayResource resource = new ByteArrayResource(out.toByteArray());
 
 			return ResponseEntity.ok().headers(header).contentLength(out.size())
-					.contentType(MediaType.APPLICATION_OCTET_STREAM).body(resource);
+					.contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")).body(resource);
 		} catch (IOException e) {
 
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(messageSource.getMessage("3001", null, locale));

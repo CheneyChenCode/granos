@@ -79,7 +79,7 @@ public class AttendanceRepository {
 						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ? and shift ='DXF'"
-						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and period =1)";
+						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and period =1) and period >=1";
 
 		int result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
 		return result;
@@ -91,37 +91,66 @@ public class AttendanceRepository {
 						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ? and shift ='DLF'"
-						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and period =1)";
+						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and period =1) and period >=1";
 
 		int result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
 		return result;
 	}
-	public int findLastAccumulateByUserMon(AttendanceModel att){
+	public int findLastAccumulateWdByUserMon(AttendanceModel att){
+		String sql = " SELECT "
+						   + " COUNT(0)"
+						   + " FROM "
+						   + " attendance"
+						   + " WHERE"
+						   + " year = ? and month = ? and emp_id = ? and work_hours <> 0"
+						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and work_hours = 0)";
+
+		int result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
+		return result;
+	}
+	public int findLastAccumulateWdPeByUserMon(AttendanceModel att){
 		String sql = " SELECT "
 						   + " COUNT(0)"
 						   + " FROM "
 						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ? and work_hours  <> 0"
-						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and work_hours > 0)";
+						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and work_hours > 0 and period=1) and period >=1";
 
 		int result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
 		return result;
 	}
-	public int findLastPeriodWdByUserMon(AttendanceModel att){
+	public String findLastWdShiftByUserMon(AttendanceModel att){
 		String sql = " SELECT "
-						   + " period"
+						   + " shift"
 						   + " FROM "
 						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ?"
-						   + " AND day = (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ?)";
+						   + " AND day = (select MAX(day) from granos.attendance where char_length(shift)=2 and year = ? and month = ? and emp_id = ?)";
 
-		int result =-1;
+		String result =null;
 		try{
-			result=jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
+			result=jdbcTemplate.queryForObject(sql, String.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
 		}catch (EmptyResultDataAccessException e) {
-			result=-1;
+			result=null;
+		}
+		return result;
+	}
+	public AttendanceModel findLastAttByUserMon(AttendanceModel att){
+		String sql = " SELECT "
+						   + " emp_id,year,month,day,seq,start_datetime,week,arrival_datetime,end_datetime,leave_datetime,work_hours,overtime,approval,note,reason,shift,day_code,status,comp_reason,comp_time,paid_leave,period,remain_tax_free,over_start_datetime,over_end_datetime"
+						   + " FROM "
+						   + " attendance"
+						   + " WHERE"
+						   + " year = ? and month = ? and emp_id = ?"
+						   + " ORDER BY day DESC, seq DESC limit 1";
+
+		AttendanceModel result =null;
+		try{
+			result=jdbcTemplate.queryForObject(sql,new BeanPropertyRowMapper<AttendanceModel>(AttendanceModel.class), att.getYear(),att.getMonth()-1,att.getEmpId());
+		}catch (EmptyResultDataAccessException e) {
+			result=null;
 		}
 		return result;
 	}

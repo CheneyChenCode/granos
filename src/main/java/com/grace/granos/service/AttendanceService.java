@@ -274,6 +274,7 @@ public class AttendanceService {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		int seq = 0;
 		Date datePre = null;
+		AttendanceModel preMonWdAtt=null;
 		int accumulateWorkDay = 0;
 		int accumulateWorkDayInPeriod = 0;
 		int fixedDayOffInPeriod = 0;
@@ -281,6 +282,7 @@ public class AttendanceService {
 		int conversionDayOffCurrentMonth = 0;
 		int shiftCurrentMonthIndex = 0;
 		int period = 0;
+		int countDay=0;
 		float remainTaxHours = 46;
 		String shiftCurrentMonth = null;
 		String shiftNamePre = null;
@@ -301,24 +303,9 @@ public class AttendanceService {
 					break;
 				}
 			}
-			if (datePre != null) {
-				// 将 Date 对象转换为 LocalDate 对象
-				LocalDate localDate1 = date.toInstant().atZone(timeZone).toLocalDate();
-				LocalDate localDate2 = datePre.toInstant().atZone(timeZone).toLocalDate();
-				// 使用 equals 方法比较两个 LocalDate 对象是否相等
-				if (localDate1.equals(localDate2)) {
-					seq = seq + 1;
-				} else {
-					seq = 1;
-					datePre = date;
-				}
-			} else {
-				seq = 1;
-				datePre = date;
-			}
+			datePre=date;
 			AttendanceModel at = new AttendanceModel();
 			attendanceDatas.add(at);
-			at.setSeq(seq);
 			at.setStatus(1);
 			at.setEmpId(user.getCharacter().getEmpId());
 			at.setCreater(user.getUsername());
@@ -330,19 +317,58 @@ public class AttendanceService {
 			at.setYear(year);
 			at.setDay(day);
 			at.setMonth(month);
+			// 获取星期几（1 表示星期日，2 表示星期一，以此类推）
+			int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+			at.setWeek(dayOfWeek);
 			// Sequence of period
 			Double excelPeriod = getCellValue(formulaEvaluator, row.getCell(17), Double.class);
 			if (rowIndex == 4) {
-				period = attendanceRepository.findLastPeriodWdByUserMon(at);
-				if (period == -1 && excelPeriod == null) {
+				preMonWdAtt=attendanceRepository.findLastAttByUserMon(at);
+				if (preMonWdAtt == null && excelPeriod == null) {
 					throw new Exception("There are no attendance records in the previous month.");
 				}
-				accumulateWorkDay = attendanceRepository.findLastAccumulateByUserMon(at);
+				datePre =  Date.from(LocalDate.of(preMonWdAtt.getYear(), preMonWdAtt.getMonth(), preMonWdAtt.getDay()).atStartOfDay(timeZone).toInstant());
+				period = preMonWdAtt.getPeriod();
+				shiftCurrentMonth=attendanceRepository.findLastWdShiftByUserMon(at);
+				accumulateWorkDay = attendanceRepository.findLastAccumulateWdByUserMon(at);
+				accumulateWorkDayInPeriod = attendanceRepository.findLastAccumulateWdPeByUserMon(at);
 				fixedDayOffInPeriod = attendanceRepository.findLastfixedDayOffInPeriod(at);
 				flexibleDayOffInPeriod = attendanceRepository.findLastflexibleDayOffInPeriod(at);
-				accumulateWorkDayInPeriod = period - fixedDayOffInPeriod - flexibleDayOffInPeriod;
+				//accumulateWorkDayInPeriod = period - fixedDayOffInPeriod - flexibleDayOffInPeriod;
 			}
-
+//			if(datePre.toInstant().atZone(timeZone).toLocalDate().equals(date.toInstant().atZone(timeZone).toLocalDate())) {
+//				seq=preMonWdAtt.getSeq();
+//			}else {
+//				seq=1;
+//			}
+			seq=1;
+			// 将日期和时间字符串转换为 LocalDate 和 LocalTime 对象
+			LocalDate startDate = date.toInstant().atZone(timeZone).toLocalDate();
+			// arrival time
+			Date arrivalTime = getCellValue(formulaEvaluator, row.getCell(5), Date.class);
+			if(arrivalTime!=null) {
+				// 解析时间字符串为 LocalTime 对象
+				LocalTime arrivalLocalTime = arrivalTime.toInstant().atZone(timeZone).toLocalTime();
+				at.setArrivalDatetime(Timestamp.valueOf(LocalDateTime.of(startDate, arrivalLocalTime)));
+				 // 將 Timestamp 轉換為 LocalDateTime
+				if(preMonWdAtt.getLeaveDatetime()!=null) {
+			        LocalDateTime dateTime1 = at.getArrivalDatetime().toLocalDateTime().withSecond(0).withNano(0);
+			        LocalDateTime dateTime2 = preMonWdAtt.getLeaveDatetime().toLocalDateTime().withSecond(0).withNano(0);
+					if(dateTime1.equals(dateTime2)) {
+						seq=seq+1;
+					}
+				}
+			}
+			
+			if(seq>1) {
+				at.setYear(preMonWdAtt.getYear());
+				at.setDay(preMonWdAtt.getDay());
+				at.setMonth(preMonWdAtt.getMonth());
+				at.setWeek(preMonWdAtt.getWeek());
+			}
+			preMonWdAtt=at;
+			at.setSeq(seq);
+			
 			if (excelPeriod != null && seq == 1) {
 				period = (int) Math.floor(excelPeriod);
 				if (period <= 1) {
@@ -361,9 +387,10 @@ public class AttendanceService {
 				}
 			}
 			at.setPeriod(period);
-			// 获取星期几（1 表示星期日，2 表示星期一，以此类推）
-			int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-			at.setWeek(dayOfWeek);
+			ShiftModel shiftCurrentMonthShift=shiftModelMap.get(shiftCurrentMonth);
+			at.setStartDatetime(Timestamp.valueOf(LocalDateTime.of(date.toInstant().atZone(timeZone).toLocalDate(),shiftCurrentMonthShift.getStartTime().toInstant().atZone(timeZone).toLocalTime())));
+			at.setEndDatetime(Timestamp.valueOf(at.getStartDatetime().toLocalDateTime().plusHours((long) (shiftCurrentMonthShift.getBaseHours()+shiftCurrentMonthShift.getRestHours()))));
+
 			// reason
 			String reason = getCellValue(formulaEvaluator, row.getCell(14), String.class);
 			at.setReason(reason);
@@ -385,11 +412,11 @@ public class AttendanceService {
 			String dayDescription = "";
 			// holiday
 			if (holidays == null) {
-				holidays = holidayRepository.findHolidaysByYearMonthWithOutWeekEnd(year, month);
+				holidays = holidayRepository.findHolidaysByYearMonthWithOutWeekEnd(at.getYear(), at.getMonth());
 			}
 			if (holidays != null) {
-				String start = year + "-" + StringUtils.leftPad(String.valueOf(month), 2, '0') + "-"
-						+ StringUtils.leftPad(String.valueOf(day), 2, '0');
+				String start = at.getYear() + "-" + StringUtils.leftPad(String.valueOf(at.getMonth()), 2, '0') + "-"
+						+ StringUtils.leftPad(String.valueOf(at.getDay()), 2, '0');
 				Optional<HolidaysModel> holiday = holidays.stream()
 						.filter(x -> start.equals(dateFormat.format(x.getDate()))).findFirst();
 				// 检查是否找到匹配的 CalendarEvent 对象
@@ -400,7 +427,16 @@ public class AttendanceService {
 					dayCode = 1;
 				}
 			}
-
+			// leave time
+			Date leaveTime = getCellValue(formulaEvaluator, row.getCell(7), Date.class);
+			if (leaveTime != null) {
+				LocalTime leaveTimeJudge = leaveTime.toInstant().atZone(timeZone).toLocalTime();
+				if (leaveTimeJudge.isBefore(at.getArrivalDatetime().toLocalDateTime().toLocalTime())) {
+					at.setLeaveDatetime(Timestamp.valueOf(LocalDateTime.of(startDate.plusDays(1), leaveTimeJudge)));
+				}else {
+					at.setLeaveDatetime(Timestamp.valueOf(LocalDateTime.of(startDate, leaveTimeJudge)));
+				}
+			}
 			// shift
 			String shiftName = getCellValue(formulaEvaluator, row.getCell(1), String.class);
 			if (StringUtil.isBlank(shiftName) && isMergedCell(sheet, rowIndex, 1) && shiftNamePre != null) {
@@ -408,25 +444,44 @@ public class AttendanceService {
 			}
 			if (StringUtil.isBlank(shiftName)) {
 				if (fixedDayOffInPeriod == 0) {
-					if (dayCode == 2) {
-						at.setCompTime(8);
-						at.setCompReason(dayDescription + " VS " + "fixed day off");
-					} else {
-						dayCode = 4;
-						fixedDayOffInPeriod = 1;
-						at.setShift("DXF");
-					}
+//					if (dayCode == 2) {
+//						//at.setCompTime(8);
+//						//at.setCompReason(dayDescription + " VS " + "fixed day off");
+//						//fixedDayOffInPeriod = 1;
+//						at.setShift("DXF");
+//					} else {
+//						//dayCode = 4;
+//						//fixedDayOffInPeriod = 1;
+//						//at.setShift("DXF");
+//					}
+					shiftName="DXF";
 				} else if (flexibleDayOffInPeriod == 0) {
-					dayCode = 3;
-					flexibleDayOffInPeriod = 1;
-					at.setShift("DLF");
+//					if (dayCode == 2) {
+//						at.setCompTime(8);
+//						at.setCompReason(dayDescription + " VS " + "flexible day off");
+//						flexibleDayOffInPeriod = 1;
+//						at.setShift("DLF");
+//					} else {
+//						dayCode = 3;
+//						flexibleDayOffInPeriod = 1;
+//						at.setShift("DLF");
+//					}
+					shiftName="DLF";
 				} else {
-					at.setStatus(2);
-					at.setReason("over one fixed day off a period");
+					if (dayCode == 2) {
+						shiftName="NTL";
+					}else if(dayCode == 5){
+						shiftName="DSL";
+					}else {
+						at.setStatus(2);
+						at.setReason("abnormal day off in a period");
+						continue;
+					}
+					
 				}
-				at.setDayCode(dayCode);
-				accumulateWorkDay = 0;
-				continue;
+				//at.setDayCode(dayCode);
+				//accumulateWorkDay = 0;
+				//continue;
 			}
 
 			ShiftModel shift = shiftModelMap.get(shiftName.trim());
@@ -438,48 +493,66 @@ public class AttendanceService {
 			if (shiftName.length() > 2) {
 				switch (shiftName) {
 				case "DXF":
+					if (fixedDayOffInPeriod >= 1) {
+						at.setStatus(2);
+						at.setReason("over one fixed day off a period");
+						continue;
+					}
 					if (dayCode == 2) {
+						at.setShift("NTL");
 						at.setCompTime(8);
 						at.setCompReason(dayDescription + " VS " + "fixed day off");
 					} else {
 						dayCode = 4;
+						fixedDayOffInPeriod = 1;
 					}
-					if (fixedDayOffInPeriod >= 1) {
-						at.setStatus(2);
-						at.setReason("over one fixed day off a period");
-					}
-					fixedDayOffInPeriod = 1;
-					at.setDayCode(dayCode);
-					accumulateWorkDay = 0;
-					continue;
+					//at.setDayCode(dayCode);
+					//accumulateWorkDay = 0;
+					//continue;
+					break;
 				case "DLF":
-					dayCode = 3;
 					if (flexibleDayOffInPeriod >= 1) {
 						at.setStatus(2);
 						at.setReason("over one flexible day off a period");
+						continue;
 					}
-					flexibleDayOffInPeriod = 1;
-					at.setDayCode(dayCode);
-					accumulateWorkDay = 0;
-					continue;
+					if (dayCode == 2) {
+						at.setShift("NTL");
+						at.setCompTime(8);
+						at.setCompReason(dayDescription + " VS " + "flexible day off");
+					} else {
+						dayCode = 3;
+						flexibleDayOffInPeriod = 1;
+					}
+					//at.setDayCode(dayCode);
+					//accumulateWorkDay = 0;
+					//continue;
+					break;
 				case "DCF":
 					if (conversionDayOffCurrentMonth >= 2) {
 						at.setStatus(2);
 						at.setReason("over two conversion day off a month");
+						continue;
 					}
 					conversionDayOffCurrentMonth = 1;
-					at.setDayCode(dayCode);
-					accumulateWorkDay = 0;
-					continue;
+					if (dayCode == 2) {
+						at.setShift("NTL");
+					}
+					
+					//at.setDayCode(dayCode);
+					//accumulateWorkDay = 0;
+					//continue;
+					break;
 				default:
-					at.setDayCode(dayCode);
+					//at.setDayCode(dayCode);
+
 				}
 			}
 
 			if (StringUtil.isNotBlank(shiftCurrentMonth)) {
-				if (!shiftCurrentMonth.substring(0, 1).equals(shiftName.substring(0, 1))
+				if (shiftName.length()==2&&!shiftCurrentMonth.substring(0, 1).equals(shiftName.substring(0, 1))
 						&& conversionDayOffCurrentMonth < 2) {
-					for (int i = attendanceDatas.size() - 1; i > shiftCurrentMonthIndex; i--) {
+					for (int i = attendanceDatas.size() - 2; i > shiftCurrentMonthIndex; i--) {
 						AttendanceModel temAt = attendanceDatas.get(i);
 						if (StringUtil.isBlank(temAt.getShift()) && temAt.getStatus() == 2
 								&& conversionDayOffCurrentMonth < 2) {
@@ -487,79 +560,86 @@ public class AttendanceService {
 							temAt.setStatus(1);
 							temAt.setReason(null);
 							conversionDayOffCurrentMonth = conversionDayOffCurrentMonth + 1;
-						}
-						if ("DXF".equals(temAt.getShift()) && conversionDayOffCurrentMonth < 2) {
-							temAt.setShift("DCF");
-							temAt.setDayCode(1);
-							fixedDayOffInPeriod = fixedDayOffInPeriod - 1;
-							conversionDayOffCurrentMonth = conversionDayOffCurrentMonth + 1;
-						}
-						if ("DLF".equals(temAt.getShift()) && conversionDayOffCurrentMonth < 2) {
-							temAt.setShift("DCF");
-							temAt.setDayCode(1);
-							flexibleDayOffInPeriod = flexibleDayOffInPeriod - 1;
-							conversionDayOffCurrentMonth = conversionDayOffCurrentMonth + 1;
+						}else if(temAt.getShift().length()>2 && i==attendanceDatas.size() - 2) {
+							if (temAt.getArrivalDatetime() != null) {
+								long comparisonResult = ChronoUnit.SECONDS.between(LocalDateTime.of(temAt.getArrivalDatetime().toLocalDateTime().toLocalDate(), shift.getStartTime().toLocalDateTime().toLocalTime()),
+										temAt.getArrivalDatetime().toLocalDateTime().truncatedTo(java.time.temporal.ChronoUnit.MINUTES));
+								long comparisonResult2 = ChronoUnit.SECONDS.between(LocalDateTime.of(temAt.getArrivalDatetime().toLocalDateTime().toLocalDate(),shiftCurrentMonthShift.getStartTime().toLocalDateTime().toLocalTime()),
+										temAt.getArrivalDatetime().toLocalDateTime().truncatedTo(java.time.temporal.ChronoUnit.MINUTES));
+								ShiftModel switchShift=null;
+								long switchArriveLate = 0;
+								if(Math.abs(comparisonResult)>Math.abs(comparisonResult2)) {
+									switchShift=shiftCurrentMonthShift;
+									if(comparisonResult2>0) {
+										switchArriveLate=comparisonResult2;
+									}
+								}else {
+									switchShift=shift;
+									if(comparisonResult>0) {
+										switchArriveLate=comparisonResult;
+									}
+								}
+								temAt.setStartDatetime(Timestamp.valueOf(LocalDateTime.of(temAt.getArrivalDatetime().toLocalDateTime().toLocalDate(),switchShift.getStartTime().toInstant().atZone(timeZone).toLocalTime()).plusSeconds(switchArriveLate)));
+								temAt.setEndDatetime(Timestamp.valueOf(temAt.getStartDatetime().toLocalDateTime().plusHours((long) (switchShift.getBaseHours()+switchShift.getRestHours()))));
+								float temAtWorkHours=calculateWork(formulaEvaluator, row, temAt, switchShift);
+								temAt.setPaidLeave(temAtWorkHours);
+							}else {
+								temAt.setStartDatetime(Timestamp.valueOf(LocalDateTime.of(temAt.getArrivalDatetime().toLocalDateTime().toLocalDate(),shift.getStartTime().toInstant().atZone(timeZone).toLocalTime())));
+								temAt.setEndDatetime(Timestamp.valueOf(temAt.getStartDatetime().toLocalDateTime().plusHours((long) (shift.getBaseHours()+shift.getRestHours()))));
+							}
 						}
 					}
 				}
 			}
-			shiftCurrentMonth = shiftName;
-			shiftCurrentMonthIndex = rowIndex - 4;
-			if(seq==1) {
-				accumulateWorkDay = accumulateWorkDay + 1;
-				accumulateWorkDayInPeriod = accumulateWorkDayInPeriod + 1;
+			if(shiftName.length() == 2) {
+				shiftCurrentMonth = shiftName;
+				shiftCurrentMonthIndex = rowIndex - 4;
 			}
-			if (accumulateWorkDay >= 7) {
-				if (StringUtil.isNotBlank(at.getNote())) {
-					at.setNote(at.getNote() + ", work day over 7");
-				} else {
-					at.setNote("work day over 7");
+
+			if(shiftName.length() > 2) {
+				at.setStartDatetime(Timestamp.valueOf(LocalDateTime.of(startDate, shiftCurrentMonthShift.getStartTime().toInstant().atZone(timeZone).toLocalTime())));
+				at.setEndDatetime(Timestamp.valueOf(at.getStartDatetime().toLocalDateTime().plusHours((long) (shiftCurrentMonthShift.getBaseHours()+shiftCurrentMonthShift.getRestHours()))));
+				// seq 2
+				if (seq > 1) {
+					Optional<AttendanceModel> at1 = attendanceDatas.stream()
+							.filter(a -> a.getDay() == at.getDay() && a.getSeq() == at.getSeq() - 1).findFirst();
+					if (at1.isPresent()) {
+						at1.get().setEndDatetime(at.getArrivalDatetime());
+						at.setStartDatetime(at1.get().getEndDatetime());
+						LocalDateTime oStart=LocalDateTime.of(LocalDate.of(at.getYear(), at.getMonth(), at.getDay()), shiftCurrentMonthShift.getStartTime().toInstant().atZone(timeZone).toLocalTime());
+						at.setEndDatetime(Timestamp.valueOf(oStart.plusHours((long) (shiftCurrentMonthShift.getBaseHours()+shiftCurrentMonthShift.getRestHours()))));
+					}
+				}
+			}else {
+				at.setStartDatetime(Timestamp.valueOf(LocalDateTime.of(startDate, shift.getStartTime().toInstant().atZone(timeZone).toLocalTime())));
+				at.setEndDatetime(Timestamp.valueOf(at.getStartDatetime().toLocalDateTime().plusHours((long) (shift.getBaseHours()+shift.getRestHours()))));
+				// seq 2
+				if (seq > 1) {
+					Optional<AttendanceModel> at1 = attendanceDatas.stream()
+							.filter(a -> a.getDay() == at.getDay() && a.getSeq() == at.getSeq() - 1).findFirst();
+					if (at1.isPresent()) {
+						at1.get().setEndDatetime(at.getArrivalDatetime());
+						at.setStartDatetime(at1.get().getEndDatetime());
+						LocalDateTime oStart=LocalDateTime.of(LocalDate.of(at.getYear(), at.getMonth(), at.getDay()), shift.getStartTime().toInstant().atZone(timeZone).toLocalTime());
+						at.setEndDatetime(Timestamp.valueOf(oStart.plusHours((long) (shift.getBaseHours()+shift.getRestHours()))));
+					}
 				}
 			}
-			if (accumulateWorkDayInPeriod == 6) {
-				endDayCode = 3;
-				if (dayCode != 2 && dayCode != 5) {
-					dayCode = 3;
-				}
-			}
-			if (accumulateWorkDayInPeriod == 7) {
-				endDayCode = 4;
-				if (dayCode != 2 && dayCode != 5) {
-					dayCode = 4;
-				} else if (dayCode == 2) {
-					at.setCompTime(8);
-					at.setCompReason(dayDescription + " VS " + "fixed day off");
-				}
-			}
-			at.setDayCode(dayCode);
 
-			// 将日期和时间字符串转换为 LocalDate 和 LocalTime 对象
-			LocalDate startDate = date.toInstant().atZone(timeZone).toLocalDate();
-			LocalDate endLocalDate = null;
-
-			LocalTime time = shift.getStartTime().toInstant().atZone(timeZone).toLocalTime();
-			// 将日期和时间组合成 LocalDateTime 对象
-			LocalDateTime startDateTime = LocalDateTime.of(startDate, time);
-			// 将 LocalDateTime 对象转换为 Timestamp 对象
-			Timestamp startDateTimeStamp = Timestamp.valueOf(startDateTime);
-			at.setStartDatetime(startDateTimeStamp);
-
-			LocalDateTime dateTime1 = shift.getEndTime().toLocalDateTime();
-			LocalDateTime dateTime2 = shift.getStartTime().toLocalDateTime();
-			if (shift.getName().startsWith("N")) {
-				dateTime1 = dateTime1.plusDays(1);
-			}
-			long secondsDifference = Math.abs(ChronoUnit.SECONDS.between(dateTime1, dateTime2));
-
-			// end date
-
-			LocalDateTime endLocalDateTime = startDateTime.plusSeconds(secondsDifference);
-			at.setEndDatetime(Timestamp.valueOf(endLocalDateTime));
-			endLocalDate = endLocalDateTime.toLocalDate();
+			long arriveLate = 0;
+			if (at.getArrivalDatetime() != null) {	
+				// 比较两个时间字符串
+				long comparisonResult = ChronoUnit.SECONDS.between(at.getStartDatetime().toLocalDateTime(),at.getArrivalDatetime().toLocalDateTime().truncatedTo(java.time.temporal.ChronoUnit.MINUTES));
+				if (comparisonResult > 0) {
+					at.setStartDatetime(at.getArrivalDatetime());
+					arriveLate = comparisonResult;
+					at.setEndDatetime(Timestamp.valueOf(at.getEndDatetime().toLocalDateTime().plusSeconds(arriveLate)));
+				} 
+			} 
 			if (holidays != null) {
-				String end = endLocalDate.getYear() + "-"
-						+ StringUtils.leftPad(String.valueOf(endLocalDate.getMonthValue()), 2, '0') + "-"
-						+ StringUtils.leftPad(String.valueOf(endLocalDate.getDayOfMonth()), 2, '0');
+				String end = at.getEndDatetime().toLocalDateTime().getYear() + "-"
+						+ StringUtils.leftPad(String.valueOf(at.getEndDatetime().toLocalDateTime().getMonthValue()), 2, '0') + "-"
+						+ StringUtils.leftPad(String.valueOf(at.getEndDatetime().toLocalDateTime().getDayOfMonth()), 2, '0');
 				Optional<HolidaysModel> holiday = holidays.stream()
 						.filter(x -> end.equals(dateFormat.format(x.getDate()))).findFirst();
 				// 检查是否找到匹配的 CalendarEvent 对象
@@ -567,112 +647,104 @@ public class AttendanceService {
 					endDayCode = holiday.get().getDayCode();
 				}
 			}
-			// arrival time
-			Date arrivalTime = getCellValue(formulaEvaluator, row.getCell(5), Date.class);
-			long arriveLate = 0;
-			if (arrivalTime != null) {
-				// 解析时间字符串为 LocalTime 对象
-				LocalTime arrivalLocalTime = arrivalTime.toInstant().atZone(timeZone).toLocalTime();
-				LocalDateTime arrivalDateTime = LocalDateTime.of(startDate, arrivalLocalTime);
-				Timestamp arrivalDateTimeStamp = Timestamp.valueOf(arrivalDateTime);
-				at.setArrivalDatetime(arrivalDateTimeStamp);
-
-				// 比较两个时间字符串
-				long comparisonResult = ChronoUnit.SECONDS.between(startDateTime,
-						arrivalDateTime.truncatedTo(java.time.temporal.ChronoUnit.MINUTES));
-				if (comparisonResult > 0) {
-					at.setStartDatetime(arrivalDateTimeStamp);
-					at.setEndDatetime(Timestamp.valueOf(endLocalDateTime.plusSeconds(comparisonResult)));
-					arriveLate = comparisonResult;
-				} else {
-					at.setEndDatetime(Timestamp.valueOf(endLocalDateTime));
-				}
-			} else {
-				at.setEndDatetime(Timestamp.valueOf(endLocalDateTime));
-			}
-			// seq 2
-			if (seq > 1) {
-				Optional<AttendanceModel> at1 = attendanceDatas.stream()
-						.filter(a -> a.getDay() == at.getDay() && a.getSeq() == at.getSeq() - 1).findFirst();
-				if (at1.isPresent()) {
-					long comparisonResult = ChronoUnit.SECONDS.between(at1.get().getStartDatetime().toLocalDateTime(),
-							at1.get().getArrivalDatetime().toLocalDateTime()
-									.truncatedTo(java.time.temporal.ChronoUnit.MINUTES));
-					at.setStartDatetime(
-							Timestamp.valueOf(at.getArrivalDatetime().toLocalDateTime().plusSeconds(comparisonResult)));
-					at.setEndDatetime(Timestamp.valueOf(endLocalDateTime.plusSeconds(comparisonResult)));
-					at1.get().setEndDatetime(at.getStartDatetime());
-				}
-			}
 			AttendanceModel at2 = null;
-			// leave time
-			Date leaveTime = getCellValue(formulaEvaluator, row.getCell(7), Date.class);
-			if (leaveTime != null) {
-				LocalTime leaveTimeJudge = leaveTime.toInstant().atZone(timeZone).toLocalTime();
-				if (leaveTimeJudge.isBefore(at.getArrivalDatetime().toLocalDateTime().toLocalTime())) {
-					if (dayCode != endDayCode && (dayCode == 5 || endDayCode == 5)) {
-						at.setLeaveDatetime(Timestamp.valueOf(
-								LocalDateTime.of(endLocalDate, LocalTime.of(00, 00, 00)).plusSeconds(arriveLate)));
+			float totalWorkHours=0;
+			float paidLeaveHours=0;
+			if (at.getLeaveDatetime()!=null&&dayCode != endDayCode && (dayCode == 5 || endDayCode == 5)) {
+				at2 = new AttendanceModel();
+				attendanceDatas.add(at2);
+				seq = seq + 1;
+				at2.setSeq(seq);
+				at2.setStatus(at.getStatus());
+				at2.setEmpId(at.getEmpId());
+				at2.setCreater(at.getCreater());
+				at2.setYear(at.getYear());
+				at2.setDay(at.getDay());
+				at2.setMonth(at.getMonth());
+				at2.setPeriod(at.getPeriod());
+				at2.setWeek(at.getWeek());
+				at2.setReason(at.getReason());
+				at2.setApproval(at.getApproval());
+				at2.setNote(at.getNote());
+				// at2.setCompTime(at.getCompTime());
+				// at2.setCompReason(at.getCompReason());
+				at2.setDayCode(endDayCode);
+				at2.setShift(at.getShift());
 
-						at2 = new AttendanceModel();
-						attendanceDatas.add(at2);
-						seq = seq + 1;
-						at2.setSeq(seq);
-						at2.setStatus(at.getStatus());
-						at2.setEmpId(at.getEmpId());
-						at2.setCreater(at.getCreater());
-						at2.setYear(at.getYear());
-						at2.setDay(at.getDay());
-						at2.setMonth(at.getMonth());
-						at2.setPeriod(at.getPeriod());
-						at2.setWeek(at.getWeek());
-						at2.setReason(at.getReason());
-						at2.setApproval(at.getApproval());
-						at2.setNote(at.getNote());
-						// at2.setCompTime(at.getCompTime());
-						// at2.setCompReason(at.getCompReason());
-						at2.setDayCode(endDayCode);
-						at2.setShift(at.getShift());
-						at2.setStartDatetime(at.getLeaveDatetime());
-						at2.setEndDatetime(at.getEndDatetime());
+				at2.setEndDatetime(at.getEndDatetime());
+				
+				at2.setLeaveDatetime(at.getLeaveDatetime());
 
-						at2.setArrivalDatetime(at.getLeaveDatetime());
-						at2.setLeaveDatetime(Timestamp.valueOf(LocalDateTime.of(endLocalDate, leaveTimeJudge)));
-
-						at.setEndDatetime(at.getLeaveDatetime());
-					} else {
-						LocalDateTime leaveDateTime = LocalDateTime.of(endLocalDate, leaveTimeJudge);
-						Timestamp leaveDateTimeStamp = Timestamp.valueOf(leaveDateTime);
-						at.setLeaveDatetime(leaveDateTimeStamp);
-					}
-
-				} else {
-					LocalDateTime leaveDateTime = LocalDateTime.of(startDate,
-							leaveTime.toInstant().atZone(timeZone).toLocalTime());
-					Timestamp leaveDateTimeStamp = Timestamp.valueOf(leaveDateTime);
-					at.setLeaveDatetime(leaveDateTimeStamp);
+				at.setLeaveDatetime(Timestamp.valueOf(
+						LocalDateTime.of(at.getLeaveDatetime().toLocalDateTime().toLocalDate(), LocalTime.of(00, 00, 00)).plusSeconds(arriveLate)));
+				at2.setArrivalDatetime(at.getLeaveDatetime());
+				at2.setStartDatetime(at.getLeaveDatetime());
+				at.setEndDatetime(at.getLeaveDatetime());
+				float workHours2=calculateWork(formulaEvaluator, row, at2, shift);
+				// paid leave
+				if (at2.getShift().length() > 2) {
+					paidLeaveHours=paidLeaveHours+workHours2;
+					at.setPaidLeave(workHours2);
+				}else {
+					at2.setWorkHours(workHours2);
+					totalWorkHours=totalWorkHours+workHours2;
 				}
 			}
+
+			float workHours=calculateWork(formulaEvaluator, row, at, shift);
 			// paid leave
 			if (shiftName.length() > 2) {
-				if (at.getArrivalDatetime() == null || at.getLeaveDatetime() == null) {
-					at.setPaidLeave(shift.getBaseHours());
-				} else {
-					long comparisonResult = ChronoUnit.MINUTES.between(at.getArrivalDatetime().toLocalDateTime(),
-							at.getLeaveDatetime().toLocalDateTime());
-					if (((float) comparisonResult / 60) >= shift.getBaseHours()) {
-						at.setPaidLeave(shift.getBaseHours());
+				paidLeaveHours=paidLeaveHours+workHours;
+				at.setPaidLeave(workHours);
+			}else {
+				at.setWorkHours(workHours);
+				totalWorkHours=totalWorkHours+workHours;
+			}
+			//date code
+			if(countDay!=at.getDay()) {
+				if(totalWorkHours>0 || (dayCode !=3 && dayCode !=4)) {
+					countDay=at.getDay();
+					accumulateWorkDay=accumulateWorkDay+1;
+					accumulateWorkDayInPeriod = accumulateWorkDayInPeriod + 1;
+				}
+				if (accumulateWorkDay > 7) {
+					at.setStatus(2);
+					if (StringUtil.isNotBlank(at.getReason())) {
+						at.setReason(at.getReason() + ", work day over 7");
 					} else {
-						at.setPaidLeave((float) comparisonResult / 60);
+						at.setReason("work day over 7");
 					}
 				}
-				continue;
+				if (accumulateWorkDayInPeriod == 6 && flexibleDayOffInPeriod==0) {
+					flexibleDayOffInPeriod=1;
+					endDayCode = 3;
+					if (dayCode != 2 && dayCode != 5) {
+						dayCode = 3;
+					}
+				}
+				if (accumulateWorkDayInPeriod == 7 && fixedDayOffInPeriod==0) {
+					fixedDayOffInPeriod=1;
+					endDayCode = 4;
+					if (dayCode != 2 && dayCode != 5) {
+						dayCode = 4;
+					} else if (dayCode == 2) {
+						at.setCompTime(8);
+						at.setCompReason(dayDescription + " VS " + "fixed day off");
+					}
+				}
+				if(paidLeaveHours>=8) {
+					accumulateWorkDay=0;
+				}
 			}
-			remainTaxHours = calculateWork(formulaEvaluator, remainTaxHours, row, at, shift, endLocalDate,
-					endLocalDateTime);
-			if (at2 != null) {
-				remainTaxHours = calculateWork(formulaEvaluator, remainTaxHours, row, at2, shift, endLocalDate,
-						endLocalDateTime);
+			at.setDayCode(dayCode);
+			if(at.getWorkHours()>0) {
+				remainTaxHours = calculateOverTax(formulaEvaluator,remainTaxHours ,row, at, shift);
+			}
+			if(at2!=null) {
+				at2.setDayCode(endDayCode);
+				if(at2.getWorkHours()>0) {
+					remainTaxHours = calculateOverTax(formulaEvaluator,remainTaxHours ,row, at2, shift);
+				}
 			}
 
 		}
@@ -681,16 +753,20 @@ public class AttendanceService {
 		return attendanceDatas;
 	}
 
-	private float calculateWork(FormulaEvaluator formulaEvaluator, float remainTaxHours, Row row, AttendanceModel at,
-			ShiftModel shift, LocalDate endLocalDate, LocalDateTime endLocalDateTime) {
+	private float calculateWork(FormulaEvaluator formulaEvaluator,  Row row, AttendanceModel at,ShiftModel shift) {
+		float hours=0;
 		if (at.getArrivalDatetime() == null || at.getLeaveDatetime() == null) {
+			if(shift.getName().length()>2 && at.getArrivalDatetime() == null && at.getLeaveDatetime() == null) {
+				hours=shift.getBaseHours();
+				return hours;
+			}
 			at.setStatus(2);
 			at.setReason("attendance time abnormal");
 		} else if (at.getArrivalDatetime() != null && at.getLeaveDatetime() != null) {
 			if (at.getArrivalDatetime().compareTo(at.getLeaveDatetime()) >= 0) {
 				at.setStatus(2);
 				at.setReason("leavetime and arrivaltime are abnormal");
-				return remainTaxHours;
+				return hours;
 			}
 			long comparisonResult = 0;
 			if (at.getLeaveDatetime().toLocalDateTime().compareTo(at.getEndDatetime().toLocalDateTime()) >= 0) {
@@ -700,7 +776,7 @@ public class AttendanceService {
 				comparisonResult = ChronoUnit.MINUTES.between(at.getStartDatetime().toLocalDateTime(),
 						at.getLeaveDatetime().toLocalDateTime());
 			}
-
+			hours=(float) comparisonResult / 60;
 			LocalDateTime restStartTime = at.getStartDatetime().toLocalDateTime()
 					.plusSeconds(Math.round(shift.getRestStartHour() * 60 * 60));
 
@@ -709,29 +785,27 @@ public class AttendanceService {
 				comparisonResult = (long) (comparisonResult - shift.getRestHours() * 60);
 			}
 			if (((float) comparisonResult / 60) >= shift.getBaseHours()) {
-				at.setWorkHours(shift.getBaseHours());
+				hours=shift.getBaseHours();
 			} else {
-				at.setWorkHours((float) comparisonResult / 60);
+				hours=(float) comparisonResult / 60;
 			}
-			remainTaxHours = calculateOverTax(formulaEvaluator, remainTaxHours, row, at, shift, endLocalDate,
-					endLocalDateTime);
 		}
-		return remainTaxHours;
+		return hours;
 	}
 
-	private float calculateOverTax(FormulaEvaluator formulaEvaluator, float remainTaxHours, Row row, AttendanceModel at,
-			ShiftModel shift, LocalDate endLocalDate, LocalDateTime endLocalDateTime) {
+	private float calculateOverTax(FormulaEvaluator formulaEvaluator, float remainTaxHours,Row row, AttendanceModel at,
+			ShiftModel shift) {
 		// long overTime = (long) (comparisonResult - shift.getBaseHours() * 60);
 		// at.setOverTime((float) overTime / 60);
 		Date overStartTime = getCellValue(formulaEvaluator, row.getCell(10), Date.class);
 		Date overEndTime = getCellValue(formulaEvaluator, row.getCell(11), Date.class);
 		if (overStartTime != null && overEndTime != null) {
-			LocalDateTime overStartDateTime = LocalDateTime.of(endLocalDate,
+			LocalDateTime overStartDateTime = LocalDateTime.of(at.getEndDatetime().toLocalDateTime().toLocalDate(),
 					overStartTime.toInstant().atZone(timeZone).toLocalTime());
-			LocalDateTime overEndDateTime = LocalDateTime.of(endLocalDate,
+			LocalDateTime overEndDateTime = LocalDateTime.of(at.getEndDatetime().toLocalDateTime().toLocalDate(),
 					overEndTime.toInstant().atZone(timeZone).toLocalTime());
 			if (at.getEndDatetime().compareTo(Timestamp.valueOf(overStartDateTime)) >= 0) {
-				overStartDateTime = endLocalDateTime;
+				overStartDateTime = at.getEndDatetime().toLocalDateTime();
 			}
 			if (at.getLeaveDatetime().compareTo(Timestamp.valueOf(overStartDateTime)) <= 0) {
 				return remainTaxHours;
@@ -751,7 +825,7 @@ public class AttendanceService {
 			long overtime = ChronoUnit.MINUTES.between(overStartDateTime, overEndDateTime);
 			at.setOvertime((float) overtime / 60);
 			at.setWorkHours(at.getWorkHours() + at.getOvertime());
-			remainTaxHours = remainTaxHours - at.getOvertime();
+			remainTaxHours=remainTaxHours-at.getOvertime();
 			if (at.getDayCode() != 1 && at.getDayCode() != 5) {
 				remainTaxHours = remainTaxHours - shift.getBaseHours();
 			}

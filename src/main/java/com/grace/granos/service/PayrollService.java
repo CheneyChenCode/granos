@@ -247,7 +247,7 @@ public class PayrollService {
 		payroll.setYear(year);
 		payroll.setMonth(month);
 		payroll.setEmpId(empid);
-		List<PayrollModel> payrolls = payrollRepository.findPayrollByUserMon(payroll);
+		List<PayrollModel> payrolls = payrollRepository.findPayrollDetailByUserMon(payroll);
 		if (payrolls == null) {
 			return null;
 		}
@@ -270,7 +270,8 @@ public class PayrollService {
 		header1.createCell(6).setCellValue("HOURS");
 		header1.createCell(7).setCellValue("TAX_FREE_HOURS");
 		header1.createCell(8).setCellValue("COEFFIICIENT");
-
+		header1.createCell(9).setCellValue("FROM_HOUR");
+		header1.createCell(10).setCellValue("TO_HOUR");
 		// 填充数据
 		int rowNum = 1;
 		for (PayrollModel pay : payrolls) {
@@ -284,6 +285,8 @@ public class PayrollService {
 			row1.createCell(6).setCellValue(pay.getHours());
 			row1.createCell(7).setCellValue(pay.getTaxFreeHours());
 			row1.createCell(8).setCellValue(pay.getCoefficient());
+			row1.createCell(9).setCellValue(pay.getFromHour());
+			row1.createCell(10).setCellValue(pay.getToHour());
 		}
 		Sheet sheet2 = workbook.createSheet("Attendance");
 		Row header2 = sheet2.createRow(0);

@@ -75,7 +75,7 @@ $(document).ready(function() {
     
 	// Add each month up to the current month to the dropdown
 	for (let month = 1; month <= currentMonth; month++) {
-		const monthItem = '<a href="#" class="dropdown-item" onclick="updateDataTableAjax('+ month +')">' +currentYear+ '-' + month.toString().padStart(2, '0'); +'</a>';
+		const monthItem = '<a href="#" class="dropdown-item" onclick="updateDataTableAjax('+ month +');">' +currentYear+ '-' + month.toString().padStart(2, '0')+'</a>';
 		dropdownMenu.append(monthItem);
 	}
        // 点击上传按钮时执行
@@ -221,7 +221,7 @@ $(document).ready(function() {
 	        }
         }
     });
-
+    $('#monthTitle').text(currentYear+ '-' + currentMonth.toString().padStart(2, '0'));
 	// 等待 DataTable 加载完成
 	table.on('draw.dt', function () {
 		// 获取数据
@@ -464,6 +464,7 @@ $(document).ready(function() {
 		// 获取 DataTable 实例
 		let table = $('#attendanceTable').DataTable();
 		specMonth=month;
+		$('#monthTitle').text(currentYear+ '-' + specMonth.toString().padStart(2, '0'));
 		table.ajax.reload(); // 重新加载数据
 	}
 
@@ -502,6 +503,9 @@ $(document).ready(function() {
 				<!-- Bootstrap 标签页 -->
 				<button class="btn btn-primary" type="button" onclick="switchTab()"><i id="icon" class="fas fa-list"></i></button>
 				<a id="popup1" class="btn btn-primary" href="#popup"><i class="fas fa-file-import"></i></a>
+			</div>
+			<div class="col text-center">
+			    <h3 id="monthTitle">Title</h3>
 			</div>
 			<div class="col d-flex justify-content-end">
 			  <div class="dropdown">

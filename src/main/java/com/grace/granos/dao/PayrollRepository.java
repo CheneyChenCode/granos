@@ -33,6 +33,19 @@ public class PayrollRepository {
 		}
 		return null;
 	}
+	public List<PayrollModel> findPayrollDetailByUserMon(PayrollModel pay) {
+		String sql = " SELECT " + " r.emp_id,r.year,r.month,r.day,r.pay_code,p.title,r.hours,p.coefficient,r.tax_free_hours,r.from_hour,r.to_hour"
+				+ " FROM " + " payroll r inner join pay_code p on p.id=r.pay_code" + " WHERE"
+				+ " r.year = ? and r.month = ? and r.emp_id = ?"
+				+ " order by r.day,r.from_hour,r.to_hour,r.pay_code";
+
+		List<PayrollModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<PayrollModel>(PayrollModel.class),
+				new Object[] { pay.getYear(), pay.getMonth(), pay.getEmpId() });
+		if (result != null && result.size() > 0) {
+			return result;
+		}
+		return null;
+	}
 	public int deletePayrollByUserMon(PayrollModel pay){
 		String sql = " DELETE "
 						   + " FROM "
