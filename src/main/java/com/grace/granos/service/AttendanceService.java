@@ -584,7 +584,7 @@ public class AttendanceService {
 								float temAtWorkHours=calculateWork(formulaEvaluator, row, temAt, switchShift);
 								temAt.setPaidLeave(temAtWorkHours);
 							}else {
-								temAt.setStartDatetime(Timestamp.valueOf(LocalDateTime.of(temAt.getArrivalDatetime().toLocalDateTime().toLocalDate(),shift.getStartTime().toInstant().atZone(timeZone).toLocalTime())));
+								temAt.setStartDatetime(Timestamp.valueOf(LocalDateTime.of(temAt.getStartDatetime().toLocalDateTime().toLocalDate(),shift.getStartTime().toInstant().atZone(timeZone).toLocalTime())));
 								temAt.setEndDatetime(Timestamp.valueOf(temAt.getStartDatetime().toLocalDateTime().plusHours((long) (shift.getBaseHours()+shift.getRestHours()))));
 							}
 						}
