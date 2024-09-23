@@ -114,7 +114,7 @@ public class AttendanceRepository {
 						   + " FROM "
 						   + " attendance"
 						   + " WHERE"
-						   + " year = ? and month = ? and emp_id = ? and work_hours  <> 0"
+						   + " year = ? and month = ? and emp_id = ? and day_code <> 3 and day_code <> 4"
 						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and work_hours > 0 and period=1) and period >=1";
 
 		int result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
