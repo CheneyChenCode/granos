@@ -185,7 +185,7 @@ public class Attendance {
 					leaveBanlanceService.deleteLeaveBalance(lb);
 					Map<String, ShiftModel> shiftModelMap = shiftService.getshiftModelMap();
 					for(int i=month+1;i<=currentDate.getMonthValue()+1;i++) {
-						List<LeaveBalanceModel> lastBalance=leaveBanlanceService.findLastLeaveBalance(user.getCharacter().getEmpId());
+						List<LeaveBalanceModel> lastBalance=leaveBanlanceService.findLastLeaveBalanceByMon(user.getCharacter().getEmpId(),year,i);
 						LeaveRequestModel lr=new LeaveRequestModel();
 						lr.setEmpId(user.getCharacter().getEmpId());
 						lr.setYear(lastBalance.get(0).getYear());

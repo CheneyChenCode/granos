@@ -95,4 +95,19 @@ public class LeaveBalanceRepository {
 		}
 		return null;
 	}
+	public List<LeaveBalanceModel> findLastLeaveBalanceByMon(int empId,int year,int month) {
+		String sql = "SELECT " + " emp_id, year, month, shift, used_hours, remaining_hours" + " FROM"
+				+ " leave_balances" + " WHERE " + " emp_id = ? "
+				+ " AND year = ?"
+				+ " AND month = (SELECT MAX(month) FROM leave_balances WHERE year = ? and month<?)"
+				+" ORDER BY shift";
+
+		List<LeaveBalanceModel> result = jdbcTemplate.query(sql,
+				new BeanPropertyRowMapper<LeaveBalanceModel>(LeaveBalanceModel.class),
+				new Object[] { empId,year,year,month });
+		if (result != null && result.size() > 0) {
+			return result;
+		}
+		return null;
+	}
 }

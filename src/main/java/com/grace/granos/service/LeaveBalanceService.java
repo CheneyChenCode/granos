@@ -99,8 +99,8 @@ public class LeaveBalanceService {
 		List<LeaveRequestModel> lrs=leaveRequestRepository.findLastLeaveRequest(lr);
 		return lrs;
 	}
-	public List<LeaveBalanceModel> findLastLeaveBalance(int empId) {
-		List<LeaveBalanceModel> lastBalance=leaveBalanceRepository.findLastLeaveBalance(empId);
+	public List<LeaveBalanceModel> findLastLeaveBalanceByMon(int empId,int year,int month) {
+		List<LeaveBalanceModel> lastBalance=leaveBalanceRepository.findLastLeaveBalanceByMon(empId, year, month);
 		return lastBalance;
 	}
 
