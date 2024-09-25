@@ -69,19 +69,13 @@
 	// 获取当前月份（注意，月份是从 0 开始计数的，所以需要加 1）
 	const currentMonth = currentDate.getMonth() + 1;
 	
-	var specMonth=currentMonth;
 $(document).ready(function() {
 		let dropdownMenu = $('#monthDropdown');
     
-		// Add each month up to the current month to the dropdown
-		for (let month = 1; month <= currentMonth; month++) {
-			const monthItem = '<a href="#" class="dropdown-item" onclick="updateDataTableAjax('+ month +')">' +currentYear+ '-' + month.toString().padStart(2, '0'); +'</a>';
-			dropdownMenu.append(monthItem);
-		}
 	// 禁用 DataTables 的默认警告提示
 	$.fn.dataTable.ext.errMode = 'none';
     // 初始化 DataTables
-    let table = $('#payrollTable').DataTable({
+    let table = $('#balancesTable').DataTable({
 		info: false,
 		ordering: false,
 		paging: false,
@@ -89,11 +83,11 @@ $(document).ready(function() {
         processing: true, // 显示加载状态
         serverSide: true, // 开启服务器端处理模式
         ajax: {
-                    url: "/getPayroll", // 外部数据源的URL
+                    url: "/getBalnaces", // 外部数据源的URL
                     type: "GET", 
                     data: function(d){
 							d.year = currentYear;
-							d.month = specMonth;
+							d.month = currentMonth;
 					},
 			        error: function(xhr, error, thrown) {
 						const response = JSON.parse(xhr.responseText);
@@ -114,15 +108,17 @@ $(document).ready(function() {
 			  }
 			},
             { data: 'title' },
-            { data: 'hours' },
-			{ data: 'weighted' },
-			{ data: 'taxFreeOverTime' },
-			{ data: 'taxFreeOverTimeWeighted' }  			
+            { data: 'usedHours' },
+			{ data: 'remainingHours' },
+		
         ],
 		// 在列渲染完成后执行回调函数
         "createdRow": function(row, data, dataIndex) {
             // 检查特定列的数据值，并根据条件添加样式
            $('td', row).eq(0).css('background-color', '#ffc107'); // 设置背景色为黄色
+	       if (data.remainingHours < 0) {
+	        $(row).find('td').css('background-color', 'pink'); // 为每一个 <td> 设置粉红色背景
+	       }
         }
     });
     $('#monthTitle').text(currentYear+ '-' + currentMonth.toString().padStart(2, '0'));
@@ -153,28 +149,16 @@ $(document).ready(function() {
 			cardCol2Row1Text.textContent = data.title;
 			let cardCol2Row2Label = document.createElement('div');
 			cardCol2Row2Label.className='col-4 col-form-label px-1';
-			cardCol2Row2Label.textContent='Hours:'
+			cardCol2Row2Label.textContent='Used Hours:'
 			let cardCol2Row2Text = document.createElement('div');
 			cardCol2Row2Text.className='col-8 form-control-plaintext font-weight-bold';
-			cardCol2Row2Text.textContent = data.hours;
+			cardCol2Row2Text.textContent = data.usedHours;
 			let cardCol2Row3Label = document.createElement('div');
 			cardCol2Row3Label.className='col-4 col-form-label px-1';
-			cardCol2Row3Label.textContent='Weighted:';
+			cardCol2Row3Label.textContent='Remaining Hours:';
 			let cardCol2Row3Text = document.createElement('div');
 			cardCol2Row3Text.className='col-2 form-control-plaintext font-weight-bold';
-			cardCol2Row3Text.textContent = data.weighted;		
-			let cardCol2Row4Label = document.createElement('div');
-			cardCol2Row4Label.className='col-4 col-form-label px-1';
-			cardCol2Row4Label.textContent='Tax Free Overtime:';
-			let cardCol2Row4Text = document.createElement('div');
-			cardCol2Row4Text.className='col-2 form-control-plaintext font-weight-bold';
-			cardCol2Row4Text.textContent = data.taxFreeOverTime;
-			let cardCol2Row5Label = document.createElement('div');
-			cardCol2Row5Label.className='col-4 col-form-label px-1';
-			cardCol2Row5Label.textContent='Tax Free Ot Wt:';
-			let cardCol2Row5Text = document.createElement('div');
-			cardCol2Row5Text.className='col-2 form-control-plaintext font-weight-bold';
-			cardCol2Row5Text.textContent = data.taxFreeOverTimeWeighted;	
+			cardCol2Row3Text.textContent = data.remainingHours;		
 			
 			cardCol2Row1.appendChild(cardCol2Row1Label);
 			cardCol2Row1.appendChild(cardCol2Row1Text);
@@ -182,18 +166,13 @@ $(document).ready(function() {
 			cardCol2Row2.appendChild(cardCol2Row2Text);
 			cardCol2Row3.appendChild(cardCol2Row3Label);
 			cardCol2Row3.appendChild(cardCol2Row3Text);
-			cardCol2Row4.appendChild(cardCol2Row4Label);
-			cardCol2Row4.appendChild(cardCol2Row4Text);
-			cardCol2Row5.appendChild(cardCol2Row5Label);
-			cardCol2Row5.appendChild(cardCol2Row5Text);
 			
 			let cardCol2 = document.createElement('div');
 			cardCol2.className='col-10';
 			cardCol2.appendChild(cardCol2Row1);
 			cardCol2.appendChild(cardCol2Row2);
 			cardCol2.appendChild(cardCol2Row3);
-			cardCol2.appendChild(cardCol2Row4);
-			cardCol2.appendChild(cardCol2Row5);
+
 			// 创建 card 元素
 			let newCol = document.createElement('div');
 			newCol.className='col-sm-5 mb-4'; 
@@ -241,15 +220,7 @@ $(document).ready(function() {
 		  activeTab1();
 	  }
 	}
-	function updateDataTableAjax(month) {
-		// 获取 DataTable 实例
-		let table = $('#payrollTable').DataTable();
-		specMonth=month;
-		let errorMessage = $('#errorMessage');
-		errorMessage.hide();
-		$('#monthTitle').text(currentYear+ '-' + specMonth.toString().padStart(2, '0'));
-		table.ajax.reload(); // 重新加载数据
-	}
+
     function exportToExcel() {
     	event.preventDefault(); // 阻止表单的默认提交行为
 		let spinner = $('<span>', {
@@ -262,11 +233,11 @@ $(document).ready(function() {
 		let icon = $('#downloadExcel i');
 		submitButton.prop('disabled', true).empty().append(spinner);
         $.ajax({
-            url: '/downloadPayroll',
+            url: '/downloadBalances',
             type: 'GET', // 或 'POST'，取决于你的 Controller 定义
             data: {
                 year: currentYear,
-                month: specMonth,
+                month: currentMonth,
                 user: user.character.empId
             },
             xhrFields: {
@@ -314,8 +285,8 @@ $(document).ready(function() {
                     <a href="home" class="nav-item nav-link">Home</a>
                     <a href="calendar" class="nav-item nav-link">Calendar</a>
                     <a href="attendance" class="nav-item nav-link">Attendance</a>
-                    <a href="payroll" class="nav-item nav-link active">Payroll</a>
-                    <a href="balances" class="nav-item nav-link">Balances</a>
+                    <a href="payroll" class="nav-item nav-link">Payroll</a>
+                    <a href="balances" class="nav-item nav-link active">Balances</a>
                     <a href="administrator" class="nav-item nav-link circle-background" th:classappend="${user.jobId != 1} ? 'disabled'">
                     	<span class="border border-warning rounded-lg p-3" th:text="${user.character.nameEn}"></span>
                     </a>
@@ -331,16 +302,6 @@ $(document).ready(function() {
 				<!-- Bootstrap 标签页 -->
 				<button class="btn btn-primary" type="button" onclick="switchTab()"><i id="icon" class="fas fa-list"></i></button>
 				<button class="btn btn-primary" type="button" onclick="exportToExcel()" id="downloadExcel"><i class="fa fa-download"></i></button>
-			</div>
-			<div class="col text-center">
-			    <h3 id="monthTitle">Title</h3>
-			</div>
-			<div class="col d-flex justify-content-end">
-			  <div class="dropdown">
-					<a href="#" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"><i class="far fa-clock"></i></a>
-					<div id="monthDropdown" class="dropdown-menu rounded-0 m-0">
-					</div>
-			  </div>
 			</div>
 		</div>
 		<div class="row">
@@ -360,15 +321,13 @@ $(document).ready(function() {
 			<!-- 标签页内容 -->
 			<div class="tab-content" id="myTabContent">
 				<div class="tab-pane fade" id="table1" role="tabpanel" aria-labelledby="table1-tab">
-					<table id="payrollTable" class="table table-striped table-bordered">
+					<table id="balancesTable" class="table table-striped table-bordered">
 						<thead>
 						<tr>
 							<th>MONTH</th>
 							<th>TITLE</th>
-							<th>HOURS</th>
-							<th>WEIGHTED HOURS</th>
-							<th>TAX FREE OVERTIME</th>
-							<th>WEIGHTED TAX FREE OVERTIME</th>
+							<th>USED_HOURS</th>
+							<th>REMAINING_HOURS</th>
 						</tr>
 						</thead>
 						<tbody>

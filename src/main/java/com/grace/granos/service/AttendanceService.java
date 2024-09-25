@@ -14,7 +14,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
@@ -39,13 +38,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import com.grace.granos.dao.AttendanceRepository;
 import com.grace.granos.dao.HolidayRepository;
+import com.grace.granos.dao.LeaveBalanceRepository;
 import com.grace.granos.dao.ShiftRepository;
 import com.grace.granos.model.AttendanceDataTableModel;
 import com.grace.granos.model.AttendanceModel;
 import com.grace.granos.model.HolidaysModel;
-import com.grace.granos.model.PayrollModel;
+import com.grace.granos.model.LeaveBalanceModel;
 import com.grace.granos.model.ShiftModel;
 import com.grace.granos.model.User;
 
@@ -56,9 +58,12 @@ public class AttendanceService {
 	@Autowired
 	private AttendanceRepository attendanceRepository;
 	@Autowired
-	private ShiftRepository shiftRepository;
+	private ShiftService shiftService;
 	@Autowired
 	private HolidayRepository holidayRepository;
+	@Autowired
+	private LeaveBalanceRepository leaveBalanceRepository;
+
 	@Value("${spring.time.zone}")
 	private String zoneName;
 	private ZoneId timeZone;
@@ -286,9 +291,9 @@ public class AttendanceService {
 		float remainTaxHours = 46;
 		String shiftCurrentMonth = null;
 		String shiftNamePre = null;
-		List<ShiftModel> shifts = shiftRepository.findShift();
-		Map<String, ShiftModel> shiftModelMap = shifts.stream()
-				.collect(Collectors.toMap(ShiftModel::getName, shiftModel -> shiftModel));
+		Map<String, ShiftModel> shiftModelMap = shiftService.getshiftModelMap();
+		List<LeaveBalanceModel> balances = null;
+		Map<String, LeaveBalanceModel> leaveBalanceModelMap= null;
 		// 从第四行开始循环遍历每一行
 		for (int rowIndex = 4; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
 			Row row = sheet.getRow(rowIndex);
@@ -304,6 +309,7 @@ public class AttendanceService {
 				}
 			}
 			datePre=date;
+			LeaveBalanceModel lb=new LeaveBalanceModel();
 			AttendanceModel at = new AttendanceModel();
 			attendanceDatas.add(at);
 			at.setStatus(1);
@@ -314,6 +320,9 @@ public class AttendanceService {
 			int year = calendar.get(Calendar.YEAR);
 			int day = calendar.get(Calendar.DAY_OF_MONTH);
 			int month = calendar.get(Calendar.MONTH) + 1; // 月份是从 0 开始的，所以要加 1
+			lb.setEmpId(user.getCharacter().getEmpId());
+			lb.setYear(year);
+			lb.setMonth(month-1);
 			at.setYear(year);
 			at.setDay(day);
 			at.setMonth(month);
@@ -327,14 +336,22 @@ public class AttendanceService {
 				if (preMonWdAtt == null && excelPeriod == null) {
 					throw new Exception("There are no attendance records in the previous month.");
 				}
-				datePre =  Date.from(LocalDate.of(preMonWdAtt.getYear(), preMonWdAtt.getMonth(), preMonWdAtt.getDay()).atStartOfDay(timeZone).toInstant());
-				period = preMonWdAtt.getPeriod();
+				if(preMonWdAtt!=null) {
+					datePre =  Date.from(LocalDate.of(preMonWdAtt.getYear(), preMonWdAtt.getMonth(), preMonWdAtt.getDay()).atStartOfDay(timeZone).toInstant());
+					period = preMonWdAtt.getPeriod();
+				}
 				shiftCurrentMonth=attendanceRepository.findLastWdShiftByUserMon(at);
 				accumulateWorkDay = attendanceRepository.findLastAccumulateWdByUserMon(at);
 				accumulateWorkDayInPeriod = attendanceRepository.findLastAccumulateWdPeByUserMon(at);
 				fixedDayOffInPeriod = attendanceRepository.findLastfixedDayOffInPeriod(at);
 				flexibleDayOffInPeriod = attendanceRepository.findLastflexibleDayOffInPeriod(at);
-				//accumulateWorkDayInPeriod = period - fixedDayOffInPeriod - flexibleDayOffInPeriod;
+				balances = leaveBalanceRepository.findLeaveBalanceByUserYearMon(lb);
+				if (CollectionUtils.isEmpty(balances)) {
+					throw new Exception("There are no leave balances in the previous month.");
+				}else {
+					leaveBalanceModelMap=balances.stream()
+					.collect(Collectors.toMap(LeaveBalanceModel::getShift, leaveBalanceModel -> leaveBalanceModel));
+				}
 			}
 //			if(datePre.toInstant().atZone(timeZone).toLocalDate().equals(date.toInstant().atZone(timeZone).toLocalDate())) {
 //				seq=preMonWdAtt.getSeq();
@@ -351,7 +368,7 @@ public class AttendanceService {
 				LocalTime arrivalLocalTime = arrivalTime.toInstant().atZone(timeZone).toLocalTime();
 				at.setArrivalDatetime(Timestamp.valueOf(LocalDateTime.of(startDate, arrivalLocalTime)));
 				 // 將 Timestamp 轉換為 LocalDateTime
-				if(preMonWdAtt.getLeaveDatetime()!=null) {
+				if(preMonWdAtt!=null&&preMonWdAtt.getLeaveDatetime()!=null) {
 			        LocalDateTime dateTime1 = at.getArrivalDatetime().toLocalDateTime().withSecond(0).withNano(0);
 			        LocalDateTime dateTime2 = preMonWdAtt.getLeaveDatetime().toLocalDateTime().withSecond(0).withNano(0);
 					if(dateTime1.equals(dateTime2)) {
@@ -387,7 +404,24 @@ public class AttendanceService {
 				}
 			}
 			at.setPeriod(period);
-			ShiftModel shiftCurrentMonthShift=shiftModelMap.get(shiftCurrentMonth);
+			ShiftModel shiftCurrentMonthShift=null;
+			if(!StringUtil.isBlank(shiftCurrentMonth)) {
+				shiftCurrentMonthShift=shiftModelMap.get(shiftCurrentMonth);
+			}else {
+				String shiftName = getCellValue(formulaEvaluator, row.getCell(1), String.class);
+				if(StringUtils.isNotEmpty(shiftName)) {
+					shiftCurrentMonthShift=shiftModelMap.get(shiftName);
+				}else {
+					for (int rowInside = rowIndex+1; rowInside <= sheet.getLastRowNum(); rowInside++) {
+						Row rowInsider = sheet.getRow(rowInside);
+						shiftName = getCellValue(formulaEvaluator, rowInsider.getCell(1), String.class);
+						if(StringUtils.isNotEmpty(shiftName)) {
+							shiftCurrentMonthShift=shiftModelMap.get(shiftName);
+							break;
+						}
+					}
+				}
+			}
 			at.setStartDatetime(Timestamp.valueOf(LocalDateTime.of(date.toInstant().atZone(timeZone).toLocalDate(),shiftCurrentMonthShift.getStartTime().toInstant().atZone(timeZone).toLocalTime())));
 			at.setEndDatetime(Timestamp.valueOf(at.getStartDatetime().toLocalDateTime().plusHours((long) (shiftCurrentMonthShift.getBaseHours()+shiftCurrentMonthShift.getRestHours()))));
 
@@ -469,9 +503,9 @@ public class AttendanceService {
 					shiftName="DLF";
 				} else {
 					if (dayCode == 2) {
-						shiftName="NTL";
+						shiftName="NTF";
 					}else if(dayCode == 5){
-						shiftName="DSL";
+						shiftName="DSF";
 					}else {
 						at.setStatus(2);
 						at.setReason("abnormal day off in a period");
@@ -499,7 +533,7 @@ public class AttendanceService {
 						continue;
 					}
 					if (dayCode == 2) {
-						at.setShift("NTL");
+						at.setShift("NTF");
 						at.setCompTime(8);
 						at.setCompReason(dayDescription + " VS " + "fixed day off");
 					} else {
@@ -517,7 +551,7 @@ public class AttendanceService {
 						continue;
 					}
 					if (dayCode == 2) {
-						at.setShift("NTL");
+						at.setShift("NTF");
 						at.setCompTime(8);
 						at.setCompReason(dayDescription + " VS " + "flexible day off");
 					} else {
@@ -536,7 +570,7 @@ public class AttendanceService {
 					}
 					conversionDayOffCurrentMonth = 1;
 					if (dayCode == 2) {
-						at.setShift("NTL");
+						at.setShift("NTF");
 					}
 					
 					//at.setDayCode(dayCode);
@@ -685,6 +719,7 @@ public class AttendanceService {
 				if (at2.getShift().length() > 2) {
 					paidLeaveHours=paidLeaveHours+workHours2;
 					at.setPaidLeave(workHours2);
+					checkLeaveBalances(leaveBalanceModelMap, at2, workHours2);
 				}else {
 					at2.setWorkHours(workHours2);
 					totalWorkHours=totalWorkHours+workHours2;
@@ -696,6 +731,7 @@ public class AttendanceService {
 			if (shiftName.length() > 2) {
 				paidLeaveHours=paidLeaveHours+workHours;
 				at.setPaidLeave(workHours);
+				checkLeaveBalances(leaveBalanceModelMap, at, workHours);
 			}else {
 				at.setWorkHours(workHours);
 				totalWorkHours=totalWorkHours+workHours;
@@ -751,6 +787,26 @@ public class AttendanceService {
 		workbook.close();
 
 		return attendanceDatas;
+	}
+
+	private void checkLeaveBalances(Map<String, LeaveBalanceModel> leaveBalanceModelMap, AttendanceModel at,float workHours) {
+		boolean check=true;
+		if("L".equals(StringUtils.right(at.getShift(), 1))){
+			LeaveBalanceModel lbm=leaveBalanceModelMap.get(at.getShift());
+			if(lbm==null) {
+				check=false;
+			}else if(lbm.getRemainingHours()<workHours){
+				check=false;
+			}
+		}
+		if(check==false) {
+			at.setStatus(2);
+			if (StringUtil.isNotBlank(at.getReason())) {
+				at.setReason(at.getReason() + ","+at.getShift()+" leave balances not enough");
+			} else {
+				at.setReason(at.getShift()+" leave balances not enough");
+			}
+		}
 	}
 
 	private float calculateWork(FormulaEvaluator formulaEvaluator,  Row row, AttendanceModel at,ShiftModel shift) {

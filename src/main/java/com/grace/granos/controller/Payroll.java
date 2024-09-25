@@ -59,7 +59,7 @@ public class Payroll {
         List<PayrollDataTableModel> pay = payrollService.getPayroll(year, month, user.getCharacter().getEmpId());
         JsonResponse rs = new JsonResponse(pay);
 		if (pay.size() > 0) {
-			ResponseEntity.ok(new JsonResponse(pay));
+			ResponseEntity.ok(rs);
 		} else {
 			List<AttendanceModel> atts;
 			try {

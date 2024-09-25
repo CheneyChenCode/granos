@@ -180,9 +180,9 @@ $(document).ready(function() {
 			{ data: null,
 			  render: function(data, type, row){
 				if (type === 'display') {
-					if (data.shift.length > 2) {
+					if (data.shift&&data.shift.length > 2) {
 						return data.shift;
-					}else if(data.shift.slice(-1)==='R'||data.shift.slice(-1)==='M'){
+					}else if(data.shift&&(data.shift.slice(-1)==='R'||data.shift.slice(-1)==='M')){
 						return data.startDate+' - '+data.endDate +' ' + 'Remote';
 					}else{
 						return data.startDate+' - '+data.endDate;
@@ -210,10 +210,10 @@ $(document).ready(function() {
 	        if (data.status === 2) {
 	        	$(row).find('td').css('background-color', 'pink'); // 为每一个 <td> 设置粉红色背景
 	        }
-	        if (data.dayCode === 3 && data.shift.length < 3) {
+	        if (data.dayCode === 3 && data.shift && data.shift.length < 3) {
 	        	$(row).find('td').css('color', 'deepskyblue'); 
 	        }
-	        if ((data.dayCode > 3 || data.dayCode === 2 ) && data.shift.length < 3) {
+	        if ((data.dayCode > 3 || data.dayCode === 2 ) && data.shift && data.shift.length < 3) {
 	        	$(row).find('td').css('color', 'orangered'); 
 	        }
 	        if (data.period === 1) {
@@ -247,17 +247,17 @@ $(document).ready(function() {
 			cardCol2Row1Label.textContent='Schedule:';
 			let cardCol2Row1Text = document.createElement('div');
 			cardCol2Row1Text.className='col-8 form-control-plaintext font-weight-bold';
-			if(data.dayCode===3 && data.shift.length < 3){
+			if(data.dayCode===3 && data.shift && data.shift.length < 3){
 				 cardCol2Row1Label.style.color = 'deepskyblue';
 				 cardCol2Row1Text.style.color = 'deepskyblue';
 			}
-			if(data.dayCode>3 && data.shift.length < 3){
+			if(data.dayCode>3 && data.shift && data.shift.length < 3){
 				 cardCol2Row1Label.style.color = 'orangered';
 				 cardCol2Row1Text.style.color = 'orangered';
 			}
-			if (data.shift.length > 2) {
+			if (data.shift && data.shift.length > 2) {
 				cardCol2Row1Text.textContent =  data.shift;
-			}else if(data.shift.slice(-1)==='R'||data.shift.slice(-1)==='M'){
+			}else if(data.shift && (data.shift.slice(-1)==='R'||data.shift.slice(-1)==='M')){
 				cardCol2Row1Text.textContent = data.startDate+' - '+data.endDate +' ' + 'Remote';
 			}else{
 				cardCol2Row1Text.textContent = data.startDate+' - '+data.endDate;
@@ -488,6 +488,7 @@ $(document).ready(function() {
                     <a href="calendar" class="nav-item nav-link">Calendar</a>
                     <a href="attendance" class="nav-item nav-link active">Attendance</a>
                     <a href="payroll" class="nav-item nav-link">Payroll</a>
+                    <a href="balances" class="nav-item nav-link">Balances</a>
                     <a href="administrator" class="nav-item nav-link circle-background" th:classappend="${user.jobId != 1} ? 'disabled'" >
                     	<span class="border border-warning rounded-lg p-3" th:text="${user.character.nameEn}"></span>
                     </a>

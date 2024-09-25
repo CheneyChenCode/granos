@@ -79,7 +79,7 @@ public class AttendanceRepository {
 						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ? and shift ='DXF'"
-						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and period =1) and period >=1";
+						   + " AND day >= (select MAX(day) from attendance where year = ? and month = ? and emp_id = ? and period =1) and period >=1";
 
 		int result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
 		return result;
@@ -91,7 +91,7 @@ public class AttendanceRepository {
 						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ? and shift ='DLF'"
-						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and period =1) and period >=1";
+						   + " AND day >= (select MAX(day) from attendance where year = ? and month = ? and emp_id = ? and period =1) and period >=1";
 
 		int result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
 		return result;
@@ -103,7 +103,7 @@ public class AttendanceRepository {
 						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ? and work_hours <> 0"
-						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and work_hours = 0)";
+						   + " AND day >= (select MAX(day) from attendance where year = ? and month = ? and emp_id = ? and work_hours = 0)";
 
 		int result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
 		return result;
@@ -115,7 +115,7 @@ public class AttendanceRepository {
 						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ? and day_code <> 3 and day_code <> 4"
-						   + " AND day >= (select MAX(day) from granos.attendance where year = ? and month = ? and emp_id = ? and work_hours > 0 and period=1) and period >=1";
+						   + " AND day >= (select MAX(day) from attendance where year = ? and month = ? and emp_id = ? and work_hours > 0 and period=1) and period >=1";
 
 		int result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(),att.getMonth()-1,att.getEmpId(),att.getYear(),att.getMonth()-1,att.getEmpId());
 		return result;
@@ -127,7 +127,7 @@ public class AttendanceRepository {
 						   + " attendance"
 						   + " WHERE"
 						   + " year = ? and month = ? and emp_id = ?"
-						   + " AND day = (select MAX(day) from granos.attendance where char_length(shift)=2 and year = ? and month = ? and emp_id = ?)";
+						   + " AND day = (select MAX(day) from attendance where char_length(shift)=2 and year = ? and month = ? and emp_id = ?)";
 
 		String result =null;
 		try{

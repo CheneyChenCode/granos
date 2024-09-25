@@ -76,9 +76,10 @@ public class PayrollService {
 					.collect(Collectors.toList());
 			for (DayCodeModel dc : filAttsByDc) {
 				List<PayCodeModel> filAttsByShift = dc.getPayCode().stream()
-						.filter(x -> att.getDayCode()==x.getDayCode()&& att.getShift().equals(x.getShift())).collect(Collectors.toList());
+						.filter(x -> att.getDayCode() == x.getDayCode() && att.getShift().equals(x.getShift()))
+						.collect(Collectors.toList());
 				for (PayCodeModel pc : filAttsByShift) {
-					float hours=0;
+					// float hours=0;
 					float currentHourPartGreater = StringUtils.isNotEmpty(pc.getHourPartGreater())
 							? Float.parseFloat(pc.getHourPartGreater())
 							: 0;
@@ -86,8 +87,9 @@ public class PayrollService {
 							? Float.parseFloat(pc.getHourPartLess())
 							: Float.MAX_VALUE;
 					if (paidLeave > 0 && totalPaidLeave > currentHourPartGreater) {
-						PayrollModel pl=createPayrollModel(payrolls, totalPaidLeave, att, pc, currentHourPartGreater, currentHourPartLess,user);
-						if(pl==null) {
+						PayrollModel pl = createPayrollModel(payrolls, totalPaidLeave, att, pc, currentHourPartGreater,
+								currentHourPartLess, user);
+						if (pl == null) {
 							continue;
 						}
 						logger.info("month:" + pl.getMonth() + ",day:" + pl.getDay() + ",seq" + att.getSeq() + ",shift:"
@@ -95,10 +97,11 @@ public class PayrollService {
 						logger.info("workHours:" + pl.getHours() + ",TaxFreeHours:" + pl.getTaxFreeHours());
 						continue;
 					}
-	
+
 					if (totalWorkhours > currentHourPartGreater) {
-						PayrollModel pl=createPayrollModel(payrolls, totalWorkhours, att, pc, currentHourPartGreater, currentHourPartLess,user);
-						if(pl==null) {
+						PayrollModel pl = createPayrollModel(payrolls, totalWorkhours, att, pc, currentHourPartGreater,
+								currentHourPartLess, user);
+						if (pl == null) {
 							continue;
 						}
 						float taxFreeOverTime = pl.getHours();
@@ -125,7 +128,7 @@ public class PayrollService {
 								+ pc.getShift() + ",payCode:" + pl.getPayCode());
 						logger.info("workHours:" + pl.getHours() + ",TaxFreeHours:" + pl.getTaxFreeHours());
 					}
-					
+
 				}
 			}
 		}
@@ -138,14 +141,14 @@ public class PayrollService {
 		return payrolltable;
 	}
 
-	private PayrollModel createPayrollModel(List<PayrollModel> payrolls, float totalHours, AttendanceModel att, PayCodeModel pc,
-			float currentHourPartGreater, float currentHourPartLess,User user) {
+	private PayrollModel createPayrollModel(List<PayrollModel> payrolls, float totalHours, AttendanceModel att,
+			PayCodeModel pc, float currentHourPartGreater, float currentHourPartLess, User user) {
 		if (totalHours < currentHourPartLess) {
-			currentHourPartLess=totalHours;
+			currentHourPartLess = totalHours;
 		}
-		float hours=0;
-		hours=currentHourPartLess - currentHourPartGreater;
-		PayrollModel pl=null;
+		float hours = 0;
+		hours = currentHourPartLess - currentHourPartGreater;
+		PayrollModel pl = null;
 		if (att.getSeq() > 1) {
 			List<PayrollModel> matchingPayrolls = payrolls.stream()
 					.filter(p -> p.getPayCode() != pc.getId() && p.getDay() == att.getDay())
@@ -153,17 +156,17 @@ public class PayrollService {
 
 			if (!matchingPayrolls.isEmpty()) {
 				for (PayrollModel matchingPl : matchingPayrolls) {
-					if(matchingPl.getToHour()>currentHourPartGreater) {
-						currentHourPartGreater=matchingPl.getToHour();
+					if (matchingPl.getToHour() > currentHourPartGreater) {
+						currentHourPartGreater = matchingPl.getToHour();
 					}
 					logger.info("minus:" + matchingPl.getPayCode() + ",day: " + matchingPl.getDay() + ", month: "
-							+ matchingPl.getMonth() + ",from:" + matchingPl.getFromHour()+ ",to:"
+							+ matchingPl.getMonth() + ",from:" + matchingPl.getFromHour() + ",to:"
 							+ matchingPl.getToHour());
-					hours=currentHourPartLess-currentHourPartGreater;
+					hours = currentHourPartLess - currentHourPartGreater;
 				}
 			}
 		}
-		if(hours>0) {
+		if (hours > 0) {
 			pl = new PayrollModel();
 			payrolls.add(pl);
 			pl.setEmpId(att.getEmpId());
@@ -180,6 +183,7 @@ public class PayrollService {
 		}
 		return pl;
 	}
+
 	public List<PayrollDataTableModel> PayrollModelToDataTable(List<PayrollModel> pls) {
 		List<PayrollDataTableModel> payrollDataTable = new ArrayList<>();
 		Map<Integer, Double> payCodeMap = pls.stream().collect(
@@ -212,15 +216,11 @@ public class PayrollService {
 		payroll.setEmpId(empId);
 		List<PayrollModel> payrolls = null;
 		List<PayrollDataTableModel> payrollDataTable = new ArrayList<>();
-		try {
-			payrolls = payrollRepository.findPayrollByUserMon(payroll);
-			if (payrolls == null) {
-				return payrollDataTable;
-			}
-			payrollDataTable = PayrollModelToDataTable(payrolls);
-		} catch (Exception e) {
-			logger.error(e.getMessage());
+		payrolls = payrollRepository.findPayrollByUserMon(payroll);
+		if (CollectionUtils.isEmpty(payrolls)) {
+			return payrollDataTable;
 		}
+		payrollDataTable = PayrollModelToDataTable(payrolls);
 
 		return payrollDataTable;
 	}
@@ -248,9 +248,7 @@ public class PayrollService {
 		payroll.setMonth(month);
 		payroll.setEmpId(empid);
 		List<PayrollModel> payrolls = payrollRepository.findPayrollDetailByUserMon(payroll);
-		if (payrolls == null) {
-			return null;
-		}
+
 		// 创建 Excel 工作簿
 		Workbook workbook = new XSSFWorkbook();
 
@@ -274,20 +272,23 @@ public class PayrollService {
 		header1.createCell(10).setCellValue("TO_HOUR");
 		// 填充数据
 		int rowNum = 1;
-		for (PayrollModel pay : payrolls) {
-			Row row1 = sheet1.createRow(rowNum++);
-			row1.createCell(0).setCellValue(pay.getEmpId());
-			row1.createCell(1).setCellValue(pay.getYear());
-			row1.createCell(2).setCellValue(pay.getMonth());
-			row1.createCell(3).setCellValue(pay.getDay());
-			row1.createCell(4).setCellValue(pay.getPayCode());
-			row1.createCell(5).setCellValue(pay.getTitle());
-			row1.createCell(6).setCellValue(pay.getHours());
-			row1.createCell(7).setCellValue(pay.getTaxFreeHours());
-			row1.createCell(8).setCellValue(pay.getCoefficient());
-			row1.createCell(9).setCellValue(pay.getFromHour());
-			row1.createCell(10).setCellValue(pay.getToHour());
+		if(!CollectionUtils.isEmpty(payrolls)) {
+			for (PayrollModel pay : payrolls) {
+				Row row1 = sheet1.createRow(rowNum++);
+				row1.createCell(0).setCellValue(pay.getEmpId());
+				row1.createCell(1).setCellValue(pay.getYear());
+				row1.createCell(2).setCellValue(pay.getMonth());
+				row1.createCell(3).setCellValue(pay.getDay());
+				row1.createCell(4).setCellValue(pay.getPayCode());
+				row1.createCell(5).setCellValue(pay.getTitle());
+				row1.createCell(6).setCellValue(pay.getHours());
+				row1.createCell(7).setCellValue(pay.getTaxFreeHours());
+				row1.createCell(8).setCellValue(pay.getCoefficient());
+				row1.createCell(9).setCellValue(pay.getFromHour());
+				row1.createCell(10).setCellValue(pay.getToHour());
+			}
 		}
+		
 		Sheet sheet2 = workbook.createSheet("Attendance");
 		Row header2 = sheet2.createRow(0);
 		header2.createCell(0).setCellValue("EMP_ID");
@@ -317,76 +318,79 @@ public class PayrollService {
 		header2.createCell(24).setCellValue("Over_end_datetime");
 
 		rowNum = 1;
-		for (AttendanceModel att : attendances) {
-			Row row2 = sheet2.createRow(rowNum++);
-			row2.createCell(0).setCellValue(att.getEmpId());
-			row2.createCell(1).setCellValue(att.getYear());
-			row2.createCell(2).setCellValue(att.getMonth());
-			row2.createCell(3).setCellValue(att.getDay());
-			row2.createCell(4).setCellValue(att.getSeq());
-			Cell cellArrivalDatetime = row2.createCell(5);
-			if (att.getArrivalDatetime() != null) {
-				cellArrivalDatetime.setCellValue(Timestamp
-						.valueOf(att.getArrivalDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
-			} else {
-				cellArrivalDatetime.setCellValue(att.getArrivalDatetime());
+		if(!CollectionUtils.isEmpty(attendances)) {
+			for (AttendanceModel att : attendances) {
+				Row row2 = sheet2.createRow(rowNum++);
+				row2.createCell(0).setCellValue(att.getEmpId());
+				row2.createCell(1).setCellValue(att.getYear());
+				row2.createCell(2).setCellValue(att.getMonth());
+				row2.createCell(3).setCellValue(att.getDay());
+				row2.createCell(4).setCellValue(att.getSeq());
+				Cell cellArrivalDatetime = row2.createCell(5);
+				if (att.getArrivalDatetime() != null) {
+					cellArrivalDatetime.setCellValue(Timestamp
+							.valueOf(att.getArrivalDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+				} else {
+					cellArrivalDatetime.setCellValue(att.getArrivalDatetime());
+				}
+				cellArrivalDatetime.setCellStyle(dateTimeCellStyle);
+				Cell cellLeaveDatetime = row2.createCell(6);
+				if (att.getLeaveDatetime() != null) {
+					cellLeaveDatetime.setCellValue(Timestamp
+							.valueOf(att.getLeaveDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+				} else {
+					cellLeaveDatetime.setCellValue(att.getLeaveDatetime());
+				}
+				cellLeaveDatetime.setCellStyle(dateTimeCellStyle);
+				row2.createCell(7).setCellValue(att.getWorkHours());
+				row2.createCell(8).setCellValue(att.getNote());
+				row2.createCell(9).setCellValue(att.getApproval());
+				row2.createCell(10).setCellValue(att.getDayCode());
+				row2.createCell(11).setCellValue(att.getOvertime());
+				Cell cellStartDatetime = row2.createCell(12);
+				if (att.getStartDatetime() != null) {
+					cellStartDatetime.setCellValue(Timestamp
+							.valueOf(att.getStartDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+				} else {
+					cellStartDatetime.setCellValue(att.getStartDatetime());
+				}
+				cellStartDatetime.setCellStyle(dateTimeCellStyle);
+				Cell cellEndDatetime = row2.createCell(13);
+				if (att.getEndDatetime() != null) {
+					cellEndDatetime.setCellValue(
+							Timestamp.valueOf(att.getEndDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+				} else {
+					cellEndDatetime.setCellValue(att.getEndDatetime());
+				}
+				cellEndDatetime.setCellStyle(dateTimeCellStyle);
+				row2.createCell(14).setCellValue(att.getWeek());
+				row2.createCell(15).setCellValue(att.getReason());
+				row2.createCell(16).setCellValue(att.getShift());
+				row2.createCell(17).setCellValue(att.getStatus());
+				row2.createCell(18).setCellValue(att.getCompTime());
+				row2.createCell(19).setCellValue(att.getCompReason());
+				row2.createCell(20).setCellValue(att.getPeriod());
+				row2.createCell(21).setCellValue(att.getPaidLeave());
+				row2.createCell(22).setCellValue(att.getRemainTaxFree());
+				Cell cellOverStartDatetime = row2.createCell(23);
+				if (att.getOverStartDatetime() != null) {
+					cellOverStartDatetime.setCellValue(Timestamp
+							.valueOf(att.getOverStartDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+				} else {
+					cellOverStartDatetime.setCellValue(att.getOverStartDatetime());
+				}
+				cellOverStartDatetime.setCellStyle(dateTimeCellStyle);
+				Cell cellOverEndDatetime = row2.createCell(24);
+				if (att.getOverStartDatetime() != null) {
+					cellOverEndDatetime.setCellValue(Timestamp
+							.valueOf(att.getOverEndDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+				} else {
+					cellOverEndDatetime.setCellValue(att.getOverStartDatetime());
+				}
+				cellOverEndDatetime.setCellStyle(dateTimeCellStyle);
 			}
-			cellArrivalDatetime.setCellStyle(dateTimeCellStyle);
-			Cell cellLeaveDatetime = row2.createCell(6);
-			if (att.getLeaveDatetime() != null) {
-				cellLeaveDatetime.setCellValue(Timestamp
-						.valueOf(att.getLeaveDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
-			} else {
-				cellLeaveDatetime.setCellValue(att.getLeaveDatetime());
-			}
-			cellLeaveDatetime.setCellStyle(dateTimeCellStyle);
-			row2.createCell(7).setCellValue(att.getWorkHours());
-			row2.createCell(8).setCellValue(att.getNote());
-			row2.createCell(9).setCellValue(att.getApproval());
-			row2.createCell(10).setCellValue(att.getDayCode());
-			row2.createCell(11).setCellValue(att.getOvertime());
-			Cell cellStartDatetime = row2.createCell(12);
-			if (att.getStartDatetime() != null) {
-				cellStartDatetime.setCellValue(Timestamp
-						.valueOf(att.getStartDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
-			} else {
-				cellStartDatetime.setCellValue(att.getStartDatetime());
-			}
-			cellStartDatetime.setCellStyle(dateTimeCellStyle);
-			Cell cellEndDatetime = row2.createCell(13);
-			if (att.getEndDatetime() != null) {
-				cellEndDatetime.setCellValue(
-						Timestamp.valueOf(att.getEndDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
-			} else {
-				cellEndDatetime.setCellValue(att.getEndDatetime());
-			}
-			cellEndDatetime.setCellStyle(dateTimeCellStyle);
-			row2.createCell(14).setCellValue(att.getWeek());
-			row2.createCell(15).setCellValue(att.getReason());
-			row2.createCell(16).setCellValue(att.getShift());
-			row2.createCell(17).setCellValue(att.getStatus());
-			row2.createCell(18).setCellValue(att.getCompTime());
-			row2.createCell(19).setCellValue(att.getCompReason());
-			row2.createCell(20).setCellValue(att.getPeriod());
-			row2.createCell(21).setCellValue(att.getPaidLeave());
-			row2.createCell(22).setCellValue(att.getRemainTaxFree());
-			Cell cellOverStartDatetime = row2.createCell(23);
-			if (att.getOverStartDatetime() != null) {
-				cellOverStartDatetime.setCellValue(Timestamp
-						.valueOf(att.getOverStartDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
-			} else {
-				cellOverStartDatetime.setCellValue(att.getOverStartDatetime());
-			}
-			cellOverStartDatetime.setCellStyle(dateTimeCellStyle);
-			Cell cellOverEndDatetime = row2.createCell(24);
-			if (att.getOverStartDatetime() != null) {
-				cellOverEndDatetime.setCellValue(Timestamp
-						.valueOf(att.getOverEndDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
-			} else {
-				cellOverEndDatetime.setCellValue(att.getOverStartDatetime());
-			}
-			cellOverEndDatetime.setCellStyle(dateTimeCellStyle);
 		}
+		
 		// 2. 将 Excel 写入 ByteArrayOutputStream
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		workbook.write(out);

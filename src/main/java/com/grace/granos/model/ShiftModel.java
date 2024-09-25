@@ -13,7 +13,14 @@ public class ShiftModel {
 	private float baseHours;
 	private float restHours;
 	private float restStartHour;
+	private String description;;
 	
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
 	public float getRestStartHour() {
 		return restStartHour;
 	}

@@ -1,9 +1,14 @@
 package com.grace.granos.controller;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,10 +30,15 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import com.grace.granos.model.AttendanceDataTableModel;
 import com.grace.granos.model.AttendanceModel;
 import com.grace.granos.model.JsonResponse;
+import com.grace.granos.model.LeaveBalanceModel;
+import com.grace.granos.model.LeaveRequestModel;
+import com.grace.granos.model.ShiftModel;
 import com.grace.granos.model.User;
 import com.grace.granos.service.AttendanceService;
 import com.grace.granos.service.FileStorageService;
+import com.grace.granos.service.LeaveBalanceService;
 import com.grace.granos.service.PayrollService;
+import com.grace.granos.service.ShiftService;
 import com.grace.granos.service.StaffService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,6 +62,11 @@ public class Attendance {
 	private FileStorageService fileStorageService;
 	@Autowired
 	private PayrollService payrollService;
+	@Autowired
+	private LeaveBalanceService leaveBanlanceService;
+	@Autowired
+	private ShiftService shiftService;
+	
 	@RequestMapping("/attendance")
 	public String attendance(Model model) {
 		return "attendance";
@@ -113,7 +129,7 @@ public class Attendance {
 		// Path tempFilePath = Files.createTempFile(filename+"_", extension);
 		try {
 			fileStorageService.createFile(folderPath + "/" + filename, file.getBytes());
-			logger.info("Controller:uploadExcel["+folderPath + "/" + filename+"]"+"["+user.getUsername()+"]");
+			logger.info("Controller:uploadExcel["+folderPath + "/" + filename+"]"+"["+user.getCharacter().getUsername()+"]");
 			List<AttendanceModel> attendances = attendanceService.parseExcel(file.getInputStream(), user);
 			if (attendances != null && !attendances.isEmpty()) {
 				int year = attendances.get(0).getYear();
@@ -129,11 +145,53 @@ public class Attendance {
 				uploadMonth = year + "-" + StringUtils.leftPad(String.valueOf(month), 2, "0")+" ";
 				logger.info("Controller:uploadExcel["+uploadMonth +"]");
 				String abnormalMessage = "";
+				List<LeaveRequestModel> leaves =new ArrayList<LeaveRequestModel>();
 				for (AttendanceModel att : attendances) {
 					if (att.getStatus() != 1) {
 						abnormalMessage = abnormalMessage + "\n"
 								+ StringUtils.leftPad(String.valueOf(att.getMonth()), 2, "0") + "-"
 								+ StringUtils.leftPad(String.valueOf(att.getDay()), 2, "0") + ": " + att.getReason();
+						continue;
+					}
+					String shift=att.getShift();
+					if(StringUtils.isNotEmpty(shift)&&shift.length() >2 && att.getPaidLeave()>0 && "L".equals(StringUtils.right(shift, 1))) {
+						LeaveRequestModel leave=new LeaveRequestModel();
+						leave.setEmpId(att.getEmpId());
+						leave.setYear(att.getYear());
+						leave.setMonth(att.getMonth());
+						leave.setDay(att.getDay());
+						leave.setShift(shift);
+						leave.setSeq(att.getSeq());
+						leave.setFromTime(att.getStartDatetime());
+						leave.setToTime(att.getEndDatetime());
+						leave.setHours(0-att.getPaidLeave());
+						leave.setApprovedBy(user.getUsername());
+						leave.setApprovedTime(Timestamp.valueOf(LocalDateTime.now()));
+						leave.setNote(att.getNote());
+						leave.setReason(att.getReason());
+						leave.setRequester(user.getCharacter().getUsername());
+						leave.setStatus(att.getStatus());
+						leave.setSource("attendance");
+						leaves.add(leave);
+					}
+				}
+				if(!leaves.isEmpty()) {
+					leaveBanlanceService.deleteLeaveRequests(leaves.get(0));
+					leaveBanlanceService.addLeaveRequests(leaves);
+					LeaveBalanceModel lb=new LeaveBalanceModel();
+					lb.setYear(year);
+					lb.setMonth(month);
+					lb.setEmpId(empid);
+					leaveBanlanceService.deleteLeaveBalance(lb);
+					Map<String, ShiftModel> shiftModelMap = shiftService.getshiftModelMap();
+					for(int i=month+1;i<=currentDate.getMonthValue();i++) {
+						List<LeaveBalanceModel> lastBalance=leaveBanlanceService.findLastLeaveBalance(user.getCharacter().getEmpId());
+						LeaveRequestModel lr=new LeaveRequestModel();
+						lr.setEmpId(user.getCharacter().getEmpId());
+						lr.setYear(lastBalance.get(0).getYear());
+						lr.setMonth(lastBalance.get(0).getMonth());
+						List<LeaveRequestModel> lrs=leaveBanlanceService.findLastLeaveRequest(lr);
+						leaveBanlanceService.calculateBalancesPreMon(year, i, user, lastBalance, shiftModelMap, lrs);
 					}
 				}
 				if (StringUtil.isNotBlank(abnormalMessage)) {

@@ -18,7 +18,7 @@ public class ShiftRepository {
 	private JdbcTemplate jdbcTemplate;
 	public List<ShiftModel> findShift(){
 		String sql = " SELECT "
-						   + " id,name,start_time,end_time,base_hours,rest_hours,rest_start_hour"
+						   + " id,name,start_time,end_time,base_hours,rest_hours,rest_start_hour,description"
 						   + " FROM "
 						   + " shifts";
 
@@ -30,7 +30,7 @@ public class ShiftRepository {
 	}
 	public ShiftModel findShiftByNname(ShiftModel model){
 		String sql = " SELECT "
-						   + "		id,name,start_time,end_time,base_hours,rest_hours,rest_start_hour "
+						   + "		id,name,start_time,end_time,base_hours,rest_hours,rest_start_hour,description "
 						   + " FROM "
 						   + " shifts"
 						   + " WHERE "
