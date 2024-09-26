@@ -45,7 +45,7 @@ public class LeaveBalanceService {
 	@Autowired
 	private LeaveBalanceRepository leaveBalanceRepository;
 	@Autowired
-	private ShiftRepository shiftRepository;
+	private ShiftService shiftService;
 	
 	public List<BalanceDataTableModel> calculateBalances(int year, int month, User user) throws Exception {
 		logger.info("Service:calculateBalances[" + year + "/" + month + "]");
@@ -54,16 +54,15 @@ public class LeaveBalanceService {
 		if(CollectionUtils.isEmpty(lastBalance)) {
 			throw new Exception("there are no Last Balances in this account");
 		}
-		List<ShiftModel> shifts = shiftRepository.findShift();
-		Map<String, ShiftModel> shiftModelMap = shifts.stream()
-				.collect(Collectors.toMap(ShiftModel::getName, shiftModel -> shiftModel));
+		
+		Map<String, ShiftModel> shiftModelMap = shiftService.getshiftModelMap();
 		LeaveRequestModel lr=new LeaveRequestModel();
 		lr.setEmpId(user.getCharacter().getEmpId());
 		lr.setYear(lastBalance.get(0).getYear());
 		lr.setMonth(lastBalance.get(0).getMonth());
 		List<LeaveRequestModel> lrs=leaveRequestRepository.findLastLeaveRequest(lr);
 
-		lastBalance = calculateBalancesPreMon(year, month, user, lastBalance, shiftModelMap, lrs);
+		//lastBalance = calculateBalancesPreMon(year, month, user, lastBalance, shiftModelMap, lrs);
 		List<LeaveBalanceModel> newBalances=new ArrayList<LeaveBalanceModel>();
 		for(LeaveBalanceModel lb:lastBalance) {
 			LeaveBalanceModel newLb =new LeaveBalanceModel();
@@ -74,8 +73,8 @@ public class LeaveBalanceService {
 			float shiftHours=lb.getUsedHours();
 			float plusHours=lb.getRemainingHours();
 			if(!CollectionUtils.isEmpty(lrs)) {
-				float shiftHoursChange=(float)lrs.stream().filter(x->x.getShift().equals(lb.getShift())&&x.getHours()<0&&x.getYear()==lb.getYear()&&x.getMonth()>lb.getMonth()).mapToDouble(LeaveRequestModel::getHours).sum(); // 加總
-				plusHours=plusHours+(float)lrs.stream().filter(x->x.getShift().equals(lb.getShift())&&x.getHours()>0&&x.getStatus()==1&&x.getYear()==lb.getYear()&&x.getMonth()>lb.getMonth()).mapToDouble(LeaveRequestModel::getHours).sum();
+				float shiftHoursChange=(float)lrs.stream().filter(x->x.getShift().equals(lb.getShift())&&x.getHours()<0&&(x.getYear()==lb.getYear()&&x.getMonth()>lb.getMonth()||x.getYear()>lb.getYear())).mapToDouble(LeaveRequestModel::getHours).sum(); // 加總
+				plusHours=plusHours+(float)lrs.stream().filter(x->x.getShift().equals(lb.getShift())&&x.getHours()>0&&x.getStatus()==1&&(x.getYear()==lb.getYear()&&x.getMonth()>lb.getMonth()||x.getYear()>lb.getYear())).mapToDouble(LeaveRequestModel::getHours).sum();
 				newLb.setRemainingHours(plusHours+shiftHours);
 				if(Math.abs(shiftHoursChange)>0) {
 					shiftHours=shiftHours+shiftHoursChange;
@@ -106,19 +105,19 @@ public class LeaveBalanceService {
 
 	public List<LeaveBalanceModel> calculateBalancesPreMon(int year, int month, User user, List<LeaveBalanceModel> lastBalance,
 			Map<String, ShiftModel> shiftModelMap, List<LeaveRequestModel> lrs) {
-		if(lastBalance.get(0).getYear()!=year||lastBalance.get(0).getMonth()!=month-1) {
+
 			List<LeaveBalanceModel> preBalances=new ArrayList<LeaveBalanceModel>();
 			for(LeaveBalanceModel lb:lastBalance) {
 				LeaveBalanceModel preLb =new LeaveBalanceModel();
 				preLb.setCreater(user.getUsername());
 				preLb.setEmpId(user.getCharacter().getEmpId());
 				preLb.setYear(year);
-				preLb.setMonth(month-1);
+				preLb.setMonth(month);
 				float shiftHours=lb.getUsedHours();
 				float plusHours=lb.getRemainingHours();
 				if(!CollectionUtils.isEmpty(lrs)) {
-					float shiftHoursChange=(float)lrs.stream().filter(x->x.getShift().equals(lb.getShift())&&x.getHours()<0&&(x.getYear()>lb.getYear()||(x.getYear()==lb.getYear()&&x.getMonth()<month))).mapToDouble(LeaveRequestModel::getHours).sum();
-					plusHours=plusHours+(float)lrs.stream().filter(x->x.getShift().equals(lb.getShift())&&x.getHours()>0&&x.getStatus()==1&&(x.getYear()>lb.getYear()||(x.getYear()==lb.getYear()&&x.getMonth()<month))).mapToDouble(LeaveRequestModel::getHours).sum();
+					float shiftHoursChange=(float)lrs.stream().filter(x->x.getShift().equals(lb.getShift())&&x.getHours()<0&&x.getYear()==year&&x.getMonth()==month).mapToDouble(LeaveRequestModel::getHours).sum();
+					plusHours=plusHours+(float)lrs.stream().filter(x->x.getShift().equals(lb.getShift())&&x.getHours()>0&&x.getStatus()==1&&x.getYear()==year&&x.getMonth()==month).mapToDouble(LeaveRequestModel::getHours).sum();
 					if(Math.abs(shiftHoursChange)>0) {
 						shiftHours=shiftHours+shiftHoursChange;
 						plusHours=plusHours+shiftHours;
@@ -136,7 +135,6 @@ public class LeaveBalanceService {
 			}
 			leaveBalanceRepository.addLeaveBalance(preBalances);
 			lastBalance=preBalances;
-		}
 		return lastBalance;
 	}
 	

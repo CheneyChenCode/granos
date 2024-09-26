@@ -175,24 +175,46 @@ public class Attendance {
 						leaves.add(leave);
 					}
 				}
-				if(!leaves.isEmpty()) {
-					leaveBanlanceService.deleteLeaveRequests(leaves.get(0));
+				LeaveRequestModel lr=new LeaveRequestModel();
+				lr.setEmpId(user.getCharacter().getEmpId());
+				lr.setYear(year);
+				lr.setMonth(month);
+				lr.setSource("attendance");
+				leaveBanlanceService.deleteLeaveRequests(lr);
+				LeaveBalanceModel lb=new LeaveBalanceModel();
+				lb.setYear(year);
+				lb.setMonth(month);
+				lb.setEmpId(user.getCharacter().getEmpId());
+				leaveBanlanceService.deleteLeaveBalance(lb);
+				if(!CollectionUtils.isEmpty(leaves)) {
 					leaveBanlanceService.addLeaveRequests(leaves);
-					LeaveBalanceModel lb=new LeaveBalanceModel();
-					lb.setYear(year);
-					lb.setMonth(month);
-					lb.setEmpId(empid);
-					leaveBanlanceService.deleteLeaveBalance(lb);
-					Map<String, ShiftModel> shiftModelMap = shiftService.getshiftModelMap();
-					for(int i=month+1;i<=currentDate.getMonthValue()+1;i++) {
-						List<LeaveBalanceModel> lastBalance=leaveBanlanceService.findLastLeaveBalanceByMon(user.getCharacter().getEmpId(),year,i);
-						LeaveRequestModel lr=new LeaveRequestModel();
-						lr.setEmpId(user.getCharacter().getEmpId());
-						lr.setYear(lastBalance.get(0).getYear());
-						lr.setMonth(lastBalance.get(0).getMonth());
-						List<LeaveRequestModel> lrs=leaveBanlanceService.findLastLeaveRequest(lr);
-						leaveBanlanceService.calculateBalancesPreMon(year, i, user, lastBalance, shiftModelMap, lrs);
+				}
+				Map<String, ShiftModel> shiftModelMap = shiftService.getshiftModelMap();
+				List<LeaveBalanceModel> lastBalance=leaveBanlanceService.findLastLeaveBalances(user.getCharacter().getEmpId());
+				if(CollectionUtils.isEmpty(lastBalance)) {
+					rs.setStatus(4001);
+					rs.setMessage(messageSource.getMessage("4001", null, locale));
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
+				}
+				int cMon= lastBalance.get(0).getMonth();
+				int cYear=lastBalance.get(0).getYear();
+				lr.setEmpId(user.getCharacter().getEmpId());
+				lr.setYear(cYear);
+				lr.setMonth(cMon);
+				List<LeaveRequestModel> lrs=leaveBanlanceService.findLastLeaveRequest(lr);
+				int diffMon=0;
+				if(year>lastBalance.get(0).getYear()) {
+					diffMon=12-lastBalance.get(0).getMonth()+month;
+				}else {
+					diffMon=month-lastBalance.get(0).getMonth();
+				}
+				for(int i=1;i<=diffMon;i++) {
+					cMon=cMon+i;
+					if(cMon>12) {
+						cYear=cYear+1;
+						cMon=1;
 					}
+					leaveBanlanceService.calculateBalancesPreMon(cYear, cMon, user, lastBalance, shiftModelMap, lrs);
 				}
 				if (StringUtil.isNotBlank(abnormalMessage)) {
 					rs.setData("But there are some abnormal in attendance:" + abnormalMessage);

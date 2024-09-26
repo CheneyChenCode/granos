@@ -83,13 +83,13 @@ public class LeaveBalanceRepository {
 	public List<LeaveBalanceModel> findLastLeaveBalance(int empId) {
 		String sql = "SELECT " + " emp_id, year, month, shift, used_hours, remaining_hours" + " FROM"
 				+ " leave_balances" + " WHERE " + " emp_id = ? "
-				+ " AND year = (SELECT MAX(year) FROM leave_balances)"
-				+ " AND month = (SELECT MAX(month) FROM leave_balances WHERE year = (SELECT MAX(year) FROM leave_balances))"
+				+ " AND year = (SELECT MAX(year) FROM leave_balances WHERE emp_id = ? )"
+				+ " AND month = (SELECT MAX(month) FROM leave_balances WHERE emp_id = ? AND year = (SELECT MAX(year) FROM leave_balances WHERE emp_id = ? ))"
 				+" ORDER BY shift";
 
 		List<LeaveBalanceModel> result = jdbcTemplate.query(sql,
 				new BeanPropertyRowMapper<LeaveBalanceModel>(LeaveBalanceModel.class),
-				new Object[] { empId });
+				new Object[] { empId,empId,empId,empId });
 		if (result != null && result.size() > 0) {
 			return result;
 		}
@@ -99,12 +99,12 @@ public class LeaveBalanceRepository {
 		String sql = "SELECT " + " emp_id, year, month, shift, used_hours, remaining_hours" + " FROM"
 				+ " leave_balances" + " WHERE " + " emp_id = ? "
 				+ " AND year = ?"
-				+ " AND month = (SELECT MAX(month) FROM leave_balances WHERE year = ? and month<?)"
+				+ " AND month = (SELECT MAX(month) FROM leave_balances WHERE year = ? and month<? and emp_id=?)"
 				+" ORDER BY shift";
 
 		List<LeaveBalanceModel> result = jdbcTemplate.query(sql,
 				new BeanPropertyRowMapper<LeaveBalanceModel>(LeaveBalanceModel.class),
-				new Object[] { empId,year,year,month });
+				new Object[] { empId,year,year,month,empId });
 		if (result != null && result.size() > 0) {
 			return result;
 		}
