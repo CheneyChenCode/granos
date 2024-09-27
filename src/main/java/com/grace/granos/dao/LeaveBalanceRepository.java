@@ -56,7 +56,7 @@ public class LeaveBalanceRepository {
 		String sql = " SELECT " + " l.emp_id, l.year, l.month, l.shift, l.used_hours, l.remaining_hours,s.description" + " FROM "
 				+ " leave_balances l inner join shifts s on s.name=l.shift" + " WHERE " + " l.emp_id = ? "
 				+" AND (l.year = ? || (l.year = ? and l.month = ?))"
-				+ " order by year,month,shift";
+				+ " order by l.year,l.month,l.shift";
 
 		List<LeaveBalanceModel> result = jdbcTemplate.query(sql,
 				new BeanPropertyRowMapper<LeaveBalanceModel>(LeaveBalanceModel.class),
@@ -68,8 +68,8 @@ public class LeaveBalanceRepository {
 	}
 
 	public List<LeaveBalanceModel> findLeaveBalanceByUserYearMon(LeaveBalanceModel lb) {
-		String sql = "SELECT " + " emp_id, year, month, shift, used_hours, remaining_hours" + " FROM"
-				+ " leave_balances " + " WHERE " + " year = ? and month = ? and emp_id = ?"+" ORDER BY shift";
+		String sql = "SELECT " + " l.emp_id, l.year, l.month, l.shift, l.used_hours, l.remaining_hours,s.description" + " FROM"
+				+ " leave_balances l inner join shifts s on s.name=l.shift" + " WHERE " + " l.year = ? and l.month = ? and l.emp_id = ?"+" ORDER BY l.shift";
 
 		List<LeaveBalanceModel> result = jdbcTemplate.query(sql,
 				new BeanPropertyRowMapper<LeaveBalanceModel>(LeaveBalanceModel.class),
