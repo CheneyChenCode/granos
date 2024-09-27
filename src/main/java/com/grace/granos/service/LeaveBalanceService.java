@@ -130,8 +130,7 @@ public class LeaveBalanceService {
 				preBalances.add(preLb);
 			}
 			leaveBalanceRepository.addLeaveBalance(preBalances);
-			lastBalance=preBalances;
-		return lastBalance;
+		return preBalances;
 	}
 	
 	public List<LeaveBalanceModel> findLastLeaveBalances(int empId) {

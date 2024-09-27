@@ -218,7 +218,7 @@ public class Attendance {
 						cYear=cYear+1;
 						cMon=1;
 					}
-					leaveBanlanceService.calculateBalancesPreMon(cYear, cMon, user, lastBalance, shiftModelMap, lrs);
+					lastBalance=leaveBanlanceService.calculateBalancesPreMon(cYear, cMon, user, lastBalance, shiftModelMap, lrs);
 				}
 				if (StringUtil.isNotBlank(abnormalMessage)) {
 					rs.setData("But there are some abnormal in attendance:" + abnormalMessage);
