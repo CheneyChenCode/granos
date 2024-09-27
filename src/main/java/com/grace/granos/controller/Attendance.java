@@ -203,10 +203,10 @@ public class Attendance {
 				lr.setMonth(cMon);
 				List<LeaveRequestModel> lrs=leaveBanlanceService.findLastLeaveRequest(lr);
 				int diffMon=0;
-				if(year>lastBalance.get(0).getYear()) {
-					diffMon=12-lastBalance.get(0).getMonth()+month;
+				if(LocalDate.now().getYear()>lastBalance.get(0).getYear()) {
+					diffMon=12-lastBalance.get(0).getMonth()+LocalDate.now().getMonthValue();
 				}else {
-					diffMon=month-lastBalance.get(0).getMonth();
+					diffMon=LocalDate.now().getMonthValue()-lastBalance.get(0).getMonth();
 				}
 				for(int i=1;i<=diffMon;i++) {
 					cMon=cMon+i;
