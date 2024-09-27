@@ -47,15 +47,15 @@ public class LeaveBalanceRepository {
 	}
 
 	public int deleteLeaveBanlanceByUserMon(LeaveBalanceModel lr) {
-		String sql = " DELETE " + " FROM " + " leave_balances" + " WHERE" + " year >= ? and month >= ? and emp_id = ?";
-		int result = jdbcTemplate.update(sql, lr.getYear(), lr.getMonth(), lr.getEmpId());
+		String sql = " DELETE " + " FROM " + " leave_balances" + " WHERE" + " emp_id = ? and (year > ? || (year = ? and month >= ?))";
+		int result = jdbcTemplate.update(sql, lr.getEmpId(),lr.getYear(), lr.getYear(), lr.getMonth());
 		return result;
 	}
 
 	public List<LeaveBalanceModel> findLeaveBalanceByUserYear(LeaveBalanceModel lr) {
 		String sql = " SELECT " + " l.emp_id, l.year, l.month, l.shift, l.used_hours, l.remaining_hours,s.description" + " FROM "
 				+ " leave_balances l inner join shifts s on s.name=l.shift" + " WHERE " + " l.emp_id = ? "
-				+" AND ((l.year = ? )|| (l.year = ? and l.month = ?))"
+				+" AND (l.year = ? || (l.year = ? and l.month = ?))"
 				+ " order by year,month,shift";
 
 		List<LeaveBalanceModel> result = jdbcTemplate.query(sql,
@@ -89,21 +89,6 @@ public class LeaveBalanceRepository {
 		List<LeaveBalanceModel> result = jdbcTemplate.query(sql,
 				new BeanPropertyRowMapper<LeaveBalanceModel>(LeaveBalanceModel.class),
 				new Object[] { empId,empId,empId,empId });
-		if (result != null && result.size() > 0) {
-			return result;
-		}
-		return null;
-	}
-	public List<LeaveBalanceModel> findLastLeaveBalanceByMon(int empId,int year,int month) {
-		String sql = "SELECT " + " emp_id, year, month, shift, used_hours, remaining_hours" + " FROM"
-				+ " leave_balances" + " WHERE " + " emp_id = ? "
-				+ " AND year = ?"
-				+ " AND month = (SELECT MAX(month) FROM leave_balances WHERE year = ? and month<? and emp_id=?)"
-				+" ORDER BY shift";
-
-		List<LeaveBalanceModel> result = jdbcTemplate.query(sql,
-				new BeanPropertyRowMapper<LeaveBalanceModel>(LeaveBalanceModel.class),
-				new Object[] { empId,year,year,month,empId });
 		if (result != null && result.size() > 0) {
 			return result;
 		}

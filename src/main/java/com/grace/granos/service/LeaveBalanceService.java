@@ -98,10 +98,6 @@ public class LeaveBalanceService {
 		List<LeaveRequestModel> lrs=leaveRequestRepository.findLastLeaveRequest(lr);
 		return lrs;
 	}
-	public List<LeaveBalanceModel> findLastLeaveBalanceByMon(int empId,int year,int month) {
-		List<LeaveBalanceModel> lastBalance=leaveBalanceRepository.findLastLeaveBalanceByMon(empId, year, month);
-		return lastBalance;
-	}
 
 	public List<LeaveBalanceModel> calculateBalancesPreMon(int year, int month, User user, List<LeaveBalanceModel> lastBalance,
 			Map<String, ShiftModel> shiftModelMap, List<LeaveRequestModel> lrs) {

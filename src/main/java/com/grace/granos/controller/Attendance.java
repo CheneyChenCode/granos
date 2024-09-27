@@ -3,6 +3,7 @@ package com.grace.granos.controller;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
@@ -66,6 +68,8 @@ public class Attendance {
 	private LeaveBalanceService leaveBanlanceService;
 	@Autowired
 	private ShiftService shiftService;
+	@Value("${spring.time.zone}")
+	private String zoneName;
 	
 	@RequestMapping("/attendance")
 	public String attendance(Model model) {
@@ -97,7 +101,7 @@ public class Attendance {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
 		}
 		// 获取当前日期
-		LocalDate currentDate = LocalDate.now();
+		LocalDateTime currentDate = LocalDateTime.now(ZoneId.of(zoneName));
 
 		// 使用 DateTimeFormatter 格式化日期为 "yyyyMMdd" 格式的字符串
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -166,7 +170,7 @@ public class Attendance {
 						leave.setToTime(att.getEndDatetime());
 						leave.setHours(0-att.getPaidLeave());
 						leave.setApprovedBy(user.getUsername());
-						leave.setApprovedTime(Timestamp.valueOf(LocalDateTime.now()));
+						leave.setApprovedTime(Timestamp.valueOf(currentDate));
 						leave.setNote(att.getNote());
 						leave.setReason(att.getReason());
 						leave.setRequester(user.getCharacter().getUsername());
@@ -203,13 +207,13 @@ public class Attendance {
 				lr.setMonth(cMon);
 				List<LeaveRequestModel> lrs=leaveBanlanceService.findLastLeaveRequest(lr);
 				int diffMon=0;
-				if(LocalDate.now().getYear()>lastBalance.get(0).getYear()) {
-					diffMon=12-lastBalance.get(0).getMonth()+LocalDate.now().getMonthValue();
+				if(currentDate.getYear()>lastBalance.get(0).getYear()) {
+					diffMon=12-lastBalance.get(0).getMonth()+currentDate.getMonthValue();
 				}else {
-					diffMon=LocalDate.now().getMonthValue()-lastBalance.get(0).getMonth();
+					diffMon=currentDate.getMonthValue()-lastBalance.get(0).getMonth();
 				}
 				for(int i=1;i<=diffMon;i++) {
-					cMon=cMon+i;
+					cMon=cMon+1;
 					if(cMon>12) {
 						cYear=cYear+1;
 						cMon=1;
