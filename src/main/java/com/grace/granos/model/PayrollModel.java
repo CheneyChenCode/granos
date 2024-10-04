@@ -16,10 +16,24 @@ public class PayrollModel {
 	private String creater;
 	private float fromHour;
 	private float toHour;
+	private String nameEn;
+	private String lastNameEn;
 	//pay_code table
 	private String title;
 	private float coefficient;
 
+	public String getNameEn() {
+		return nameEn;
+	}
+	public void setNameEn(String nameEn) {
+		this.nameEn = nameEn;
+	}
+	public String getLastNameEn() {
+		return lastNameEn;
+	}
+	public void setLastNameEn(String lastNameEn) {
+		this.lastNameEn = lastNameEn;
+	}
 	public float getFromHour() {
 		return fromHour;
 	}

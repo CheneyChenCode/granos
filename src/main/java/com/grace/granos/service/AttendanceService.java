@@ -321,8 +321,13 @@ public class AttendanceService {
 			int day = calendar.get(Calendar.DAY_OF_MONTH);
 			int month = calendar.get(Calendar.MONTH) + 1; // 月份是从 0 开始的，所以要加 1
 			lb.setEmpId(user.getCharacter().getEmpId());
-			lb.setYear(year);
-			lb.setMonth(month-1);
+			if(month==1) {
+				lb.setYear(year-1);
+				lb.setMonth(12);
+			}else {
+				lb.setYear(year);
+				lb.setMonth(month-1);
+			}
 			at.setYear(year);
 			at.setDay(day);
 			at.setMonth(month);

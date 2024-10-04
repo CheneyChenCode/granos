@@ -1,65 +1,65 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="utf-8">
-    <title>Granos</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+<head>
+<meta charset="utf-8">
+<title>Granos</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
-    <!-- Libraries Stylesheet -->
-    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
-    <link href="lib/lightbox/css/lightbox.min.css" rel="stylesheet">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-	<link rel="stylesheet" href="lib/dataTables/css/dataTables.bootstrap5.min.css">
-    <!-- Customized Bootstrap Stylesheet -->
-    <link href="css/style.css" rel="stylesheet">
-	<style type="text/css">
-		.card-body {
-			padding: 5px; /* 调整内边距为 10px，根据需要进行调整 */
-		}
-		.rounded-rectangle {
-			  width: 50px; /* 设置矩形的宽度 */
-			  height: 20px; /* 设置矩形的高度 */
-			  background-color: #FFFFFF; /* 设置背景颜色 */
-			  border: 1px solid black; /* 添加黑色边框 */
-		}
-		.rounded-rectangle-up {
-			  width: 50px; /* 设置矩形的宽度 */
-			  height: 20px; /* 设置矩形的高度 */
-			  background-color: #F0655E; /* 设置背景颜色 */
-			  border-radius: 10px 10px 0 0; /* 设置左上角和右上角为圆角 */
-			  margin-top: 10px;
-		}
-		.rounded-rectangle-down {
-			  width: 50px; /* 设置矩形的宽度 */
-			  height: 25px; /* 设置矩形的高度 */
-			  background-color: #FFFFFF; /* 设置背景颜色 */
-			  border-radius: 0 0 10px 10px; /* 设置左上角和右上角为圆角 */
-			  border: 2px solid #C0C0C0; /* 添加黑色边框 */
-			  margin-bottom: 5px;
-		}
-	</style>
-	<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="lib/dataTables/js/jquery.dataTables.min.js"></script>
-	<script src="lib/dataTables/js/dataTables.bootstrap5.min.js"></script>
-	
-    <!--<script src="https://code.jquery.com/jquery-3.4.1.js"></script>-->
-	<script th:inline="javascript">
-        var user = /*[[${user}]]*/ 'user';
-    </script>
-	<script>
-//     $.ajax({
-//         url: 'http://localhost:9001/hello',
-//         type: "GET",
-//         success: function (data) {
-//             console.log("跨網域請求成功:"+data);
-//         },
-//         error: function (data) {
-//             console.log("跨網域請求失敗!!");
-//         }
-//     })
+<!-- Font Awesome -->
+<link
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css"
+	rel="stylesheet">
+<!-- Libraries Stylesheet -->
+<link href="lib/owlcarousel/assets/owl.carousel.min.css"
+	rel="stylesheet">
+<link href="lib/lightbox/css/lightbox.min.css" rel="stylesheet">
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet"
+	href="lib/dataTables/css/dataTables.bootstrap5.min.css">
+<!-- Customized Bootstrap Stylesheet -->
+<link href="css/style.css" rel="stylesheet">
+<style type="text/css">
+.card-body {
+	padding: 5px; /* 调整内边距为 10px，根据需要进行调整 */
+}
+
+.rounded-rectangle {
+	width: 50px; /* 设置矩形的宽度 */
+	height: 20px; /* 设置矩形的高度 */
+	background-color: #FFFFFF; /* 设置背景颜色 */
+	border: 1px solid black; /* 添加黑色边框 */
+}
+
+.rounded-rectangle-up {
+	width: 50px; /* 设置矩形的宽度 */
+	height: 20px; /* 设置矩形的高度 */
+	background-color: #F0655E; /* 设置背景颜色 */
+	border-radius: 10px 10px 0 0; /* 设置左上角和右上角为圆角 */
+	margin-top: 10px;
+}
+
+.rounded-rectangle-down {
+	width: 50px; /* 设置矩形的宽度 */
+	height: 25px; /* 设置矩形的高度 */
+	background-color: #FFFFFF; /* 设置背景颜色 */
+	border-radius: 0 0 10px 10px; /* 设置左上角和右上角为圆角 */
+	border: 2px solid #C0C0C0; /* 添加黑色边框 */
+	margin-bottom: 5px;
+}
+</style>
+<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+<script
+	src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="lib/dataTables/js/jquery.dataTables.min.js"></script>
+<script src="lib/dataTables/js/dataTables.bootstrap5.min.js"></script>
+
+<!--<script src="https://code.jquery.com/jquery-3.4.1.js"></script>-->
+<script th:inline="javascript">
+	var user = /*[[${user}]]*/'user';
+</script>
+<script>
 	// 创建一个新的 Date 对象，它将自动获取当前日期和时间
 	var currentDate = new Date();
 
@@ -68,330 +68,552 @@
 
 	// 获取当前月份（注意，月份是从 0 开始计数的，所以需要加 1）
 	const currentMonth = currentDate.getMonth() + 1;
-	
-	var specMonth=currentMonth;
-$(document).ready(function() {
-		let dropdownMenu = $('#monthDropdown');
-    
-		// Add each month up to the current month to the dropdown
-		for (let month = 1; month <= currentMonth; month++) {
-			const monthItem = '<a href="#" class="dropdown-item" onclick="updateDataTableAjax('+ month +')">' +currentYear+ '-' + month.toString().padStart(2, '0'); +'</a>';
-			dropdownMenu.append(monthItem);
-		}
-	// 禁用 DataTables 的默认警告提示
-	$.fn.dataTable.ext.errMode = 'none';
-    // 初始化 DataTables
-    let table = $('#payrollTable').DataTable({
-		info: false,
-		ordering: false,
-		paging: false,
-		searching: false,
-        processing: true, // 显示加载状态
-        serverSide: true, // 开启服务器端处理模式
-        ajax: {
-                    url: "/getPayroll", // 外部数据源的URL
-                    type: "GET", 
-                    data: function(d){
-							d.year = currentYear;
-							d.month = specMonth;
-					},
-			        error: function(xhr, error, thrown) {
-						const response = JSON.parse(xhr.responseText);
-						// 获取message属性的值
-						const message = response.message;
-						let errorMessage = $('#errorMessage');
-						errorMessage.removeAttr('hidden').show();
-	                    errorMessage.text(message);
-			        }
-              },
-        // 指定列定义
-        columns: [
-			{ data: null,
-			  render: function(data, type, row) {
-			  if (type === 'display') {
-                return data.year + '-' + data.month ;
-				}
-			  }
-			},
-            { data: 'title' },
-            { data: 'hours' },
-			{ data: 'weighted' },
-			{ data: 'taxFreeOverTime' },
-			{ data: 'taxFreeOverTimeWeighted' }  			
-        ],
-		// 在列渲染完成后执行回调函数
-        "createdRow": function(row, data, dataIndex) {
-            // 检查特定列的数据值，并根据条件添加样式
-           $('td', row).eq(0).css('background-color', '#ffc107'); // 设置背景色为黄色
-        }
-    });
-    $('#monthTitle').text(currentYear+ '-' + currentMonth.toString().padStart(2, '0'));
-	// 等待 DataTable 加载完成
-	table.on('draw.dt', function () {
-		// 获取数据
-		const tableData = table.rows().data().toArray();
-		let previousCellValue; // 聲明 previousCellValue 變量
-		// 遍历卡片数据并创建 card 元素
-		let newRow = document.createElement('div');
-		newRow.className='row'; // 添加 row 类
-		tableData.forEach(function(data) {
-			let cardCol2Row1 = document.createElement('div');
-			cardCol2Row1.className='row';
-			let cardCol2Row2 = document.createElement('div');
-			cardCol2Row2.className='row';
-			let cardCol2Row3 = document.createElement('div');
-			cardCol2Row3.className='row';
-			let cardCol2Row4 = document.createElement('div');
-			cardCol2Row4.className='row';
-			let cardCol2Row5 = document.createElement('div');
-			cardCol2Row5.className='row';
-			let cardCol2Row1Label = document.createElement('div');
-			cardCol2Row1Label.className='col-4 col-form-label px-1';
-			cardCol2Row1Label.textContent='Title:';
-			let cardCol2Row1Text = document.createElement('div');
-			cardCol2Row1Text.className='col-8 form-control-plaintext font-weight-bold';
-			cardCol2Row1Text.textContent = data.title;
-			let cardCol2Row2Label = document.createElement('div');
-			cardCol2Row2Label.className='col-4 col-form-label px-1';
-			cardCol2Row2Label.textContent='Hours:'
-			let cardCol2Row2Text = document.createElement('div');
-			cardCol2Row2Text.className='col-8 form-control-plaintext font-weight-bold';
-			cardCol2Row2Text.textContent = data.hours;
-			let cardCol2Row3Label = document.createElement('div');
-			cardCol2Row3Label.className='col-4 col-form-label px-1';
-			cardCol2Row3Label.textContent='Weighted:';
-			let cardCol2Row3Text = document.createElement('div');
-			cardCol2Row3Text.className='col-2 form-control-plaintext font-weight-bold';
-			cardCol2Row3Text.textContent = data.weighted;		
-			let cardCol2Row4Label = document.createElement('div');
-			cardCol2Row4Label.className='col-4 col-form-label px-1';
-			cardCol2Row4Label.textContent='Tax Free Overtime:';
-			let cardCol2Row4Text = document.createElement('div');
-			cardCol2Row4Text.className='col-2 form-control-plaintext font-weight-bold';
-			cardCol2Row4Text.textContent = data.taxFreeOverTime;
-			let cardCol2Row5Label = document.createElement('div');
-			cardCol2Row5Label.className='col-4 col-form-label px-1';
-			cardCol2Row5Label.textContent='Tax Free Ot Wt:';
-			let cardCol2Row5Text = document.createElement('div');
-			cardCol2Row5Text.className='col-2 form-control-plaintext font-weight-bold';
-			cardCol2Row5Text.textContent = data.taxFreeOverTimeWeighted;	
-			
-			cardCol2Row1.appendChild(cardCol2Row1Label);
-			cardCol2Row1.appendChild(cardCol2Row1Text);
-			cardCol2Row2.appendChild(cardCol2Row2Label);
-			cardCol2Row2.appendChild(cardCol2Row2Text);
-			cardCol2Row3.appendChild(cardCol2Row3Label);
-			cardCol2Row3.appendChild(cardCol2Row3Text);
-			cardCol2Row4.appendChild(cardCol2Row4Label);
-			cardCol2Row4.appendChild(cardCol2Row4Text);
-			cardCol2Row5.appendChild(cardCol2Row5Label);
-			cardCol2Row5.appendChild(cardCol2Row5Text);
-			
-			let cardCol2 = document.createElement('div');
-			cardCol2.className='col-10';
-			cardCol2.appendChild(cardCol2Row1);
-			cardCol2.appendChild(cardCol2Row2);
-			cardCol2.appendChild(cardCol2Row3);
-			cardCol2.appendChild(cardCol2Row4);
-			cardCol2.appendChild(cardCol2Row5);
-			// 创建 card 元素
-			let newCol = document.createElement('div');
-			newCol.className='col-sm-5 mb-4'; 
-			let cardRow = document.createElement('div');
-			cardRow.className='d-flex flex-row';
-			cardRow.appendChild(cardCol2);
-			let newCard = document.createElement('div');
-			newCard.classList.add('card');
-			let cardBody = document.createElement('div');
-			cardBody.className='card-body'; 
-			
-			cardBody.appendChild(cardRow);
-			newCard.appendChild(cardBody);
-			newCol.appendChild(newCard);
-			newRow.appendChild(newCol);
-		});
-		let table2 = $('#table2');
-		table2.empty().append(newRow);
-	});
-	if (isMobileDevice()) {
-         activeTab2(); // 根据您的选项卡的ID进行修改
-    }else{
-		activeTab1();
-	}
 
-});
-    function isMobileDevice() {
-        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
-    }
+	var specMonth = currentMonth;
+	var salaryChart;
+	var table;
+	$(document)
+			.ready(
+					function() {
+						 // 用於存儲上一個 active 的 tab ID
+						let lastActiveTab = localStorage.getItem('lastActiveTab') || '#table3-tab';
+						let dropdownMenu = $('#monthDropdown');
+
+						// Add each month up to the current month to the dropdown
+						for (let month = 1; month <= currentMonth; month++) {
+							const monthItem = '<a href="#" class="dropdown-item" onclick="updateDataTableAjax('
+									+ month
+									+ ')">'
+									+ currentYear
+									+ '-'
+									+ month.toString().padStart(2, '0');
+							+'</a>';
+							dropdownMenu.append(monthItem);
+						}
+						// 禁用 DataTables 的默认警告提示
+						$.fn.dataTable.ext.errMode = 'none';
+						// 初始化 DataTables
+						table = $('#payrollTable')
+								.DataTable(
+										{
+											info : false,
+											ordering : false,
+											paging : false,
+											searching : false,
+											processing : true, // 显示加载状态
+											serverSide : true, // 开启服务器端处理模式
+											ajax : {
+												url : "/getPayroll", // 外部数据源的URL
+												type : "GET",
+												data : function(d) {
+													d.year = currentYear;
+													d.month = specMonth;
+												},
+												error : function(xhr, error,
+														thrown) {
+													const response = JSON
+															.parse(xhr.responseText);
+													// 获取message属性的值
+													const message = response.message;
+													let errorMessage = $('#errorMessage');
+													errorMessage.removeAttr(
+															'hidden').show();
+													errorMessage.text(message);
+												}
+											},
+											// 指定列定义
+											columns : [
+													{
+														data : null,
+														render : function(data,
+																type, row) {
+															if (type === 'display') {
+																return data.year
+																		+ '-'
+																		+ data.month;
+															}
+														}
+													},
+													{
+														data : 'title'
+													},
+													{
+														data : 'hours'
+													},
+													{
+														data : 'weighted'
+													},
+													{
+														data : 'taxFreeOverTime'
+													},
+													{
+														data : 'taxFreeOverTimeWeighted'
+													} ],
+											// 在列渲染完成后执行回调函数
+											"createdRow" : function(row, data,
+													dataIndex) {
+												// 检查特定列的数据值，并根据条件添加样式
+												$('td', row).eq(0).css(
+														'background-color',
+														'#ffc107'); // 设置背景色为黄色
+											}
+										});
+						$('#monthTitle').text(
+								currentYear
+										+ '-'
+										+ currentMonth.toString().padStart(2,
+												'0'));
+						// 等待 DataTable 加载完成
+						table
+								.on(
+										'draw.dt',
+										function() {
+											updateChartAjax();
+											// 获取数据
+											const tableData = table.rows()
+													.data().toArray();
+											let previousCellValue; // 聲明 previousCellValue 變量
+											// 遍历卡片数据并创建 card 元素
+											let newRow = document
+													.createElement('div');
+											newRow.className = 'row'; // 添加 row 类
+											tableData
+													.forEach(function(data) {
+														let cardCol2Row1 = document
+																.createElement('div');
+														cardCol2Row1.className = 'row';
+														let cardCol2Row2 = document
+																.createElement('div');
+														cardCol2Row2.className = 'row';
+														let cardCol2Row3 = document
+																.createElement('div');
+														cardCol2Row3.className = 'row';
+														let cardCol2Row4 = document
+																.createElement('div');
+														cardCol2Row4.className = 'row';
+														let cardCol2Row5 = document
+																.createElement('div');
+														cardCol2Row5.className = 'row';
+														let cardCol2Row1Label = document
+																.createElement('div');
+														cardCol2Row1Label.className = 'col-4 col-form-label px-1';
+														cardCol2Row1Label.textContent = 'Title:';
+														let cardCol2Row1Text = document
+																.createElement('div');
+														cardCol2Row1Text.className = 'col-8 form-control-plaintext font-weight-bold';
+														cardCol2Row1Text.textContent = data.title;
+														let cardCol2Row2Label = document
+																.createElement('div');
+														cardCol2Row2Label.className = 'col-4 col-form-label px-1';
+														cardCol2Row2Label.textContent = 'Hours:'
+														let cardCol2Row2Text = document
+																.createElement('div');
+														cardCol2Row2Text.className = 'col-8 form-control-plaintext font-weight-bold';
+														cardCol2Row2Text.textContent = data.hours;
+														let cardCol2Row3Label = document
+																.createElement('div');
+														cardCol2Row3Label.className = 'col-4 col-form-label px-1';
+														cardCol2Row3Label.textContent = 'Weighted:';
+														let cardCol2Row3Text = document
+																.createElement('div');
+														cardCol2Row3Text.className = 'col-2 form-control-plaintext font-weight-bold';
+														cardCol2Row3Text.textContent = data.weighted;
+														let cardCol2Row4Label = document
+																.createElement('div');
+														cardCol2Row4Label.className = 'col-4 col-form-label px-1';
+														cardCol2Row4Label.textContent = 'Tax Free Overtime:';
+														let cardCol2Row4Text = document
+																.createElement('div');
+														cardCol2Row4Text.className = 'col-2 form-control-plaintext font-weight-bold';
+														cardCol2Row4Text.textContent = data.taxFreeOverTime;
+														let cardCol2Row5Label = document
+																.createElement('div');
+														cardCol2Row5Label.className = 'col-4 col-form-label px-1';
+														cardCol2Row5Label.textContent = 'Tax Free Ot Wt:';
+														let cardCol2Row5Text = document
+																.createElement('div');
+														cardCol2Row5Text.className = 'col-2 form-control-plaintext font-weight-bold';
+														cardCol2Row5Text.textContent = data.taxFreeOverTimeWeighted;
+
+														cardCol2Row1
+																.appendChild(cardCol2Row1Label);
+														cardCol2Row1
+																.appendChild(cardCol2Row1Text);
+														cardCol2Row2
+																.appendChild(cardCol2Row2Label);
+														cardCol2Row2
+																.appendChild(cardCol2Row2Text);
+														cardCol2Row3
+																.appendChild(cardCol2Row3Label);
+														cardCol2Row3
+																.appendChild(cardCol2Row3Text);
+														cardCol2Row4
+																.appendChild(cardCol2Row4Label);
+														cardCol2Row4
+																.appendChild(cardCol2Row4Text);
+														cardCol2Row5
+																.appendChild(cardCol2Row5Label);
+														cardCol2Row5
+																.appendChild(cardCol2Row5Text);
+
+														let cardCol2 = document
+																.createElement('div');
+														cardCol2.className = 'col-10';
+														cardCol2
+																.appendChild(cardCol2Row1);
+														cardCol2
+																.appendChild(cardCol2Row2);
+														cardCol2
+																.appendChild(cardCol2Row3);
+														cardCol2
+																.appendChild(cardCol2Row4);
+														cardCol2
+																.appendChild(cardCol2Row5);
+														// 创建 card 元素
+														let newCol = document
+																.createElement('div');
+														newCol.className = 'col-sm-5 mb-4';
+														let cardRow = document
+																.createElement('div');
+														cardRow.className = 'd-flex flex-row';
+														cardRow
+																.appendChild(cardCol2);
+														let newCard = document
+																.createElement('div');
+														newCard.classList
+																.add('card');
+														let cardBody = document
+																.createElement('div');
+														cardBody.className = 'card-body';
+
+														cardBody
+																.appendChild(cardRow);
+														newCard
+																.appendChild(cardBody);
+														newCol
+																.appendChild(newCard);
+														newRow
+																.appendChild(newCol);
+													});
+											let table2 = $('#table2');
+											table2.empty().append(newRow);
+										});
+						if (isMobileDevice()) {
+							activeTab2(); // 根据您的选项卡的ID进行修改
+						} else {
+							activeTab1();
+						}
+
+					});
+	function isMobileDevice() {
+		return (typeof window.orientation !== "undefined")
+				|| (navigator.userAgent.indexOf('IEMobile') !== -1);
+	}
 	function activeTab1() {
-	  let icon = $('#icon');
-	  $('#table1-tab').tab('show');
-	  icon.removeClass('fa-table').addClass('fa-list');
+		let icon = $('#icon');
+		$('#table1-tab').tab('show');
+		icon.removeClass('fa-table').addClass('fa-list');
+	    lastActiveTab = '#table1-tab';
+	    localStorage.setItem('lastActiveTab', lastActiveTab);
 	}
 	function activeTab2() {
-	  let icon = $('#icon');
-	  $('#table2-tab').tab('show');
-	  icon.removeClass('fa-list').addClass('fa-table');
+		let icon = $('#icon');
+		$('#table2-tab').tab('show');
+		icon.removeClass('fa-list').addClass('fa-table');
+	    // 保存當前的 active tab 到 localStorage
+	    lastActiveTab = '#table2-tab';
+	    localStorage.setItem('lastActiveTab', lastActiveTab);
+	}
+	function activeTab3() {
+		let icon = $('#chartIcon');
+		$('#table3-tab').tab('show');
+		icon.removeClass('fa-chart-bar').addClass('fa-chevron-left');
+		updateChartAjax();
+
+	}
+	function updateChartAjax() {
+		let tableData = $('#payrollTable').DataTable().rows().data().toArray();
+		let totalWeighted = tableData.reduce((sum, row) => sum + parseFloat(row.weighted || 0), 0);
+	    let ajaxParams = table.ajax.params(); // 這裡會獲取當前的 AJAX 參數
+	    let ajaxYear = table.ajax.params().year;
+	    let ajaxMonth = table.ajax.params().month-1;
+	    if(ajaxMonth==0){
+	    	ajaxYear=ajaxYear-1;
+	    	ajaxMonth=12;
+	    }
+		let lastDate=ajaxYear+'-'+ajaxMonth.toString().padStart(2, '0');
+		let thisDate=table.ajax.params().year+'-'+table.ajax.params().month.toString().padStart(2, '0');
+		$
+		.ajax({
+			url : table.ajax.url(),
+			type : 'GET', // 或 'POST'，取决于你的 Controller 定义
+			data : {
+				year : ajaxYear,
+				month : ajaxMonth
+			},
+			success : function(response) {
+					if(response.data){
+					let lastTotalWeighted = response.data.reduce((sum, row) => sum + parseFloat(row.weighted || 0), 0);
+					// Initialize Chart.js
+					if (salaryChart) {
+						 salaryChart.data.labels = [lastDate, thisDate]; // 更新標籤
+						 salaryChart.data.datasets[0].data = [lastTotalWeighted,totalWeighted];
+						 salaryChart.update();
+					}else{
+						const ctx = $('#salaryChart');
+						salaryChart = new Chart(ctx, {
+							type : 'bar',
+							data : {
+								labels : [ lastDate, thisDate ],
+								datasets : [ {
+									label : 'Salary ($)',
+									data : [ lastTotalWeighted, totalWeighted ],
+									backgroundColor : [ 'rgba(75, 192, 192, 0.2)',
+											'rgba(153, 102, 255, 0.2)' ],
+									borderColor : [ 'rgba(75, 192, 192, 1)',
+											'rgba(153, 102, 255, 1)' ],
+									borderWidth : 1
+								} ]
+							},
+							options : {
+								scales : {
+									y : {
+										beginAtZero : true
+									}
+								}
+							}
+						});
+					}
+
+		            let growthRate = ((totalWeighted - lastTotalWeighted) / lastTotalWeighted) * 100;
+		            $('#growthRate').text(`Salary Growth: ${growthRate.toFixed(2)}%`);
+				}
+			},
+			error : function(xhr, status, error) {
+				const response = JSON.parse(xhr.responseText);
+				// 获取message属性的值
+				const message = response.message;
+				let errorMessage = $('#errorMessage');
+				errorMessage.removeAttr(
+						'hidden').show();
+				errorMessage.text(message+' '+lastDate);
+				if (salaryChart) {
+					 salaryChart.data.labels = [lastDate, thisDate]; // 更新標籤
+					 salaryChart.data.datasets[0].data = [0,totalWeighted];
+					 salaryChart.update();
+				}
+			}
+		});
+
 	}
 	function switchTab() {
-	  if ($('#table1-tab').hasClass('active')) {
-		  activeTab2();
-	  } else {
-		  $('#table1-tab').tab('show');
-		  activeTab1();
-	  }
+		if ($('#table1-tab').hasClass('active')) {
+			activeTab2();
+		} else if($('#table2-tab').hasClass('active')){
+			activeTab1();
+		}else{
+			switchChart();
+		}
+	}
+	function switchChart() {
+		let icon = $('#chartIcon');
+		if (icon.hasClass('fa-chart-bar')) {
+			activeTab3();
+		} else {
+			icon.removeClass('fa-chevron-left').addClass('fa-chart-bar');
+			if(lastActiveTab==='#table1-tab'){
+				activeTab1();
+			}else{
+				activeTab2();
+			}
+		}
 	}
 	function updateDataTableAjax(month) {
 		// 获取 DataTable 实例
 		let table = $('#payrollTable').DataTable();
-		specMonth=month;
+		specMonth = month;
 		let errorMessage = $('#errorMessage');
 		errorMessage.hide();
-		$('#monthTitle').text(currentYear+ '-' + specMonth.toString().padStart(2, '0'));
+		$('#monthTitle').text(
+				currentYear + '-' + specMonth.toString().padStart(2, '0'));
 		table.ajax.reload(); // 重新加载数据
 	}
-    function exportToExcel() {
-    	event.preventDefault(); // 阻止表单的默认提交行为
+	function exportToExcel() {
+		event.preventDefault(); // 阻止表单的默认提交行为
 		let spinner = $('<span>', {
-			'class': 'spinner-border text-light',
-			'role': 'status',
-			'aria-hidden': 'true'
+			'class' : 'spinner-border text-light',
+			'role' : 'status',
+			'aria-hidden' : 'true'
 		});
 		let submitButton = $('#downloadExcel');
 		// Store original button text
 		let icon = $('#downloadExcel i');
 		submitButton.prop('disabled', true).empty().append(spinner);
-        $.ajax({
-            url: '/downloadPayroll',
-            type: 'GET', // 或 'POST'，取决于你的 Controller 定义
-            data: {
-                year: currentYear,
-                month: specMonth,
-                user: user.character.empId
-            },
-            xhrFields: {
-                responseType: 'blob' // 用于处理二进制文件（如 Excel）
-            },
-            success: function(data, status, xhr) {
-                var contentDisposition = xhr.getResponseHeader('Content-Disposition');
-                var filename = contentDisposition?contentDisposition.split('filename=')[1]:'error_please_download_again';
+		$
+				.ajax({
+					url : '/downloadPayroll',
+					type : 'GET', // 或 'POST'，取决于你的 Controller 定义
+					data : {
+						year : currentYear,
+						month : specMonth
+					},
+					xhrFields : {
+						responseType : 'blob' // 用于处理二进制文件（如 Excel）
+					},
+					success : function(data, status, xhr) {
+						var contentDisposition = xhr
+								.getResponseHeader('Content-Disposition');
+						var filename = contentDisposition ? contentDisposition
+								.split('filename=')[1]
+								: 'error_please_download_again';
 
-                // Create a link element and set its href to the blob URL
-                var blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                var url = window.URL.createObjectURL(blob);
-                var a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url); // Clean up
-                submitButton.prop('disabled', false).empty().append(icon);
-            },
-            error: function(xhr, status, error) {
-            	submitButton.prop('disabled', false).empty().append(icon);
-                console.error('Download failed:', error);
-                alert('Failed to download the Excel file.');
-            }
-        });
-    }
-    </script>
-  </head>
-  <body>
-  	<!-- Navbar Start -->
-    <div class="container-fluid bg-white position-relative">
-        <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
-            <a href="index" class="navbar-brand text-secondary">
-                <h1 class="display-4 ">
-					<span>G</span><span style="color:#ffcc00;">r</span><span>anos</span>
+						// Create a link element and set its href to the blob URL
+						var blob = new Blob(
+								[ data ],
+								{
+									type : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+								});
+						var url = window.URL.createObjectURL(blob);
+						var a = document.createElement('a');
+						a.href = url;
+						a.download = filename;
+						document.body.appendChild(a);
+						a.click();
+						document.body.removeChild(a);
+						window.URL.revokeObjectURL(url); // Clean up
+						submitButton.prop('disabled', false).empty().append(
+								icon);
+					},
+					error : function(xhr, status, error) {
+						submitButton.prop('disabled', false).empty().append(
+								icon);
+						console.error('Download failed:', error);
+						alert('Failed to download the Excel file.');
+					}
+				});
+	}
+</script>
+</head>
+<body>
+	<!-- Navbar Start -->
+	<div class="container-fluid bg-white position-relative">
+		<nav
+			class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
+			<a href="index" class="navbar-brand text-secondary">
+				<h1 class="display-4 ">
+					<span>G</span><span style="color: #ffcc00;">r</span><span>anos</span>
 				</h1>
-            </a>
-            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarCollapse">
-                <div class="navbar-nav ml-auto py-0 pr-3">
-                    <a href="home" class="nav-item nav-link">Home</a>
-                    <a href="calendar" class="nav-item nav-link">Calendar</a>
-                    <a href="attendance" class="nav-item nav-link">Attendance</a>
-                    <a href="payroll" class="nav-item nav-link active">Payroll</a>
-                    <a href="balances" class="nav-item nav-link">Balances</a>
-                    <a href="administrator" class="nav-item nav-link circle-background" th:classappend="${user.jobId != 1} ? 'disabled'">
-                    	<span class="border border-warning rounded-lg p-3" th:text="${user.character.nameEn}"></span>
-                    </a>
-                    <a href="logout" class="nav-item nav-link">Logout</a>
-                </div>
-            </div>
-        </nav>
-    </div>
-    <!-- Navbar End -->
+			</a>
+			<button type="button" class="navbar-toggler"
+				data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarCollapse">
+				<div class="navbar-nav ml-auto py-0 pr-3">
+					<a href="home" class="nav-item nav-link">Home</a> <a
+						href="calendar" class="nav-item nav-link">Calendar</a> <a
+						href="attendance" class="nav-item nav-link">Attendance</a> <a
+						href="payroll" class="nav-item nav-link active">Payroll</a> <a
+						href="balances" class="nav-item nav-link">Balances</a> <a
+						href="administrator" class="nav-item nav-link circle-background"
+						th:classappend="${user.jobId != 1} ? 'disabled'"> <span
+						class="border border-warning rounded-lg p-3"
+						th:text="${user.character.nameEn}"></span>
+					</a> <a href="logout" class="nav-item nav-link">Logout</a>
+				</div>
+			</div>
+		</nav>
+	</div>
+	<!-- Navbar End -->
 	<div class="container-fluid py-4">
 		<div class="row">
-			<div class="col">
+			<div class="col d-flex">
 				<!-- Bootstrap 标签页 -->
-				<button class="btn btn-primary" type="button" onclick="switchTab()"><i id="icon" class="fas fa-list"></i></button>
-				<button class="btn btn-primary" type="button" onclick="exportToExcel()" id="downloadExcel"><i class="fa fa-download"></i></button>
+				<button class="btn btn-primary me-1" type="button" onclick="switchTab()">
+					<i id="icon" class="fas fa-list"></i>
+				</button>
+				<button class="btn btn-primary" type="button"
+					onclick="exportToExcel()" id="downloadExcel">
+					<i class="fas fa-download"></i>
+				</button>
 			</div>
 			<div class="col text-center">
-			    <h3 id="monthTitle">Title</h3>
+				<h4 id="monthTitle">Title</h4>
 			</div>
 			<div class="col d-flex justify-content-end">
-			  <div class="dropdown">
-					<a href="#" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"><i class="far fa-clock"></i></a>
+				<button class="btn btn-primary me-1" type="button"
+					onclick="switchChart()">
+					<i id="chartIcon" class="fas fa-chart-bar"></i>
+				</button>
+					<a href="#" class="btn btn-primary dropdown-toggle d-flex align-items-center"
+						data-bs-toggle="dropdown"><i class="far fa-clock"></i></a>
 					<div id="monthDropdown" class="dropdown-menu rounded-0 m-0">
 					</div>
-			  </div>
 			</div>
 		</div>
 		<div class="row">
-			<div id="errorMessage" class="alert alert-danger" role="alert" hidden=true></div>
+			<div id="errorMessage" class="alert alert-danger" role="alert"
+				hidden=true></div>
 		</div>
 		<div class="row">
 			<ul class="nav nav-tabs" id="myTab" role="tablist">
-				<li class="nav-item" role="presentation">
-					<a class="nav-link" id="table1-tab" data-bs-toggle="tab" href="#table1" role="tab"
-					   aria-controls="table1" aria-selected="true" hidden=true>Table 1</a>
+				<li class="nav-item" role="presentation"><a class="nav-link"
+					id="table1-tab" data-bs-toggle="tab" href="#table1" role="tab"
+					aria-controls="table1" aria-selected="true" hidden=true>Table 1</a>
 				</li>
-				<li class="nav-item" role="presentation">
-					<a class="nav-link" id="table2-tab" data-bs-toggle="tab" href="#table2" role="tab"
-					   aria-controls="table2" aria-selected="false" hidden=true>Table 2</a>
-				</li>
+				<li class="nav-item" role="presentation"><a class="nav-link"
+					id="table2-tab" data-bs-toggle="tab" href="#table2" role="tab"
+					aria-controls="table2" aria-selected="false" hidden=true>Table
+						2</a></li>
+				<li class="nav-item" role="presentation"><a class="nav-link"
+					id="table3-tab" data-bs-toggle="tab" href="#table3" role="tab"
+					aria-controls="table3" aria-selected="false" hidden=true>Table
+						3</a></li>
 			</ul>
 			<!-- 标签页内容 -->
 			<div class="tab-content" id="myTabContent">
-				<div class="tab-pane fade" id="table1" role="tabpanel" aria-labelledby="table1-tab">
+				<div class="tab-pane fade" id="table1" role="tabpanel"
+					aria-labelledby="table1-tab">
 					<table id="payrollTable" class="table table-striped table-bordered">
 						<thead>
-						<tr>
-							<th>MONTH</th>
-							<th>TITLE</th>
-							<th>HOURS</th>
-							<th>WEIGHTED HOURS</th>
-							<th>TAX FREE OVERTIME</th>
-							<th>WEIGHTED TAX FREE OVERTIME</th>
-						</tr>
+							<tr>
+								<th>MONTH</th>
+								<th>TITLE</th>
+								<th>HOURS</th>
+								<th>WEIGHTED HOURS</th>
+								<th>TAX FREE OVERTIME</th>
+								<th>WEIGHTED TAX FREE OVERTIME</th>
+							</tr>
 						</thead>
 						<tbody>
-						<!-- 数据将在这里动态生成 -->
+							<!-- 数据将在这里动态生成 -->
 						</tbody>
 					</table>
 				</div>
-				<div class="tab-pane fade" id="table2" role="tabpanel" aria-labelledby="table2-tab">
+				<div class="tab-pane fade" id="table2" role="tabpanel"
+					aria-labelledby="table2-tab"></div>
+				<div class="tab-pane fade" id="table3" role="tabpanel"
+					aria-labelledby="table3-tab">
+					<h3 class="text-center">Salary Comparison</h3>
+					<!-- Growth Rate -->
+					<p id="growthRate" class="text-center mt-3"></p>
+					<!-- Canvas for Chart -->
+					<canvas id="salaryChart"></canvas>
 				</div>
 			</div>
 		</div>
-   
-</div>
-	   <!-- JavaScript Libraries -->
+
+	</div>
+	<!-- JavaScript Libraries -->
 	<!--===============================================================================================-->
 
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/waypoints/waypoints.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-    <script src="lib/isotope/isotope.pkgd.min.js"></script>
-    <script src="lib/lightbox/js/lightbox.min.js"></script>
+	<script src="lib/easing/easing.min.js"></script>
+	<script src="lib/waypoints/waypoints.min.js"></script>
+	<script src="lib/owlcarousel/owl.carousel.min.js"></script>
+	<script src="lib/isotope/isotope.pkgd.min.js"></script>
+	<script src="lib/lightbox/js/lightbox.min.js"></script>
 
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
-  </body>
+	<!-- Template Javascript -->
+	<script src="js/main.js"></script>
+</body>
 </html>

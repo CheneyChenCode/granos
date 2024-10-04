@@ -78,9 +78,9 @@ public class Attendance {
 
 	@CrossOrigin(origins = "*", allowedHeaders = "*")
 	@RequestMapping("/getAttendance")
-	public ResponseEntity<JsonResponse> getAttendance(@RequestParam("year") int year, @RequestParam("month") int month,
-			@RequestParam("user") int empid) {
-		List<AttendanceDataTableModel> attendances = attendanceService.getAttendancesEvent(year, month, empid);
+	public ResponseEntity<JsonResponse> getAttendance(@RequestParam("year") int year, @RequestParam("month") int month,HttpServletRequest request) {
+		User user = staffService.getUser(request);
+		List<AttendanceDataTableModel> attendances = attendanceService.getAttendancesEvent(year, month, user.getCharacter().getEmpId());
 		return ResponseEntity.ok(new JsonResponse(attendances));
 	}
 

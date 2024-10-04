@@ -38,27 +38,27 @@ public class LeaveBalance {
 	@Autowired
 	private StaffService staffService;
 	@Autowired
-	private LeaveBalanceService leaveBanlanceService;
+	private LeaveBalanceService leaveBalanceService;
 	
 	@RequestMapping("/balances")
 	public String balances(Model model) {
 		return "balances";
 	}
 	@CrossOrigin(origins = "*", allowedHeaders = "*")
-	@RequestMapping("/getBalnaces")
+	@RequestMapping("/getBalances")
 	public ResponseEntity<JsonResponse> getBalnaces(@RequestParam("year") int year, @RequestParam("month") int month,
 			HttpServletRequest request) {
-		logger.info("Controller:getBalnaces[" + year + "]" + "[" + month + "]");
+		logger.info("Controller:getBalances[" + year + "]" + "[" + month + "]");
 		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
 		User user = staffService.getUser(request);
-		List<BalanceDataTableModel> lbts = leaveBanlanceService.getLeaveBalances(year, month,
+		List<BalanceDataTableModel> lbts = leaveBalanceService.getLeaveBalances(year, month,
 				user.getCharacter().getEmpId());
 		JsonResponse rs = new JsonResponse(lbts);
 		if (lbts.size() > 0) {
 			ResponseEntity.ok(rs);
 		} else {
 			try {
-				lbts = leaveBanlanceService.calculateBalances(year, month, user);
+				lbts = leaveBalanceService.calculateBalances(year, month, user);
 			} catch (Exception e) {
 				rs.setStatus(4001);
 				rs.setMessage(messageSource.getMessage("4001", null, locale));
@@ -70,14 +70,14 @@ public class LeaveBalance {
 	}
 
 	@RequestMapping("/downloadBalances")
-	public ResponseEntity<?> exportRequestsExcel(@RequestParam("year") int year, @RequestParam("month") int month,
-			@RequestParam("user") int empid, HttpServletRequest request) {
+	public ResponseEntity<?> exportRequestsExcel(@RequestParam("year") int year, @RequestParam("month") int month,HttpServletRequest request) {
+		User user = staffService.getUser(request);
 		String finlename = String.valueOf(year) + StringUtils.leftPad(String.valueOf(month), 2, "0")
-				+ StringUtils.leftPad(String.valueOf(empid), 4, "0");
+				+ StringUtils.leftPad(String.valueOf(user.getCharacter().getEmpId()), 4, "0");
 		ByteArrayOutputStream out;
 		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
 		try {
-			out = leaveBanlanceService.exportRequestToExcel(year, month, empid);
+			out = leaveBalanceService.exportRequestToExcel(year, month, user.getCharacter().getEmpId());
 			if (out == null) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 						.body(messageSource.getMessage("3001", null, locale));

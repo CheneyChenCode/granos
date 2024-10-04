@@ -1,7 +1,11 @@
 package com.grace.granos.service;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import com.google.cloud.storage.Acl;
 import com.google.cloud.storage.Blob;
@@ -73,5 +79,25 @@ public class FileStorageService {
             Files.write(path, bytes);
 		}
 
+	}
+	public InputStream getAvatar(String fileName) {
+		InputStream imageStream = null;
+		if (isRunningOnGCP()) {
+	        Blob blob = storage.get(BUCKET_NAME, "avatar/"+fileName);
+	        if (blob == null || !blob.exists()) {
+	        	return imageStream;
+	        }
+	        // 獲取圖片文件流
+	        byte[] content = blob.getContent(Blob.BlobSourceOption.generationMatch());
+	        imageStream = new ByteArrayInputStream(content);
+		}else {
+	            Resource resource = new ClassPathResource("static/images/header.png");
+	            try {
+					imageStream = resource.getInputStream();
+				} catch (IOException e) {
+					return imageStream;
+				}
+		}
+        return imageStream;
 	}
 }

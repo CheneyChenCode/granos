@@ -83,7 +83,7 @@ $(document).ready(function() {
         processing: true, // 显示加载状态
         serverSide: true, // 开启服务器端处理模式
         ajax: {
-                    url: "/getBalnaces", // 外部数据源的URL
+                    url: "/getBalances", // 外部数据源的URL
                     type: "GET", 
                     data: function(d){
 							d.year = currentYear;
@@ -216,7 +216,6 @@ $(document).ready(function() {
 	  if ($('#table1-tab').hasClass('active')) {
 		  activeTab2();
 	  } else {
-		  $('#table1-tab').tab('show');
 		  activeTab1();
 	  }
 	}
@@ -237,8 +236,7 @@ $(document).ready(function() {
             type: 'GET', // 或 'POST'，取决于你的 Controller 定义
             data: {
                 year: currentYear,
-                month: currentMonth,
-                user: user.character.empId
+                month: currentMonth
             },
             xhrFields: {
                 responseType: 'blob' // 用于处理二进制文件（如 Excel）
@@ -298,13 +296,13 @@ $(document).ready(function() {
     <!-- Navbar End -->
 	<div class="container-fluid py-4">
 		<div class="row">
-			<div class="col">
+			<div class="col d-flex">
 				<!-- Bootstrap 标签页 -->
-				<button class="btn btn-primary" type="button" onclick="switchTab()"><i id="icon" class="fas fa-list"></i></button>
+				<button class="btn btn-primary me-1" type="button" onclick="switchTab()"><i id="icon" class="fas fa-list"></i></button>
 				<button class="btn btn-primary" type="button" onclick="exportToExcel()" id="downloadExcel"><i class="fa fa-download"></i></button>
 			</div>
 			<div class="col text-center">
-			    <h3 id="monthTitle">Title</h3>
+			    <h4 id="monthTitle">Title</h3>
 			</div>
 			<div class="col d-flex justify-content-end">
 

@@ -1,6 +1,7 @@
 package com.grace.granos.controller;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
@@ -10,7 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +26,7 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import com.grace.granos.model.JsonResponse;
 import com.grace.granos.model.StaffModel;
 import com.grace.granos.model.User;
+import com.grace.granos.service.FileStorageService;
 import com.grace.granos.service.StaffService;
 
 import jakarta.servlet.http.Cookie;
@@ -35,7 +40,8 @@ public class Staff {
 	private MessageSource messageSource;
 	@Autowired
 	StaffService staffService;
-
+	@Autowired
+	private FileStorageService fileStorageService;
     @GetMapping("/logout")
     public String deleteCookie(HttpServletResponse response) {
         // 要刪除的 Cookie 名稱
@@ -155,4 +161,17 @@ public class Staff {
 			}
 		}
 	}
+	 @GetMapping("/avatar")
+	    public ResponseEntity<InputStreamResource> getAvatar(Model model,HttpServletRequest request) {
+		 	User user = staffService.getUser(request);
+	        String fileName = user.getEmpId() + ".png";
+	        InputStream imageStream = fileStorageService.getAvatar(fileName);
+	        if (imageStream == null) {
+	            return ResponseEntity.notFound().build();
+	        }
+	        return ResponseEntity.ok()
+	                .contentType(MediaType.IMAGE_PNG)
+	                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+	                .body(new InputStreamResource(imageStream));
+	    }
 }

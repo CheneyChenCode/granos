@@ -83,13 +83,14 @@ public class Payroll {
 
 	@RequestMapping("/downloadPayroll")
 	public ResponseEntity<?> exportUsersToExcel(@RequestParam("year") int year,
-			@RequestParam("month") int month, @RequestParam("user") int empid, HttpServletRequest request) {
+			@RequestParam("month") int month, HttpServletRequest request) {
+		User user=staffService.getUser(request);
 		String finlename = String.valueOf(year) + StringUtils.leftPad(String.valueOf(month), 2, "0")
-				+ StringUtils.leftPad(String.valueOf(empid), 4, "0");
+				+ StringUtils.leftPad(String.valueOf(user.getCharacter().getEmpId()), 4, "0");
 		ByteArrayOutputStream out;
 		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
 		try {
-			out = payrollService.exportUsersToExcel(year, month, empid);
+			out = payrollService.exportUsersToExcel(year, month, user.getCharacter().getEmpId());
 			if(out==null) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(messageSource.getMessage("3001", null, locale));
 			}

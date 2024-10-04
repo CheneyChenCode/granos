@@ -68,7 +68,7 @@
 
 	// 获取当前月份（注意，月份是从 0 开始计数的，所以需要加 1）
 	const currentMonth = currentDate.getMonth() + 1;
-	
+
 	var specMonth=currentMonth;
 $(document).ready(function() {
 	let dropdownMenu = $('#monthDropdown');
@@ -165,7 +165,6 @@ $(document).ready(function() {
                     data: function(d){
 							d.year = currentYear;
 							d.month = specMonth;
-							d.user = user.character.empId;
 					}
               },
         // 指定列定义
@@ -456,7 +455,6 @@ $(document).ready(function() {
 	  if ($('#table1-tab').hasClass('active')) {
 		  activeTab2();
 	  } else {
-		  $('#table1-tab').tab('show');
 		  activeTab1();
 	  }
 	}
@@ -500,20 +498,18 @@ $(document).ready(function() {
     <!-- Navbar End -->
 	<div class="container-fluid py-4">
 		<div class="row">
-			<div class="col">
+			<div class="col d-flex">
 				<!-- Bootstrap 标签页 -->
-				<button class="btn btn-primary" type="button" onclick="switchTab()"><i id="icon" class="fas fa-list"></i></button>
-				<a id="popup1" class="btn btn-primary" href="#popup"><i class="fas fa-file-import"></i></a>
+				<button class="btn btn-primary me-1" type="button" onclick="switchTab()"><i id="icon" class="fas fa-list"></i></button>
+				<button type="button"  id="popup1" class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#popup"><i class="fas fa-file-import"></i></button>
 			</div>
 			<div class="col text-center">
-			    <h3 id="monthTitle">Title</h3>
+			    <h4 id="monthTitle">Title</h3>
 			</div>
 			<div class="col d-flex justify-content-end">
-			  <div class="dropdown">
-					<a href="#" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"><i class="far fa-clock"></i></a>
-					<div id="monthDropdown" class="dropdown-menu rounded-0 m-0">
-					</div>
-			  </div>
+				<a href="#" class="btn btn-primary dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown"><i class="far fa-clock"></i></a>
+				<div id="monthDropdown" class="dropdown-menu rounded-0 m-0">
+				</div>
 			</div>
 		</div>
 		<div class="row">
@@ -555,10 +551,14 @@ $(document).ready(function() {
 		</div>
    
 	<!-- 弹出式窗口 -->
-	<div id="popup" class="overlay" aria-hidden="true"  tabindex="-1">
-		<div class="popup">
-			<a class="close" href="#">&times;</a>
-			<div class="content">
+	<div id="popup" class="modal fade" aria-hidden="true" tabindex="-1"  aria-labelledby="exampleModalLabel">
+		<div class="modal-dialog">
+		<div class="modal-content">
+		<div class="modal-header">
+			<h5 class="modal-title" id="exampleModalLabel">Upload File</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			 <div class="modal-body">
 			<form id="uploadForm" method="post" enctype="multipart/form-data">
 				<div class="form-group">
 						<label for="formFile" class="form-label" th:text="#{choseFile}">Chose your attendance excel file and upload</label>
@@ -573,6 +573,7 @@ $(document).ready(function() {
 			<div id="errorMessage2" class="alert alert-danger" style="white-space: pre-line;" role="alert" hidden=true></div>
 			<div id="successMessage" class="alert alert-success" role="alert" hidden=true></div>
 			<div id="successMessage2" class="alert alert-danger" style="white-space: pre-line;" role="alert" hidden=true></div>
+			</div>
 			</div>
 		</div>
 	</div>

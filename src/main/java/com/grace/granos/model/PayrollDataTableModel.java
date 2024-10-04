@@ -14,7 +14,7 @@ public class PayrollDataTableModel {
 	private float weighted;
 	private float taxFreeOverTime;
 	private float taxFreeOverTimeWeighted;
-	
+
 	public float getTaxFreeOverTimeWeighted() {
 		return taxFreeOverTimeWeighted;
 	}

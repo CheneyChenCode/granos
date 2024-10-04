@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -19,6 +20,26 @@ import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xddf.usermodel.chart.AxisCrossBetween;
+import org.apache.poi.xddf.usermodel.chart.AxisPosition;
+import org.apache.poi.xddf.usermodel.chart.BarDirection;
+import org.apache.poi.xddf.usermodel.chart.BarGrouping;
+import org.apache.poi.xddf.usermodel.chart.ChartTypes;
+import org.apache.poi.xddf.usermodel.chart.LegendPosition;
+import org.apache.poi.xddf.usermodel.chart.XDDFBarChartData;
+import org.apache.poi.xddf.usermodel.chart.XDDFCategoryAxis;
+import org.apache.poi.xddf.usermodel.chart.XDDFCategoryDataSource;
+import org.apache.poi.xddf.usermodel.chart.XDDFChartData;
+import org.apache.poi.xddf.usermodel.chart.XDDFChartLegend;
+import org.apache.poi.xddf.usermodel.chart.XDDFDataSource;
+import org.apache.poi.xddf.usermodel.chart.XDDFDataSourcesFactory;
+import org.apache.poi.xddf.usermodel.chart.XDDFNumericalDataSource;
+import org.apache.poi.xddf.usermodel.chart.XDDFValueAxis;
+import org.apache.poi.xssf.usermodel.XSSFChart;
+import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
+import org.apache.poi.xssf.usermodel.XSSFDrawing;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -237,6 +258,152 @@ public class PayrollService {
 		payrollRepository.addPayroll(models);
 	}
 
+	public ByteArrayOutputStream exportAllUsersToExcel(int year, int month) throws IOException {
+		PayrollModel payroll = new PayrollModel();
+		payroll.setYear(year);
+		payroll.setMonth(month);
+		List<PayrollModel> payrolls = payrollRepository.findPayrollByAllUserMon(payroll);
+		PayrollModel prePayroll = new PayrollModel();
+		if (month - 1 == 0) {
+			prePayroll.setYear(year - 1);
+			prePayroll.setMonth(12);
+		} else {
+			prePayroll.setYear(year);
+			prePayroll.setMonth(month - 1);
+		}
+		List<PayrollModel> prePayrolls = payrollRepository.findPayrollByAllUserMon(prePayroll);
+		// 创建 Excel 工作簿
+		XSSFWorkbook workbook = new XSSFWorkbook();
+
+		// CellStyle dateTimeCellStyle = workbook.createCellStyle();
+		// CreationHelper createHelper = workbook.getCreationHelper();
+		// dateTimeCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("yyyy-MM-dd
+		// HH:mm:ss"));
+		String sheetName = String.valueOf(year) + "-" + StringUtils.leftPad(String.valueOf(month), 2, "0");
+		XSSFSheet sheet1 = workbook.createSheet(sheetName);
+		if (!CollectionUtils.isEmpty(payrolls)) {
+			// 提取唯一的 payCode 和 title
+			Map<String, Float> uniquePayCodeTitleMap = payrolls.stream()
+					.collect(Collectors.toMap(PayrollModel::getTitle, // key 是 payCode
+							PayrollModel::getCoefficient, // value 是 title
+							(existing, replacement) -> existing, // 如果 key 重複，選擇保留已有的
+							LinkedHashMap::new));
+			// 创建表头
+			Row header1 = sheet1.createRow(0);
+			header1.createCell(0).setCellValue("EMP_ID");
+			header1.createCell(1).setCellValue("NAME");
+			int index = 2;
+			LinkedHashMap<String, Integer> colMap = new LinkedHashMap<String, Integer>();
+			for (Map.Entry<String, Float> entry : uniquePayCodeTitleMap.entrySet()) {
+				String key = entry.getKey(); // 獲取鍵
+				Float value = entry.getValue(); // 獲取值
+				header1.createCell(index).setCellValue(key + "*" + String.valueOf(value));
+				colMap.put(key, index);
+				index++; // 增加索引
+			}
+			header1.createCell(index).setCellValue("TOTAL_WEIGHTED");
+			header1.createCell(index + 1).setCellValue("TOTAL_TAX_FREE_WEIGHTED");
+			header1.createCell(index + 2).setCellValue("TOTAL_PREMONTH_WEIGHTED");
+			// 填充数据
+			Map<Integer, Float> preHoursMap = new LinkedHashMap<Integer, Float>();
+			if (!CollectionUtils.isEmpty(prePayrolls)) {
+				// 使用 LinkedHashMap 以 empId 為 key，將 PayrollModel 收集到 List 中
+				Map<Integer, List<PayrollModel>> prePayrollMap = prePayrolls.stream()
+						.collect(Collectors.groupingBy(PayrollModel::getEmpId, // 鍵是 empId
+								LinkedHashMap::new, // 使用 LinkedHashMap 保持順序
+								Collectors.toList() // 值是 List<PayrollModel>
+						));
+				for (int key : prePayrollMap.keySet()) {
+					float totalWeight = 0;
+					List<PayrollModel> value = prePayrollMap.get(key);
+					for (PayrollModel pay : value) {
+						totalWeight = totalWeight + pay.getHours() * pay.getCoefficient();
+					}
+					preHoursMap.put(key, totalWeight);
+				}
+
+			}
+			// 使用 LinkedHashMap 以 empId 為 key，將 PayrollModel 收集到 List 中
+			Map<Integer, List<PayrollModel>> payrollMap = payrolls.stream()
+					.collect(Collectors.groupingBy(PayrollModel::getEmpId, // 鍵是 empId
+							LinkedHashMap::new, // 使用 LinkedHashMap 保持順序
+							Collectors.toList() // 值是 List<PayrollModel>
+					));
+			// 現在可以按插入順序遍歷 payrollMap
+			int rowNum = 1;
+			for (int key : payrollMap.keySet()) {
+				float totalWeight = 0;
+				float totaltaxFreeWeight = 0;
+				Row row1 = sheet1.createRow(rowNum++);
+				row1.createCell(0).setCellValue(key);
+				List<PayrollModel> value = payrollMap.get(key);
+				row1.createCell(1).setCellValue(value.get(0).getNameEn() + " " + value.get(0).getLastNameEn());
+				for (PayrollModel pay : value) {
+					row1.createCell(colMap.get(pay.getTitle())).setCellValue(pay.getHours() * pay.getCoefficient());
+					totalWeight = totalWeight + pay.getHours() * pay.getCoefficient();
+					totaltaxFreeWeight = totaltaxFreeWeight + pay.getTaxFreeHours() * pay.getCoefficient();
+				}
+				row1.createCell(index).setCellValue(totalWeight);
+				row1.createCell(index + 1).setCellValue(totaltaxFreeWeight);
+				if (!preHoursMap.isEmpty()) {
+					row1.createCell(index + 2).setCellValue(preHoursMap.get(key));
+				}
+			}
+			// 自動調整所有列的寬度
+			int numberOfColumns = sheet1.getRow(0).getPhysicalNumberOfCells(); // 獲取列數
+			for (int i = 0; i < numberOfColumns; i++) {
+				sheet1.autoSizeColumn(i); // 自動調整每一列的寬度
+			}
+
+			// 創建圖表
+			XSSFSheet sheet2 = workbook.createSheet("Salary Comparison");
+			XSSFDrawing drawing = sheet2.createDrawingPatriarch();
+
+			XSSFClientAnchor anchor = drawing.createAnchor(0, 0, 0, 0, 0, rowNum + 2, 10, rowNum + 20);
+			XSSFChart chart = drawing.createChart(anchor);
+			chart.setTitleText("Employee Hours Worked");
+			chart.setTitleOverlay(false);
+
+			XDDFChartLegend legend = chart.getOrAddLegend();
+			legend.setPosition(LegendPosition.TOP_RIGHT);
+
+			// 設置圖表數據範圍
+			XDDFDataSource<String> categories = XDDFDataSourcesFactory.fromStringCellRange(sheet1,
+					new CellRangeAddress(1, rowNum - 1, 0, 1));
+			XDDFNumericalDataSource<Double> totalHours = XDDFDataSourcesFactory.fromNumericCellRange(sheet1,
+					new CellRangeAddress(1, rowNum - 1, index, index));
+			XDDFNumericalDataSource<Double> totalpreHours = XDDFDataSourcesFactory.fromNumericCellRange(sheet1,
+					new CellRangeAddress(1, rowNum - 1, index + 2, index + 2));
+
+			// 創建堆積柱形圖
+			XDDFCategoryAxis bottomAxis = chart.createCategoryAxis(AxisPosition.BOTTOM);
+			bottomAxis.setTitle("Employee Name");
+			XDDFValueAxis leftAxis = chart.createValueAxis(AxisPosition.LEFT);
+			leftAxis.setTitle("Hours/Weighted Value");
+			leftAxis.setCrossBetween(AxisCrossBetween.BETWEEN);
+			XDDFChartData data = chart.createData(ChartTypes.BAR, bottomAxis, leftAxis);
+			XDDFBarChartData barData = (XDDFBarChartData) data;
+
+			barData.setBarDirection(BarDirection.COL);
+
+			// 添加數據
+			XDDFBarChartData.Series series1 = (XDDFBarChartData.Series) barData.addSeries(categories, totalHours);
+			series1.setTitle("Total Hours", null);
+			XDDFBarChartData.Series series2 = (XDDFBarChartData.Series) barData.addSeries(categories, totalpreHours);
+			series2.setTitle("Total PreMonth Hours", null);
+			// data.setVaryColors(true);
+			// 設置堆積樣式
+			barData.setBarGrouping(BarGrouping.CLUSTERED);
+			chart.plot(data);
+		}
+
+		// 2. 将 Excel 写入 ByteArrayOutputStream
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		workbook.write(out);
+		workbook.close();
+		return out;
+	}
+
 	public ByteArrayOutputStream exportUsersToExcel(int year, int month, int empid) throws IOException {
 		AttendanceModel attendanceModel = new AttendanceModel();
 		attendanceModel.setEmpId(empid);
@@ -272,7 +439,7 @@ public class PayrollService {
 		header1.createCell(10).setCellValue("TO_HOUR");
 		// 填充数据
 		int rowNum = 1;
-		if(!CollectionUtils.isEmpty(payrolls)) {
+		if (!CollectionUtils.isEmpty(payrolls)) {
 			for (PayrollModel pay : payrolls) {
 				Row row1 = sheet1.createRow(rowNum++);
 				row1.createCell(0).setCellValue(pay.getEmpId());
@@ -288,7 +455,7 @@ public class PayrollService {
 				row1.createCell(10).setCellValue(pay.getToHour());
 			}
 		}
-		
+
 		Sheet sheet2 = workbook.createSheet("Attendance");
 		Row header2 = sheet2.createRow(0);
 		header2.createCell(0).setCellValue("EMP_ID");
@@ -318,7 +485,7 @@ public class PayrollService {
 		header2.createCell(24).setCellValue("Over_end_datetime");
 
 		rowNum = 1;
-		if(!CollectionUtils.isEmpty(attendances)) {
+		if (!CollectionUtils.isEmpty(attendances)) {
 			for (AttendanceModel att : attendances) {
 				Row row2 = sheet2.createRow(rowNum++);
 				row2.createCell(0).setCellValue(att.getEmpId());
@@ -357,8 +524,8 @@ public class PayrollService {
 				cellStartDatetime.setCellStyle(dateTimeCellStyle);
 				Cell cellEndDatetime = row2.createCell(13);
 				if (att.getEndDatetime() != null) {
-					cellEndDatetime.setCellValue(
-							Timestamp.valueOf(att.getEndDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+					cellEndDatetime.setCellValue(Timestamp
+							.valueOf(att.getEndDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
 				} else {
 					cellEndDatetime.setCellValue(att.getEndDatetime());
 				}
@@ -374,8 +541,8 @@ public class PayrollService {
 				row2.createCell(22).setCellValue(att.getRemainTaxFree());
 				Cell cellOverStartDatetime = row2.createCell(23);
 				if (att.getOverStartDatetime() != null) {
-					cellOverStartDatetime.setCellValue(Timestamp
-							.valueOf(att.getOverStartDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
+					cellOverStartDatetime.setCellValue(Timestamp.valueOf(
+							att.getOverStartDatetime().toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()));
 				} else {
 					cellOverStartDatetime.setCellValue(att.getOverStartDatetime());
 				}
@@ -390,7 +557,7 @@ public class PayrollService {
 				cellOverEndDatetime.setCellStyle(dateTimeCellStyle);
 			}
 		}
-		
+
 		// 2. 将 Excel 写入 ByteArrayOutputStream
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		workbook.write(out);

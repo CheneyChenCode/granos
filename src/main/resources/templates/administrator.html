@@ -32,9 +32,22 @@
 <!-- Template Javascript -->
 <script src="js/main.js"></script>
 <script>
+const currentDate = new Date();
+
+// 获取当前年份
+const currentYear = currentDate.getFullYear();
+
+// 获取当前月份（注意，月份是从 0 开始计数的，所以需要加 1）
+const currentMonth = currentDate.getMonth() + 1;
 	$(document)
 			.ready(
 					function() {
+						let dropdownPayrollMenu = $('#dropdownPayrollMenu');
+						// Add each month up to the current month to the dropdown
+						for (let month = 1; month <= currentMonth; month++) {
+							const monthItem = '<a href="#" class="dropdown-item" onclick="exportToExcel('+ currentYear +','+month+');">' +currentYear+ '-' + month.toString().padStart(2, '0')+'</a>';
+							dropdownPayrollMenu.append(monthItem);
+						}
 						const searchInput = $('#searchInput');
 						const dropdownMenu = $('#dropdownMenu');
 						const dropdownButton = $('#dropdownMenuButton');
@@ -133,72 +146,64 @@
 								dropdownMenu.removeClass('show');
 							}
 						});
-
-						$('#downloadButton')
-								.on(
-										'click',
-										function() {
-											const currentYear = new Date()
-													.getFullYear();
-											const specMonth = 7; // Replace with your logic to get the specific month
-											const userId = user.character.empId; // Assuming you have user data available
-
-											$
-													.ajax({
-														url : '/downloadPayroll',
-														type : 'GET', // or 'POST' depending on your controller setup
-														data : {
-															year : currentYear,
-															month : specMonth,
-															user : userId
-														},
-														xhrFields : {
-															responseType : 'blob' // This is important for handling binary data
-														},
-														success : function(
-																data, status,
-																xhr) {
-															// Get filename from the response headers
-															const contentDisposition = xhr
-																	.getResponseHeader('Content-Disposition');
-															const filename = contentDisposition ? contentDisposition
-																	.split('filename=')[1]
-																	.replace(
-																			/"/g,
-																			'')
-																	: 'download.xlsx';
-
-															// Create a blob and download it
-															const blob = new Blob(
-																	[ data ],
-																	{
-																		type : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-																	});
-															const url = window.URL
-																	.createObjectURL(blob);
-															const a = document
-																	.createElement('a');
-															a.href = url;
-															a.download = filename;
-															document.body
-																	.appendChild(a);
-															a.click();
-															document.body
-																	.removeChild(a);
-															window.URL
-																	.revokeObjectURL(url); // Cleanup
-														},
-														error : function(xhr,
-																status, error) {
-															console
-																	.error(
-																			'Download failed:',
-																			error);
-															alert('Failed to download the file.');
-														}
-													});
-										});
 					});
+	function exportToExcel(year,month) {
+		let spinner = $('<span>', {
+			'class' : 'spinner-border text-light',
+			'role' : 'status',
+			'aria-hidden' : 'true'
+		});
+		let dropdownPayrollMenuButton = $('#dropdownPayrollMenuButton');
+		// Store original button text
+		let text = dropdownPayrollMenuButton.text();;
+		dropdownPayrollMenuButton.empty().append(spinner);
+		dropdownPayrollMenuButton.dropdown('hide');
+		dropdownPayrollMenuButton.removeAttr('data-bs-toggle');  // 移除下拉功能
+		$
+				.ajax({
+					url : '/exportPayroll',
+					type : 'GET', // 或 'POST'，取决于你的 Controller 定义
+					data : {
+						year : year,
+						month : month
+					},
+					xhrFields : {
+						responseType : 'blob' // 用于处理二进制文件（如 Excel）
+					},
+					success : function(data, status, xhr) {
+						var contentDisposition = xhr
+								.getResponseHeader('Content-Disposition');
+						var filename = contentDisposition ? contentDisposition
+								.split('filename=')[1]
+								: 'error_please_download_again';
+
+						// Create a link element and set its href to the blob URL
+						var blob = new Blob(
+								[ data ],
+								{
+									type : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+								});
+						var url = window.URL.createObjectURL(blob);
+						var a = document.createElement('a');
+						a.href = url;
+						a.download = filename;
+						document.body.appendChild(a);
+						a.click();
+						document.body.removeChild(a);
+						window.URL.revokeObjectURL(url); // Clean up
+						dropdownPayrollMenuButton.empty().text(
+								text);
+						dropdownPayrollMenuButton.attr('data-bs-toggle', 'dropdown');
+					},
+					error : function(xhr, status, error) {
+						dropdownPayrollMenuButton.empty().text(
+								text);
+						dropdownPayrollMenuButton.attr('data-bs-toggle', 'dropdown');
+						console.error('Download failed:', error);
+						alert('Failed to download the Excel file.');
+					}
+				});
+	}
 </script>
 </head>
 <body>
@@ -234,7 +239,7 @@
 	<!-- Navbar End -->
 	<div class="container-fluid py-4">
 		<div class="row">
-			<h2 id="characterName"
+			<h4 id="characterName"
 				th:text="@{${user.character.nameEn} + ' ' + ${user.character.lastNameEn} + '(' + ${user.character.lastNameCn} + ${user.character.nameCn}} + ')' "></h2>
 		</div>
 		<div class="row">
@@ -245,7 +250,7 @@
 			</div>
 		</div>
 		<div class="row">
-			<div class="col">
+			<div class="col mb-3">
 				<div class="dropdown">
 					<button class="btn btn-primary dropdown-toggle" type="button"
 						id="dropdownMenuButton" data-bs-toggle="dropdown"
@@ -256,9 +261,18 @@
 					</ul>
 				</div>
 			</div>
-			<div class="col">
-				<button id="downloadButton" class="btn btn-primary">Download
-					Payroll</button>
+			<div class="col mb-3">
+				<div class="dropdown">
+					<button class="btn btn-primary dropdown-toggle" type="button" style="background-color: limegreen; border: none;"
+						id="dropdownPayrollMenuButton" data-bs-toggle="dropdown"
+						aria-expanded="false">Download Payroll</button>
+					<ul class="dropdown-menu" aria-labelledby="dropdownPayrollMenuButton"
+						id="dropdownPayrollMenu">
+						<!-- Options will be added here dynamically -->
+					</ul>
+				</div>
+			</div>
+			<div class="col mb-3">
 			</div>
 		</div>
 	</div>
