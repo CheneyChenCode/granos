@@ -2,8 +2,11 @@ package com.grace.granos.controller;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +27,7 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import com.grace.granos.model.AttendanceModel;
 import com.grace.granos.model.JsonResponse;
 import com.grace.granos.model.PayrollDataTableModel;
+import com.grace.granos.model.PayrollModel;
 import com.grace.granos.model.User;
 import com.grace.granos.service.AttendanceService;
 import com.grace.granos.service.PayrollService;
@@ -56,10 +60,12 @@ public class Payroll {
 		logger.info("Controller:getPayroll[" + year + "]");
 		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
         User user=staffService.getUser(request);
-        List<PayrollDataTableModel> pay = payrollService.getPayroll(year, month, user.getCharacter().getEmpId());
+        List<PayrollModel> payRolls = payrollService.getPayroll(year, month, user.getCharacter().getEmpId());
+        List<PayrollDataTableModel> pay=new ArrayList<PayrollDataTableModel>();
         JsonResponse rs = new JsonResponse(pay);
-		if (pay.size() > 0) {
-			ResponseEntity.ok(rs);
+		if (!CollectionUtils.isEmpty(payRolls)) {
+			pay=PayrollModelToDataTable(payRolls,locale);
+			ResponseEntity.ok(new JsonResponse(pay));
 		} else {
 			List<AttendanceModel> atts;
 			try {
@@ -75,7 +81,8 @@ public class Payroll {
 				rs.setMessage(messageSource.getMessage("3002", null, locale));
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
 			} else {
-				pay = payrollService.calculatePayroll(year, month,user);
+				payRolls = payrollService.calculatePayroll(year, month,user);
+				pay=PayrollModelToDataTable(payRolls,locale);
 			}
 		}
 		return ResponseEntity.ok(new JsonResponse(pay));
@@ -109,4 +116,33 @@ public class Payroll {
 		}
 	}
 
+	public List<PayrollDataTableModel> PayrollModelToDataTable(List<PayrollModel> pls,Locale locale) {
+		List<PayrollDataTableModel> payrollDataTable = new ArrayList<>();
+		Map<Integer, Double> payCodeMap = pls.stream().collect(
+				Collectors.groupingBy(PayrollModel::getPayCode, Collectors.summingDouble(PayrollModel::getHours)));
+		Map<Integer, Double> taxFreeMap = pls.stream().collect(Collectors.groupingBy(PayrollModel::getPayCode,
+				Collectors.summingDouble(PayrollModel::getTaxFreeHours)));
+		List<PayrollModel> distinctPayrolls = pls.stream().distinct().collect(Collectors.toList());
+		
+		String[] monStr = { "Jan", "Feb", "Wed", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+		for (PayrollModel pl : distinctPayrolls) {
+			PayrollDataTableModel pld = new PayrollDataTableModel();
+			payrollDataTable.add(pld);
+			pld.setYear(pl.getYear());
+			pld.setEmpId(pl.getEmpId());
+			pld.setMonth(monStr[pl.getMonth() - 1]);
+			pld.setPayCode(pl.getPayCode());
+			pld.setHours(payCodeMap.get(pl.getPayCode()).floatValue());
+			pld.setTaxFreeOverTime(taxFreeMap.get(pl.getPayCode()).floatValue());
+			String payDescription=messageSource.getMessage("paycode."+pl.getPayCode(), null,locale);
+			if(StringUtils.isNotBlank(payDescription)) {
+				pld.setTitle(payDescription);
+			}else {
+				pld.setTitle(pl.getTitle());
+			}
+			pld.setWeighted(pld.getHours() * pl.getCoefficient());
+			pld.setTaxFreeOverTimeWeighted(pld.getTaxFreeOverTime() * pl.getCoefficient());
+		}
+		return payrollDataTable;
+	}
 }

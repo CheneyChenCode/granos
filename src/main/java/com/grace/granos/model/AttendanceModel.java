@@ -1,7 +1,6 @@
 package com.grace.granos.model;
 
 import java.sql.Timestamp;
-
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,7 +33,14 @@ public class AttendanceModel {
 	private float remainTaxFree;
 	private Timestamp overStartDatetime;
 	private Timestamp overEndDatetime;
+	private String abnormalCode;
 	
+	public String getAbnormalCode() {
+		return abnormalCode;
+	}
+	public void setAbnormalCode(String abnormalCode) {
+		this.abnormalCode = abnormalCode;
+	}
 	public Timestamp getOverStartDatetime() {
 		return overStartDatetime;
 	}

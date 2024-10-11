@@ -2,6 +2,7 @@ package com.grace.granos.controller;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -17,13 +18,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 
 import com.grace.granos.model.BalanceDataTableModel;
+import com.grace.granos.model.CustomException;
 import com.grace.granos.model.JsonResponse;
+import com.grace.granos.model.LeaveBalanceModel;
 import com.grace.granos.model.User;
 import com.grace.granos.service.LeaveBalanceService;
 import com.grace.granos.service.StaffService;
@@ -51,20 +55,22 @@ public class LeaveBalance {
 		logger.info("Controller:getBalances[" + year + "]" + "[" + month + "]");
 		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
 		User user = staffService.getUser(request);
-		List<BalanceDataTableModel> lbts = leaveBalanceService.getLeaveBalances(year, month,
+		List<LeaveBalanceModel> lbtms = leaveBalanceService.getLeaveBalances(year, month,
 				user.getCharacter().getEmpId());
+		List<BalanceDataTableModel> lbts=new ArrayList<BalanceDataTableModel>();
 		JsonResponse rs = new JsonResponse(lbts);
-		if (lbts.size() > 0) {
-			ResponseEntity.ok(rs);
+		if (!CollectionUtils.isEmpty(lbtms)) {
+			lbts=LeaveBalanceModelToDataTable(lbtms,locale);
+			ResponseEntity.ok(new JsonResponse(lbts));
 		} else {
 			try {
-				lbts = leaveBalanceService.calculateBalances(year, month, user);
-			} catch (Exception e) {
-				rs.setStatus(4001);
-				rs.setMessage(messageSource.getMessage("4001", null, locale));
+				lbtms = leaveBalanceService.calculateBalances(year, month, user);
+				lbts=LeaveBalanceModelToDataTable(lbtms,locale);
+			} catch (CustomException e) {
+				rs.setStatus(e.getStatus());
+				rs.setMessage(messageSource.getMessage(String.valueOf(e.getMessage()), null, locale));
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
 			}
-
 		}
 		return ResponseEntity.ok(new JsonResponse(lbts));
 	}
@@ -98,5 +104,26 @@ public class LeaveBalance {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body(messageSource.getMessage("3001", null, locale));
 		}
+	}
+	public List<BalanceDataTableModel> LeaveBalanceModelToDataTable(List<LeaveBalanceModel> lbs,Locale locale) {
+		List<BalanceDataTableModel> leaveBalanceDataTable = new ArrayList<BalanceDataTableModel>();
+		String[] monStr = { "Jan", "Feb", "Wed", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+		for (LeaveBalanceModel lb : lbs) {
+			BalanceDataTableModel lbt = new BalanceDataTableModel();
+			leaveBalanceDataTable.add(lbt);
+			lbt.setYear(lb.getYear());
+			lbt.setEmpId(lb.getEmpId());
+			lbt.setMonth(monStr[lb.getMonth() - 1]);
+			lbt.setShift(lb.getShift());
+			lbt.setUsedHours(lb.getUsedHours());
+			lbt.setRemainingHours(lb.getRemainingHours());
+			String lbDescription=messageSource.getMessage("leave."+lbt.getShift(), null,locale);
+			if(StringUtils.isNotBlank(lbDescription)) {
+				lbt.setTitle(lbDescription);
+			}else {
+				lbt.setTitle(lb.getDescription());
+			}
+		}
+		return leaveBalanceDataTable;
 	}
 }

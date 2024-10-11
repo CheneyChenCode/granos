@@ -51,7 +51,7 @@ public class AttendanceRepository {
 
 	public List<AttendanceModel> findAttendanceByUserMon(AttendanceModel att) {
 		String sql = " SELECT "
-				+ " emp_id,year,month,day,seq,start_datetime,week,arrival_datetime,end_datetime,leave_datetime,work_hours,overtime,approval,note,reason,shift,day_code,status,comp_reason,comp_time,paid_leave,period,remain_tax_free,over_start_datetime,over_end_datetime"
+				+ " emp_id,year,month,day,seq,start_datetime,week,arrival_datetime,end_datetime,leave_datetime,work_hours,overtime,approval,note,reason,shift,day_code,status,comp_reason,comp_time,paid_leave,period,remain_tax_free,over_start_datetime,over_end_datetime,abnormal_code"
 				+ " FROM " + " attendance" + " WHERE" + " year = ? and month = ? and emp_id = ? order by day,seq";
 
 		List<AttendanceModel> result = jdbcTemplate.query(sql,
@@ -178,13 +178,13 @@ public class AttendanceRepository {
 	}
 
 	public int[] addAttendance(List<AttendanceModel> models) {
-		String sql = " INSERT INTO attendance ( " + "		emp_id, year, month, "
-				+ "		day, seq, arrival_datetime, leave_datetime," + "		work_hours, note, approval,"
-				+ "		creater, day_code, " + "		overtime, start_datetime, end_datetime, week,"
+		String sql = " INSERT INTO attendance ( " + "emp_id, year, month, "
+				+ "		day, seq, arrival_datetime, leave_datetime," + "work_hours, note, approval,"
+				+ "		creater, day_code, " + "overtime, start_datetime, end_datetime, week,"
 				+ "		reason, shift, status,comp_time,comp_reason,"
-				+ "		period,paid_leave,remain_tax_free,over_start_datetime," + "		over_end_datetime" + " ) "
-				+ " VALUES ( " + "		?, ?, ?, " + "		?, ?, ?, " + "		?, ?, ?, " + "		?, ?, ?, "
-				+ "		?, ?, ?, " + "		?, ?, ?, " + "		?, ?, ?, " + "		?, ?, ?, " + "		?, ? " + " ) ";
+				+ "		period,paid_leave,remain_tax_free,over_start_datetime," + "over_end_datetime,abnormal_code" + " ) "
+				+ " VALUES ( " + "?, ?, ?, " + "?, ?, ?, " + "?, ?, ?, " + "?, ?, ?, "
+				+ "		?, ?, ?, " + "?, ?, ?, " + "?, ?, ?, " + "		?, ?, ?, " + "?, ?,?" + " ) ";
 		return jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
 			@Override
@@ -243,15 +243,16 @@ public class AttendanceRepository {
 					// Timestamp.valueOf(models.get(i).getOverStartDatetime().toLocalDateTime().plusHours(8)));//overStartDatetime
 					ps.setString(25, dateFormat.format(models.get(i).getOverStartDatetime()));
 				} else {
-					ps.setTimestamp(25, null);// overStartDatetime
+					ps.setTimestamp(25, null);//overStartDatetime
 				}
 				if (models.get(i).getOverEndDatetime() != null) {
 					// ps.setTimestamp(26,
 					// Timestamp.valueOf(models.get(i).getOverEndDatetime().toLocalDateTime().plusHours(8)));//overEndDatetime
 					ps.setString(26, dateFormat.format(models.get(i).getOverEndDatetime()));
 				} else {
-					ps.setTimestamp(26, null);// overEndDatetime
+					ps.setTimestamp(26, null);//overEndDatetime
 				}
+				ps.setString(27, models.get(i).getAbnormalCode());//abnormal_code
 			}
 
 			@Override

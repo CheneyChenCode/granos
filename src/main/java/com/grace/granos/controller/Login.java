@@ -25,6 +25,6 @@ public class Login {
 	}
 	@RequestMapping("/")
 	public String hello(Model model,HttpServletRequest request) throws Exception {
-		return "home";
+		return "forward:/home";
 	}
 }

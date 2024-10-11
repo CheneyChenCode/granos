@@ -7,9 +7,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
@@ -25,13 +22,9 @@ import org.springframework.util.CollectionUtils;
 
 import com.grace.granos.dao.LeaveBalanceRepository;
 import com.grace.granos.dao.LeaveRequestRepository;
-import com.grace.granos.dao.ShiftRepository;
-import com.grace.granos.model.AttendanceModel;
-import com.grace.granos.model.BalanceDataTableModel;
+import com.grace.granos.model.CustomException;
 import com.grace.granos.model.LeaveBalanceModel;
 import com.grace.granos.model.LeaveRequestModel;
-import com.grace.granos.model.PayrollDataTableModel;
-import com.grace.granos.model.PayrollModel;
 import com.grace.granos.model.ShiftModel;
 import com.grace.granos.model.User;
 
@@ -47,12 +40,12 @@ public class LeaveBalanceService {
 	@Autowired
 	private ShiftService shiftService;
 	
-	public List<BalanceDataTableModel> calculateBalances(int year, int month, User user) throws Exception {
+	public List<LeaveBalanceModel> calculateBalances(int year, int month, User user) throws CustomException {
 		logger.info("Service:calculateBalances[" + year + "/" + month + "]");
 
 		List<LeaveBalanceModel> lastBalance=leaveBalanceRepository.findLastLeaveBalance(user.getCharacter().getEmpId());
 		if(CollectionUtils.isEmpty(lastBalance)) {
-			throw new Exception("there are no Last Balances in this account");
+			throw new CustomException("there are no Last Balances in this account",4002);
 		}
 		
 		Map<String, ShiftModel> shiftModelMap = shiftService.getshiftModelMap();
@@ -91,8 +84,7 @@ public class LeaveBalanceService {
 			}
 			newBalances.add(newLb);
 		}
-		List<BalanceDataTableModel> BalanceTable=LeaveBalanceModelToDataTable(newBalances);
-		return BalanceTable;
+		return newBalances;
 	}
 	public List<LeaveRequestModel> findLastLeaveRequest(LeaveRequestModel lr) {
 		List<LeaveRequestModel> lrs=leaveRequestRepository.findLastLeaveRequest(lr);
@@ -136,37 +128,17 @@ public class LeaveBalanceService {
 	public List<LeaveBalanceModel> findLastLeaveBalances(int empId) {
 		return leaveBalanceRepository.findLastLeaveBalance(empId);
 	}
-	public List<BalanceDataTableModel> getLeaveBalances(int year, int month, int empId) {
+	public List<LeaveBalanceModel> getLeaveBalances(int year, int month, int empId) {
 		logger.info("Service:getLeaveBalances[" + year + "/" + month + "]");
 		LeaveBalanceModel balance = new LeaveBalanceModel();
 		balance.setYear(year);
 		balance.setMonth(month);
 		balance.setEmpId(empId);
-		List<BalanceDataTableModel> balancesTable= new ArrayList<BalanceDataTableModel>();
 		List<LeaveBalanceModel> balances = null;
 		balances = leaveBalanceRepository.findLeaveBalanceByUserYearMon(balance);
-		if (CollectionUtils.isEmpty(balances)) {
-			return balancesTable;
-		}
-		balancesTable = LeaveBalanceModelToDataTable(balances);
-		return balancesTable;
+		return balances;
 	}
-	public List<BalanceDataTableModel> LeaveBalanceModelToDataTable(List<LeaveBalanceModel> lbs) {
-		List<BalanceDataTableModel> leaveBalanceDataTable = new ArrayList<BalanceDataTableModel>();
-		String[] monStr = { "Jan", "Feb", "Wed", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-		for (LeaveBalanceModel lb : lbs) {
-			BalanceDataTableModel lbt = new BalanceDataTableModel();
-			leaveBalanceDataTable.add(lbt);
-			lbt.setYear(lb.getYear());
-			lbt.setEmpId(lb.getEmpId());
-			lbt.setMonth(monStr[lb.getMonth() - 1]);
-			lbt.setShift(lb.getShift());
-			lbt.setUsedHours(lb.getUsedHours());
-			lbt.setRemainingHours(lb.getRemainingHours());
-			lbt.setTitle(lb.getDescription());
-		}
-		return leaveBalanceDataTable;
-	}
+
 	public int deleteLeaveBalance(LeaveBalanceModel model) {
 		return leaveBalanceRepository.deleteLeaveBanlanceByUserMon(model);
 	}

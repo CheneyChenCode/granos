@@ -48,6 +48,21 @@
     <!--<script src="https://code.jquery.com/jquery-3.4.1.js"></script>-->
 	<script th:inline="javascript">
         var user = /*[[${user}]]*/ 'user';
+        var translations = {
+        		remote: /*[[#{remote}]]*/ 'Remote',
+        		loading:/*[[#{loading}]]*/ 'Loading'
+        		};
+        var cardTranslations = {
+        		schedule: /*[[#{card.schedule}]]*/ 'Schedule:',
+        		actual:/*[[#{card.actual}]]*/ 'Actual:',
+        		hours:/*[[#{card.hours}]]*/ 'Hours:',
+        		totalHours:/*[[#{card.totalHours}]]*/ 'TTL:',
+        		overTime:/*[[#{card.overTime}]]*/ 'Over:',
+        		totalFreeTax:/*[[#{card.totalFreeTax}]]*/ 'TFO:'
+        		};
+        var tableTranslations = {
+        		zeroRecords: /*[[#{table.zeroRecords}]]*/ 'No matching records found'
+        		};
     </script>
 	<script>
 //     $.ajax({
@@ -110,7 +125,7 @@ $(document).ready(function() {
 					thisAlert.text("");
 				}
 			}
-			submitButton.prop('disabled', true).empty().append(spinner).append(' Loading...');
+			submitButton.prop('disabled', true).empty().append(spinner).append(' '+translations.loading+'...');
             let formData = new FormData($('#uploadForm')[0]);
 
             $.ajax({
@@ -159,6 +174,9 @@ $(document).ready(function() {
 		searching: false,
         processing: true, // 显示加载状态
         serverSide: true, // 开启服务器端处理模式
+        language: {
+        	"zeroRecords": tableTranslations.zeroRecords // 修改没有匹配记录时的提示
+        },
         ajax: {
                     url: "/getAttendance", // 外部数据源的URL
                     type: "GET", 
@@ -182,7 +200,7 @@ $(document).ready(function() {
 					if (data.shift&&data.shift.length > 2) {
 						return data.shift;
 					}else if(data.shift&&(data.shift.slice(-1)==='R'||data.shift.slice(-1)==='M')){
-						return data.startDate+' - '+data.endDate +' ' + 'Remote';
+						return data.startDate+' - '+data.endDate +' ' + translations.remote;
 					}else{
 						return data.startDate+' - '+data.endDate;
 					}
@@ -225,6 +243,9 @@ $(document).ready(function() {
 	table.on('draw.dt', function () {
 		// 获取数据
 		const tableData = table.rows().data().toArray();
+		if (tableData.length === 0) {
+		    return;
+		}
 		let previousCellValue; // 聲明 previousCellValue 變量
 		// 遍历卡片数据并创建 card 元素
 		let newRow = document.createElement('div');
@@ -243,7 +264,7 @@ $(document).ready(function() {
 			
 			let cardCol2Row1Label = document.createElement('div');
 			cardCol2Row1Label.className='col-4 col-form-label px-1';
-			cardCol2Row1Label.textContent='Schedule:';
+			cardCol2Row1Label.textContent=cardTranslations.schedule;
 			let cardCol2Row1Text = document.createElement('div');
 			cardCol2Row1Text.className='col-8 form-control-plaintext font-weight-bold';
 			if(data.dayCode===3 && data.shift && data.shift.length < 3){
@@ -257,42 +278,42 @@ $(document).ready(function() {
 			if (data.shift && data.shift.length > 2) {
 				cardCol2Row1Text.textContent =  data.shift;
 			}else if(data.shift && (data.shift.slice(-1)==='R'||data.shift.slice(-1)==='M')){
-				cardCol2Row1Text.textContent = data.startDate+' - '+data.endDate +' ' + 'Remote';
+				cardCol2Row1Text.textContent = data.startDate+' - '+data.endDate +' ' + translations.remote;
 			}else{
 				cardCol2Row1Text.textContent = data.startDate+' - '+data.endDate;
 			}
 			
 			let cardCol2Row2Label = document.createElement('div');
 			cardCol2Row2Label.className='col-4 col-form-label px-1';
-			cardCol2Row2Label.textContent='Actual:'
+			cardCol2Row2Label.textContent=cardTranslations.actual
 			let cardCol2Row2Text = document.createElement('div');
 			cardCol2Row2Text.className='col-8 form-control-plaintext font-weight-bold';
 			cardCol2Row2Text.textContent = data.arrivalDate+' - '+data.leaveDate;
 			
 			let cardCol2Row3Label = document.createElement('div');
 			cardCol2Row3Label.className='col-4 col-form-label px-1';
-			cardCol2Row3Label.textContent='Hours:';
+			cardCol2Row3Label.textContent=cardTranslations.hours;
 			let cardCol2Row3Text = document.createElement('div');
 			cardCol2Row3Text.className='col-2 form-control-plaintext font-weight-bold';
 			cardCol2Row3Text.textContent = data.hours;
 			
 			let cardCol2Row3Label2 = document.createElement('div');
 			cardCol2Row3Label2.className='col-2 col-form-label px-1';
-			cardCol2Row3Label2.textContent='TTL:';
+			cardCol2Row3Label2.textContent=cardTranslations.totalHours;
 			let cardCol2Row3Text2 = document.createElement('div');
 			cardCol2Row3Text2.className='col-4 form-control-plaintext font-weight-bold';
 			cardCol2Row3Text2.textContent = data.totalHours;
 			
 			let cardCol2Row4Label = document.createElement('div');
 			cardCol2Row4Label.className='col-4 col-form-label px-1';
-			cardCol2Row4Label.textContent='Over:';
+			cardCol2Row4Label.textContent=cardTranslations.overTime;
 			let cardCol2Row4Text = document.createElement('div');
 			cardCol2Row4Text.className='col-2 form-control-plaintext font-weight-bold';
 			cardCol2Row4Text.textContent = data.overtime;
 			
 			let cardCol2Row4Label2 = document.createElement('div');
 			cardCol2Row4Label2.className='col-2 col-form-label px-1';
-			cardCol2Row4Label2.textContent='TFO:';
+			cardCol2Row4Label2.textContent=cardTranslations.totalFreeTax;
 			let cardCol2Row4Text2 = document.createElement('div');
 			cardCol2Row4Text2.className='col-4 form-control-plaintext font-weight-bold';
 			cardCol2Row4Text2.textContent = data.taxFreeOverTime;
@@ -471,29 +492,32 @@ $(document).ready(function() {
   <body>
   	<!-- Navbar Start -->
     <div class="container-fluid bg-white position-relative">
-        <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
-            <a href="index" class="navbar-brand text-secondary">
-                <h1 class="display-4 ">
-					<span>G</span><span style="color:#ffcc00;">r</span><span>anos</span>
+		<nav
+			class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
+			<a href="index" class="navbar-brand text-secondary">
+				<h1 class="display-4 ">
+					<span>G</span><span style="color: #ffcc00;">r</span><span>anos</span>
 				</h1>
-            </a>
-            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarCollapse">
-                <div class="navbar-nav ml-auto py-0 pr-3">
-                    <a href="home" class="nav-item nav-link">Home</a>
-                    <a href="calendar" class="nav-item nav-link">Calendar</a>
-                    <a href="attendance" class="nav-item nav-link active">Attendance</a>
-                    <a href="payroll" class="nav-item nav-link">Payroll</a>
-                    <a href="balances" class="nav-item nav-link">Balances</a>
-                    <a href="administrator" class="nav-item nav-link circle-background" th:classappend="${user.jobId != 1} ? 'disabled'" >
-                    	<span class="border border-warning rounded-lg p-3" th:text="${user.character.nameEn}"></span>
-                    </a>
-                    <a href="logout" class="nav-item nav-link">Logout</a>
-                </div>
-            </div>
-        </nav>
+			</a>
+			<button type="button" class="navbar-toggler"
+				data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarCollapse">
+				<div class="navbar-nav ml-auto py-0 pr-3">
+					<a href="home" class="nav-item nav-link" th:text="#{home}">Home</a> <a
+						href="calendar" class="nav-item nav-link" th:text="#{calendar}">Calendar</a> <a
+						href="attendance" class="nav-item nav-link active" th:text="#{attendance}">Attendance</a> <a
+						href="payroll" class="nav-item nav-link" th:text="#{payroll}">Payroll</a> <a
+						href="balances" class="nav-item nav-link" th:text="#{balances}">Balances</a> <a
+						href="administrator" class="nav-item nav-link circle-background"
+						th:classappend="${user.jobId != 1} ? 'disabled'"> <span
+						class="border border-warning rounded-lg p-3"
+						th:text="${user.character.nameEn}"></span>
+					</a> <a href="logout" class="nav-item nav-link" th:text="#{logout}">Logout</a>
+				</div>
+			</div>
+		</nav>
     </div>
     <!-- Navbar End -->
 	<div class="container-fluid py-4">
@@ -529,15 +553,15 @@ $(document).ready(function() {
 					<table id="attendanceTable" class="table table-striped table-bordered">
 						<thead>
 						<tr>
-							<th>DATE</th>
-							<th>SCHEDULE</th>
-							<th>IN</th>
-							<th>OUT</th>
-							<th>WORK HOURS</th>
-							<th>OVER TIME</th>
-							<th>TAX FREE OT</th>
-							<th>REASON</th>
-							<th>NOTE</th>
+							<th th:text="#{table.date}">DATE</th>
+							<th th:text="#{table.schedule}">SCHEDULE</th>
+							<th th:text="#{table.in}">IN</th>
+							<th th:text="#{table.out}">OUT</th>
+							<th th:text="#{table.workHours}">WORK HOURS</th>
+							<th th:text="#{table.overTime}">OVER TIME</th>
+							<th th:text="#{table.taxFreeOt}">TAX FREE OT</th>
+							<th th:text="#{table.reason}">REASON</th>
+							<th th:text="#{table.note}">NOTE</th>
 						</tr>
 						</thead>
 						<tbody>
@@ -546,6 +570,7 @@ $(document).ready(function() {
 					</table>
 				</div>
 				<div class="tab-pane fade" id="table2" role="tabpanel" aria-labelledby="table2-tab">
+				<h5 class="text-center" th:text="#{table.zeroRecords}">No matching records found</h5>
 				</div>
 			</div>
 		</div>

@@ -3,8 +3,6 @@ package com.grace.granos.service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,7 +27,6 @@ import org.apache.poi.xddf.usermodel.chart.ChartTypes;
 import org.apache.poi.xddf.usermodel.chart.LegendPosition;
 import org.apache.poi.xddf.usermodel.chart.XDDFBarChartData;
 import org.apache.poi.xddf.usermodel.chart.XDDFCategoryAxis;
-import org.apache.poi.xddf.usermodel.chart.XDDFCategoryDataSource;
 import org.apache.poi.xddf.usermodel.chart.XDDFChartData;
 import org.apache.poi.xddf.usermodel.chart.XDDFChartLegend;
 import org.apache.poi.xddf.usermodel.chart.XDDFDataSource;
@@ -52,7 +49,6 @@ import com.grace.granos.dao.PayrollRepository;
 import com.grace.granos.model.AttendanceModel;
 import com.grace.granos.model.DayCodeModel;
 import com.grace.granos.model.PayCodeModel;
-import com.grace.granos.model.PayrollDataTableModel;
 import com.grace.granos.model.PayrollModel;
 import com.grace.granos.model.User;
 
@@ -66,17 +62,16 @@ public class PayrollService {
 	@Autowired
 	private AttendanceRepository attendanceRepository;
 
-	public List<PayrollDataTableModel> calculatePayroll(int year, int month, User user) {
+	public List<PayrollModel> calculatePayroll(int year, int month, User user) {
 		logger.info("Service:calculatePayroll[" + year + "/" + month + "]");
-		List<PayrollDataTableModel> payrolltable = new ArrayList<PayrollDataTableModel>();
-		List<PayrollModel> payrolls = new ArrayList<>();
+		List<PayrollModel> payrolls = new ArrayList<PayrollModel>();
 		AttendanceModel attendanceModel = new AttendanceModel();
 		attendanceModel.setEmpId(user.getCharacter().getEmpId());
 		attendanceModel.setYear(year);
 		attendanceModel.setMonth(month);
 		List<AttendanceModel> atts = attendanceRepository.findAttendanceForPayByUserMon(attendanceModel);
 		if (CollectionUtils.isEmpty(atts)) {
-			return payrolltable;
+			return payrolls;
 		}
 		List<DayCodeModel> dayCodes = payCodeRepository.findPayCodeByNow();
 		float totalWorkhours = 0;
@@ -154,12 +149,11 @@ public class PayrollService {
 			}
 		}
 		if (payrolls.isEmpty()) {
-			return payrolltable;
+			return payrolls;
 		}
 		deletePayroll(year, month, user.getCharacter().getEmpId());
 		addPayroll(payrolls);
-		payrolltable = PayrollModelToDataTable(payrolls);
-		return payrolltable;
+		return payrolls;
 	}
 
 	private PayrollModel createPayrollModel(List<PayrollModel> payrolls, float totalHours, AttendanceModel att,
@@ -205,45 +199,15 @@ public class PayrollService {
 		return pl;
 	}
 
-	public List<PayrollDataTableModel> PayrollModelToDataTable(List<PayrollModel> pls) {
-		List<PayrollDataTableModel> payrollDataTable = new ArrayList<>();
-		Map<Integer, Double> payCodeMap = pls.stream().collect(
-				Collectors.groupingBy(PayrollModel::getPayCode, Collectors.summingDouble(PayrollModel::getHours)));
-		Map<Integer, Double> taxFreeMap = pls.stream().collect(Collectors.groupingBy(PayrollModel::getPayCode,
-				Collectors.summingDouble(PayrollModel::getTaxFreeHours)));
-		List<PayrollModel> distinctPayrolls = pls.stream().distinct().collect(Collectors.toList());
-		String[] monStr = { "Jan", "Feb", "Wed", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-		for (PayrollModel pl : distinctPayrolls) {
-			PayrollDataTableModel pld = new PayrollDataTableModel();
-			payrollDataTable.add(pld);
-			pld.setYear(pl.getYear());
-			pld.setEmpId(pl.getEmpId());
-			pld.setMonth(monStr[pl.getMonth() - 1]);
-			pld.setPayCode(pl.getPayCode());
-			pld.setHours(payCodeMap.get(pl.getPayCode()).floatValue());
-			pld.setTaxFreeOverTime(taxFreeMap.get(pl.getPayCode()).floatValue());
-			pld.setTitle(pl.getTitle());
-			pld.setWeighted(pld.getHours() * pl.getCoefficient());
-			pld.setTaxFreeOverTimeWeighted(pld.getTaxFreeOverTime() * pl.getCoefficient());
-		}
-		return payrollDataTable;
-	}
-
-	public List<PayrollDataTableModel> getPayroll(int year, int month, int empId) {
+	public List<PayrollModel> getPayroll(int year, int month, int empId) {
 		logger.info("Service:getPayroll[" + year + "/" + month + "]");
 		PayrollModel payroll = new PayrollModel();
 		payroll.setYear(year);
 		payroll.setMonth(month);
 		payroll.setEmpId(empId);
 		List<PayrollModel> payrolls = null;
-		List<PayrollDataTableModel> payrollDataTable = new ArrayList<>();
 		payrolls = payrollRepository.findPayrollByUserMon(payroll);
-		if (CollectionUtils.isEmpty(payrolls)) {
-			return payrollDataTable;
-		}
-		payrollDataTable = PayrollModelToDataTable(payrolls);
-
-		return payrollDataTable;
+		return payrolls;
 	}
 
 	public void deletePayroll(int year, int month, int empid) {

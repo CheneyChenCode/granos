@@ -7,7 +7,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.grace.granos.model.User;
 import com.grace.granos.service.StaffService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class Home {
@@ -15,8 +18,10 @@ public class Home {
 	@Autowired
 	StaffService staffService;
 	@RequestMapping("/home")
-	public String home(Model model){
-		logger.info("welcome!!!");
+	public String home(Model model,HttpServletRequest request){
+		User user = staffService.getUser(request);
+		logger.info("welcome!!!" + user.getNameCn()+" " +user.getLastNameEn()+"("+user.getLastNameCn()+user.getNameCn()+")");
+		//model.addAttribute("apiKey", "AIzaSyByhl6kK0gEuCM5qX5JIVioFqnCJkUtz-w");
 		return "home";    
 	}
 }

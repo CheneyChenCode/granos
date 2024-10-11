@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.grace.granos.dao.ShiftRepository;
-import com.grace.granos.model.LeaveRequestModel;
 import com.grace.granos.model.ShiftModel;
 
 @Service
@@ -20,7 +19,6 @@ public class ShiftService {
 		List<ShiftModel> shifts = shiftRepository.findShift();
 		Map<String, ShiftModel> shiftModelMap = shifts.stream()
 				.collect(Collectors.toMap(ShiftModel::getName, shiftModel -> shiftModel));
-		LeaveRequestModel lr=new LeaveRequestModel();
 		return shiftModelMap;
 	}
 }

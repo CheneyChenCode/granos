@@ -37,8 +37,9 @@ public class Administrator {
 	@RequestMapping("/administrator")
 	public String administrator(Model model,HttpServletRequest request) throws Exception {
 		User user = staffService.getUser(request);
+		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
 		if(user.getJobId()!=1) {
-			throw new Exception("You are not authorized to access this page.");
+			throw new Exception(messageSource.getMessage("4001", null, locale));
 		}
 		return "administrator";
 	}

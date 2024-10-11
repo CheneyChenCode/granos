@@ -2,8 +2,6 @@ package com.grace.granos.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -25,6 +23,7 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.grace.granos.model.CustomException;
 @PropertySource("classpath:application.properties") // 指定属性文件的位置
 @Service
 public class FileStorageService {
@@ -65,7 +64,7 @@ public class FileStorageService {
 		return null;
 	}
 
-	public void createFile(String filename, byte[] bytes) throws IOException {
+	public void createFile(String filename, byte[] bytes) throws CustomException{
 		if (isRunningOnGCP()) {
 			List<Acl> acls = new ArrayList<>();
 			acls.add(Acl.of(Acl.User.ofAllUsers(), Acl.Role.READER));
@@ -76,7 +75,11 @@ public class FileStorageService {
 		} else {
             // 将字符串转换为 Path 对象
             Path path = Paths.get(filename);
-            Files.write(path, bytes);
+            try {
+				Files.write(path, bytes);
+			} catch (IOException e) {
+				throw new CustomException("bucket not existed.",2005);
+			}
 		}
 
 	}
