@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -13,8 +12,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -231,6 +228,11 @@ public class Attendance {
 		User user = staffService.getUser(request);
 		// 从 CookieLocaleResolver 中获取用户的语言环境
 		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
+		if(user.getJobId()!=1) {
+			rs.setStatus(4001);
+			rs.setMessage(messageSource.getMessage("4001", null, locale));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
+		}
 		String uploadMonth = "";
 		// 检查文件是否为空
 		if (file.isEmpty()) {

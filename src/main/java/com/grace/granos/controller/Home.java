@@ -20,7 +20,7 @@ public class Home {
 	@RequestMapping("/home")
 	public String home(Model model,HttpServletRequest request){
 		User user = staffService.getUser(request);
-		logger.info("welcome!!!" + user.getNameCn()+" " +user.getLastNameEn()+"("+user.getLastNameCn()+user.getNameCn()+")");
+		logger.info("welcome!!!" + user.getNameEn()+" " +user.getLastNameEn()+"("+user.getLastNameCn()+user.getNameCn()+")");
 		//model.addAttribute("apiKey", "AIzaSyByhl6kK0gEuCM5qX5JIVioFqnCJkUtz-w");
 		return "home";    
 	}

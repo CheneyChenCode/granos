@@ -252,7 +252,7 @@ $(document).ready(function() {
 		let previousDayValue;
 		let preCardCol2;
 		newRow.className='row'; // 添加 row 类
-		tableData.forEach(function(data) {
+		tableData.forEach(function(data, index) {
 			let cardCol2Row1 = document.createElement('div');
 			cardCol2Row1.className='row';
 			let cardCol2Row2 = document.createElement('div');
@@ -416,7 +416,44 @@ $(document).ready(function() {
 				cardRow.appendChild(cardCol1);
 				cardRow.appendChild(cardCol2);
 				cardBody.appendChild(cardRow);
-				newCard.appendChild(cardBody);
+				if (data.reason || data.note) {
+					let collapse1 = document.createElement('div');
+					collapse1.className='collapse';
+					collapse1.id='extraContent'+index;
+					let mt1 = document.createElement('div');
+					mt1.className = 'mt-2 text-center';
+					if (data.reason){
+						let p1 = document.createElement('p');
+						p1.textContent=data.reason;
+						mt1.appendChild(p1);
+					}else{
+						let p2 = document.createElement('p');
+						p2.textContent=data.note;
+						mt1.appendChild(p2);
+					}
+					collapse1.appendChild(mt1);
+					let btn1 = document.createElement('button');
+					btn1.className = 'btn btn-link w-100 text-center';
+					btn1.type = "button";
+					btn1.setAttribute("data-bs-toggle", "collapse"); // 添加data-toggle屬性
+					btn1.setAttribute("data-bs-target", "#extraContent"+index); // 設定 data-target
+				    let icon = document.createElement("i");
+				    icon.className = "fas fa-chevron-down"; // 初始顯示向下箭頭
+				    btn1.appendChild(icon);
+				    // 點擊事件來切換箭頭方向
+				    btn1.addEventListener("click", function() {
+				        if (icon.classList.contains("fa-chevron-down")) {
+				            icon.classList.remove("fa-chevron-down");
+				            icon.classList.add("fa-chevron-up");
+				        } else {
+				            icon.classList.remove("fa-chevron-up");
+				            icon.classList.add("fa-chevron-down");
+				        }
+				    });
+				    cardBody.appendChild(collapse1);
+				    cardBody.appendChild(btn1);
+				}
+			    newCard.appendChild(cardBody);
 				newCol.appendChild(newCard);
 				newRow.appendChild(newCol);
 			}
@@ -525,7 +562,7 @@ $(document).ready(function() {
 			<div class="col d-flex">
 				<!-- Bootstrap 标签页 -->
 				<button class="btn btn-primary me-1" type="button" onclick="switchTab()"><i id="icon" class="fas fa-list"></i></button>
-				<button type="button"  id="popup1" class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#popup"><i class="fas fa-file-import"></i></button>
+				<button type="button"  id="popup1" class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#popup" th:if="${user.jobId == 1}"><i class="fas fa-file-import"></i></button>
 			</div>
 			<div class="col text-center">
 			    <h4 id="monthTitle">Title</h3>
@@ -576,7 +613,7 @@ $(document).ready(function() {
 		</div>
    
 	<!-- 弹出式窗口 -->
-	<div id="popup" class="modal fade" aria-hidden="true" tabindex="-1"  aria-labelledby="exampleModalLabel">
+	<div id="popup" class="modal fade" aria-hidden="true" tabindex="-1"  aria-labelledby="exampleModalLabel" th:if="${user.jobId == 1}">
 		<div class="modal-dialog">
 		<div class="modal-content">
 		<div class="modal-header">
