@@ -28,7 +28,7 @@ import com.grace.granos.model.CustomException;
 @Service
 public class FileStorageService {
 	private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
-	private static final String BUCKET_NAME = "adroit-lock-435109-j7.appspot.com";
+	private static final String BUCKET_NAME = "magnificent-ray-450707-v4.appspot.com";
 	private final Storage storage;
 	@Value("${temp.folder.attendance}") // 从属性文件中注入 temp 文件夹路径的值
 	private String tempFolderPath;
