@@ -1,10 +1,22 @@
 package com.grace.granos.controller;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
+
+import javax.imageio.ImageIO;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -167,7 +179,46 @@ public class Staff {
 	        String fileName = user.getEmpId() + ".png";
 	        InputStream imageStream = fileStorageService.getAvatar(fileName);
 	        if (imageStream == null) {
-	            return ResponseEntity.notFound().build();
+	        	String initials=StringUtils.left(user.getNameEn(),1)+StringUtils.left(user.getLastNameEn(), 1);
+	            int size = 100;
+	            BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+	            Graphics2D g = image.createGraphics();
+
+	            // 抗锯齿
+	            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+	            // 🎨 生成随机背景色（避免太亮的颜色）
+	            Random rand = new Random();
+	            Color bgColor = new Color(rand.nextInt(200), rand.nextInt(200), rand.nextInt(200));
+
+	            // 画背景圆
+	            g.setColor(bgColor);
+	            g.fillOval(0, 0, size, size);
+
+	            // 写字母
+	            g.setFont(new Font("Arial", Font.BOLD, 36));
+	            g.setColor(Color.WHITE);
+	            FontMetrics fm = g.getFontMetrics();
+	            int x = (size - fm.stringWidth(initials)) / 2;
+	            int y = ((size - fm.getHeight()) / 2) + fm.getAscent();
+	            g.drawString(initials, x, y);
+
+	            g.dispose();
+
+	            // 输出 PNG 图片
+	            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+	            try {
+					ImageIO.write(image, "png", outputStream);
+				} catch (IOException e) {
+					return ResponseEntity.notFound().build();
+				}
+	            // 将 ByteArray 转换为 InputStream
+	            imageStream = new ByteArrayInputStream(outputStream.toByteArray());
+
+	            return ResponseEntity.ok()
+		                .contentType(MediaType.IMAGE_PNG)
+		                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+		                .body(new InputStreamResource(imageStream));
 	        }
 	        return ResponseEntity.ok()
 	                .contentType(MediaType.IMAGE_PNG)

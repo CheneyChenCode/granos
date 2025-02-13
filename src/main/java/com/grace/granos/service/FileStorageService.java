@@ -94,7 +94,7 @@ public class FileStorageService {
 	        byte[] content = blob.getContent(Blob.BlobSourceOption.generationMatch());
 	        imageStream = new ByteArrayInputStream(content);
 		}else {
-	            Resource resource = new ClassPathResource("static/images/header.png");
+	            Resource resource = new ClassPathResource("static/images/"+fileName+".png");
 	            try {
 					imageStream = resource.getInputStream();
 				} catch (IOException e) {
