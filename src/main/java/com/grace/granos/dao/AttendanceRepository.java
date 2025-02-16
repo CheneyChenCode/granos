@@ -158,7 +158,9 @@ public class AttendanceRepository {
 				+ " emp_id,year,month,day,seq,start_datetime,week,arrival_datetime,end_datetime,leave_datetime,work_hours,overtime,approval,note,reason,shift,day_code,status,comp_reason,comp_time,paid_leave,period,remain_tax_free,over_start_datetime,over_end_datetime"
 				+ " FROM " + " attendance" + " WHERE" + " year = ? and month = ? and emp_id = ?"
 				+ " ORDER BY day DESC, seq DESC limit 1";
-
+		logger.info("Dao:findLastAttByUserMon["+sql +"]");
+		logger.info("Dao:year["+att.getYear() +"]");
+		logger.info("Dao:year["+(att.getMonth() - 1) +"]");
 		AttendanceModel result = null;
 		try {
 			if (att.getMonth() - 1 == 0) {
