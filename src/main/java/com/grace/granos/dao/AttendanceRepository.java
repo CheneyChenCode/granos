@@ -172,6 +172,7 @@ public class AttendanceRepository {
 			}
 
 		} catch (EmptyResultDataAccessException e) {
+			logger.error(e.getMessage());
 			result = null;
 		}
 		return result;

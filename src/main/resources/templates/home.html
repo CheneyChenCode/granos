@@ -206,6 +206,10 @@
 		// 監聽 Popup 顯示事件
 		$('#popup1').on('show.bs.modal', function(e) {
 			getLocation();
+			$(this).removeAttr('aria-hidden'); // 移除 aria-hidden
+		});
+		$('#popup1').on('hidden.bs.modal', function () {
+		    $(this).attr('aria-hidden', 'true'); // 关闭后添加 aria-hidden
 		});
 	</script>
 	<!-- Template Javascript -->
