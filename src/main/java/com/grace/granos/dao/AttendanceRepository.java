@@ -159,8 +159,9 @@ public class AttendanceRepository {
 				+ " FROM " + " attendance" + " WHERE" + " year = ? and month = ? and emp_id = ?"
 				+ " ORDER BY day DESC, seq DESC limit 1";
 		logger.info("Dao:findLastAttByUserMon["+sql +"]");
+		logger.info("Dao:emp["+att.getEmpId() +"]");
 		logger.info("Dao:year["+att.getYear() +"]");
-		logger.info("Dao:year["+(att.getMonth() - 1) +"]");
+		logger.info("Dao:Month["+(att.getMonth() - 1) +"]");
 		AttendanceModel result = null;
 		try {
 			if (att.getMonth() - 1 == 0) {

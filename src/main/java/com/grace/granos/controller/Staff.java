@@ -200,7 +200,7 @@ public class Staff {
 	            g.setColor(Color.WHITE);
 	            FontMetrics fm = g.getFontMetrics();
 	            int x = (size - fm.stringWidth(initials)) / 2;
-	            int y = ((size - fm.getHeight()) / 2) + fm.getAscent()+ fm.getAscent()/2;
+	            int y = ((size - fm.getHeight()) / 2) + fm.getAscent()+ fm.getAscent()/4;
 	            g.drawString(initials, x, y);
 
 	            g.dispose();
