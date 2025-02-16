@@ -28,6 +28,7 @@ public class User {
 //	private String characterLastNameCn;
 	private int jobId;
 	private String organization;
+	private String gender;
 	private User character;
 	
 	public User() {
@@ -111,5 +112,10 @@ public class User {
 	public void setId(long id) {
 		this.id = id;
 	}
-
+	public String getGender() {
+		return gender;
+	}
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
 }

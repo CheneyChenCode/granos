@@ -25,6 +25,7 @@ public class StaffModel {
 	private String updater;
 	private int jobId;
 	private int orgId;
+	private String gender;
 	private String title;
 	private String organization;
 	
@@ -178,6 +179,14 @@ public class StaffModel {
 
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	public String getGender() {
+		return gender;
+	}
+
+	public void setGender(String gender) {
+		this.gender = gender;
 	}
 
 }

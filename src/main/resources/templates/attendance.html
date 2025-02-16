@@ -79,15 +79,20 @@
 	const currentDate = new Date();
 
 	// 获取当前年份
-	const currentYear = currentDate.getFullYear();
-
+	const url = new URL(window.location);
+	const back=parseInt(url.searchParams.get("back")) || 0;
+	const currentYear = currentDate.getFullYear()-back;
 	// 获取当前月份（注意，月份是从 0 开始计数的，所以需要加 1）
-	const currentMonth = currentDate.getMonth() + 1;
-
+	var currentMonth = currentDate.getMonth() + 1;
+	if (back > 0) {
+		currentMonth=12;
+	}
 	var specMonth=currentMonth;
 $(document).ready(function() {
+    if (back <= 0) {
+        $("#forwardBtn").hide(); // back <= 0 时隐藏按钮
+    }
 	let dropdownMenu = $('#monthDropdown');
-    
 	// Add each month up to the current month to the dropdown
 	for (let month = 1; month <= currentMonth; month++) {
 		const monthItem = '<a href="#" class="dropdown-item" onclick="updateDataTableAjax('+ month +');">' +currentYear+ '-' + month.toString().padStart(2, '0')+'</a>';
@@ -523,7 +528,16 @@ $(document).ready(function() {
 		$('#monthTitle').text(currentYear+ '-' + specMonth.toString().padStart(2, '0'));
 		table.ajax.reload(); // 重新加载数据
 	}
-
+	function backYear() {
+	    let url = new URL(window.location.href);
+	    url.searchParams.set("back", back+1); // 添加或更新参数
+	    window.location.href = url.toString(); // 重新加载页面
+	}
+	function forwardYear() {
+	    let url = new URL(window.location.href);
+	    url.searchParams.set("back", back-1); // 添加或更新参数
+	    window.location.href = url.toString(); // 重新加载页面
+	}
     </script>
   </head>
   <body>
@@ -568,6 +582,14 @@ $(document).ready(function() {
 			    <h4 id="monthTitle">Title</h3>
 			</div>
 			<div class="col d-flex justify-content-end">
+				<button class="btn btn-primary me-1" type="button"
+					onclick="backYear()">
+					<i class="fas fa-arrow-left"></i>
+				</button>
+				<button id="forwardBtn" class="btn btn-primary me-1" type="button"
+					onclick="forwardYear()">
+					<i class="fas fa-arrow-right"></i>
+				</button>
 				<a href="#" class="btn btn-primary dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown"><i class="far fa-clock"></i></a>
 				<div id="monthDropdown" class="dropdown-menu rounded-0 m-0">
 				</div>

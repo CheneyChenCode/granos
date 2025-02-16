@@ -335,7 +335,7 @@ public class Attendance {
 					leaveBanlanceService.addLeaveRequests(leaves);
 				}
 				Map<String, ShiftModel> shiftModelMap = shiftService.getshiftModelMap();
-				List<LeaveBalanceModel> lastBalance=leaveBanlanceService.findLastLeaveBalances(user.getCharacter().getEmpId());
+				List<LeaveBalanceModel> lastBalance=leaveBanlanceService.findLastLeaveBalances(user.getCharacter().getEmpId(),year);
 				if(CollectionUtils.isEmpty(lastBalance)) {
 					rs.setStatus(4001);
 					rs.setMessage(messageSource.getMessage("4001", null, locale));

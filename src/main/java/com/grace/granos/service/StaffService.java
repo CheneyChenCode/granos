@@ -56,6 +56,7 @@ public class StaffService {
 	    	userF.setLastNameCn(staff.getLastNameCn());
 	    	userF.setLastNameEn(staff.getLastNameEn());
 	    	userF.setJobId(staff.getJobId());
+	    	userF.setGender(staff.getGender());
 	    	userF.setPosition(staff.getTitle());
 	    	userF.setOrganization(staff.getOrganization());
     	}

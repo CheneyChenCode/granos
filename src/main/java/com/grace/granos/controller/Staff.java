@@ -196,7 +196,7 @@ public class Staff {
 	            g.fillOval(0, 0, size, size);
 
 	            // 写字母
-	            g.setFont(new Font("Arial", Font.BOLD, 36));
+	            g.setFont(new Font("Arial", Font.BOLD, 50));
 	            g.setColor(Color.WHITE);
 	            FontMetrics fm = g.getFontMetrics();
 	            int x = (size - fm.stringWidth(initials)) / 2;
