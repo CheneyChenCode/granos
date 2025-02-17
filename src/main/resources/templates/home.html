@@ -147,6 +147,7 @@
 	<script src="lib/isotope/isotope.pkgd.min.js"></script>
 	<script src="lib/lightbox/js/lightbox.min.js"></script>
 	<script>
+	$(document).ready(function() {
 		// 初始化地图
 		function initMap(lat, lng) {
 				let location = {
@@ -196,10 +197,17 @@
 			    }
 			});
 			// 创建内部的 spinner
-			let spinner = $('<span>', {
+			let spinner = $('<div>', {
 			    class: 'spinner-border text-light',
 			    role: 'status',
-			    'aria-hidden': 'true'
+			    css: {
+			    	width: '4rem',
+			    	height:'4rem'
+			    }
+			});
+			let spinnerSpan = $('<span>', {
+				 class: 'visually-hidden',
+				 text: "Loading..."
 			});
 			// 将 spinner 添加到容器中
 			spinnerContainer.append(spinner);
@@ -248,6 +256,14 @@
 		$('#popup1').on('hidden.bs.modal', function () {
 		    $(this).attr('aria-hidden', 'true'); // 关闭后添加 aria-hidden
 		});
+	    // 监听关闭按钮的点击事件
+	    $(".btn-close").click(function() {
+	        // 移除 spinner
+	        $("#loading-spinner").remove();
+	    });
+	    
+	});
+	
 	</script>
 	<!-- Template Javascript -->
 	<script src="js/main.js"></script>
