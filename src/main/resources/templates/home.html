@@ -169,6 +169,14 @@
 					disableDoubleClickZoom : true
 				// 禁用雙擊縮放
 				});
+			  	map.addListener("tilesloaded", () => {
+				    // 3 seconds after the center of the map has changed, pan back to the
+				    // marker.
+				    console.log(123);
+					 // **成功获取位置后**
+	                $("#loading-spinner").hide(); // 隐藏加载动画
+	                $("#map").removeAttr('hidden').show(); // **显示地图**
+				  });
 		        map.addListener('tilesloaded', function() {
 					 // **成功获取位置后**
 	                $("#loading-spinner").hide(); // 隐藏加载动画
