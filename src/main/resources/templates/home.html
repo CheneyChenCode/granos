@@ -130,14 +130,9 @@
 					<button type="button" class="btn-close" data-bs-dismiss="modal"
 						aria-label="Close"></button>
 				</div>
-				<div class="modal-body">
-				    <div id="loading-spinner" class="d-flex justify-content-center align-items-center" style="height: 250px;">
-				        <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
-				            <span class="visually-hidden">Loading...</span>
-				        </div>
-				    </div>
+				<div id="mapBody" class="modal-body">
 					<div id="map" style="height: 250px; width: 100%;"></div>
-					<div id="map-error" class="alert alert-danger text-center" style="display: none;">
+					<div id="map-error" class="alert alert-danger text-center" hidden=true>
 					</div>
 				</div>
 			</div>
@@ -193,7 +188,24 @@
 		// 获取用户的地理位置
 		function getLocation() {
 		    // 显示加载动画，隐藏地图 & 错误提示
-		    $("#loading-spinner").removeAttr('hidden').show();
+			let spinnerContainer = $('<div>', {
+			    id: 'loading-spinner',
+			    class: 'd-flex justify-content-center align-items-center',
+			    css: {
+			        height: '250px'
+			    }
+			});
+			// 创建内部的 spinner
+			let spinner = $('<span>', {
+			    class: 'spinner-border text-light',
+			    role: 'status',
+			    'aria-hidden': 'true'
+			});
+			// 将 spinner 添加到容器中
+			spinnerContainer.append(spinner);
+
+			// 将整个容器添加到某个父元素中（例如 .modal-body）
+			$("#mapBody").append(spinnerContainer);
 		    $("#map").hide();
 		    $("#map-error").hide();
 			if (navigator.geolocation) {
@@ -203,7 +215,7 @@
 					// 调用地图函数，传递经纬度
 					initMap(lat, lng);
 					 // **成功获取位置后**
-	                $("#loading-spinner").hide(); // 隐藏加载动画
+	                $("#loading-spinner").remove();; // 隐藏加载动画
 	                $("#map").removeAttr('hidden').show(); // **显示地图**
 				}, function(error) {
 					console.error('Error getting location:', error);
@@ -223,7 +235,7 @@
 				});
 			} else {
 				console.error('Geolocation is not supported by this browser.');
-		        $("#loading-spinner").hide();
+				$("#loading-spinner").remove();; // 隐藏加载动画
 		        $("#map-error").text("Geolocation is not supported by this browser.").removeAttr('hidden').show();
 			}
 		}
