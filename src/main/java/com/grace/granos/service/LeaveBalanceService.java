@@ -48,13 +48,18 @@ public class LeaveBalanceService {
 		List<LeaveBalanceModel> newBalances=new ArrayList<LeaveBalanceModel>();
 		List<LeaveBalanceModel> lastBalance=leaveBalanceRepository.findLastLeaveBalance(user.getCharacter().getEmpId(),year);
 		Map<String, ShiftModel> shiftModelMap = shiftService.getshiftModelMap();
-		List<LeaveRequestModel> lrs=new ArrayList<LeaveRequestModel>();
+		List<LeaveRequestModel> lrs;
 		if(CollectionUtils.isEmpty(lastBalance)) {
 			LeaveRequestModel lr=new LeaveRequestModel();
 			lr.setEmpId(user.getCharacter().getEmpId());
-			lr.setYear(lastBalance.get(0).getYear());
+			lr.setYear(year);
 			lrs=leaveRequestRepository.findLeaveRequestByUserYear(lr);
-			boolean exists = lrs.stream().anyMatch(x -> "balances".equals(x.getSource())&& "reset".equals(x.getNote())&&x.getHours()>0);
+			boolean exists=false;
+			if(!CollectionUtils.isEmpty(lrs)) {
+				exists = lrs.stream().anyMatch(x -> "balances".equals(x.getSource())&& "reset".equals(x.getNote())&&x.getHours()>0);
+			}else {
+				lrs=new ArrayList<LeaveRequestModel>();
+			}
 			if(!exists) {
 				if("F".equals(user.getCharacter().getGender())) {
 					LeaveRequestModel BRLE=new LeaveRequestModel();
@@ -126,7 +131,7 @@ public class LeaveBalanceService {
 					PDL.setSource("balances");
 					PDL.setShift("PDL");
 					PDL.setStatus(1);
-					PDL.setHours(72);
+					PDL.setHours(56);
 					PDL.setApprovedBy(user.getUsername());
 					PDL.setApprovedTime(Timestamp.valueOf(LocalDateTime.now()));
 					PDL.setRequester(user.getUsername());
@@ -262,7 +267,7 @@ public class LeaveBalanceService {
 					PDL.setSource("balances");
 					PDL.setShift("PDL");
 					PDL.setStatus(1);
-					PDL.setHours(72);
+					PDL.setHours(56);
 					PDL.setApprovedBy(user.getUsername());
 					PDL.setApprovedTime(Timestamp.valueOf(LocalDateTime.now()));
 					PDL.setRequester(user.getUsername());
@@ -339,9 +344,9 @@ public class LeaveBalanceService {
 				newLb.setYear(year);
 				newLb.setMonth(month);
 				newLb.setShift(shift);
-				float shiftHours=(float)requests.stream().filter(x->x.getShift().equals(shift)&&x.getHours()<0&&(x.getYear()==year&&x.getMonth()>month||x.getYear()>year)).mapToDouble(LeaveRequestModel::getHours).sum(); // 加總
+				float shiftHours=(float)requests.stream().filter(x->x.getShift().equals(shift)&&x.getHours()<0&&(x.getYear()==year||x.getYear()>year)).mapToDouble(LeaveRequestModel::getHours).sum(); // 加總
 				newLb.setUsedHours(shiftHours);
-				float plusHours=(float)requests.stream().filter(x->x.getShift().equals(shift)&&x.getHours()>0&&x.getStatus()==1&&(x.getYear()==year&&x.getMonth()>month||x.getYear()>year)).mapToDouble(LeaveRequestModel::getHours).sum();
+				float plusHours=(float)requests.stream().filter(x->x.getShift().equals(shift)&&x.getHours()>0&&x.getStatus()==1&&(x.getYear()==year||x.getYear()>year)).mapToDouble(LeaveRequestModel::getHours).sum();
 				newLb.setRemainingHours(plusHours+shiftHours);
 		        ShiftModel shiftModel=shiftModelMap.get(shift);
 				if(shiftModel!=null) {
