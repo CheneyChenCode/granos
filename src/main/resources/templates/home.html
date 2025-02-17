@@ -131,7 +131,14 @@
 						aria-label="Close"></button>
 				</div>
 				<div class="modal-body">
+				    <div id="loading-spinner" class="d-flex justify-content-center align-items-center" style="height: 250px;">
+				        <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
+				            <span class="visually-hidden">Loading...</span>
+				        </div>
+				    </div>
 					<div id="map" style="height: 250px; width: 100%;"></div>
+					<div id="map-error" class="alert alert-danger text-center" style="display: none;">
+					</div>
 				</div>
 			</div>
 		</div>
@@ -147,43 +154,52 @@
 	<script>
 		// 初始化地图
 		function initMap(lat, lng) {
-			let location = {
-				lat : lat,
-				lng : lng
-			};
-			var map = new google.maps.Map($('#map')[0], {
-				zoom : 18, // 地图缩放级别
-				center : location, // 使用獲取的緯度和經度
-				mapId : "DEMO_MAP_ID",
-				disableDefaultUI : true, // 禁用所有默認控件
-				zoomControl : false, // 禁用縮放控件
-				draggable : false, // 禁用地圖移動
-				scrollwheel : false, // 禁用滾輪縮放
-				disableDoubleClickZoom : true
-			// 禁用雙擊縮放
-			});
-			// 創建圓形
-			var circle = new google.maps.Circle({
-				strokeColor : '#FF0000',
-				strokeOpacity : 0.8,
-				strokeWeight : 2,
-				fillColor : '#FF0000',
-				fillOpacity : 0.35,
-				map : map,
-				center : location, // 圓形中心點
-				radius : 60
-			// 半徑（以米為單位）
-			});
-			// 在当前位置添加标记
-			var marker = new google.maps.marker.AdvancedMarkerElement({
-				position : location,
-				map : map,
-				title : "Here we are",
-			});
+				let location = {
+					lat : lat,
+					lng : lng
+				};
+				var map = new google.maps.Map($('#map')[0], {
+					zoom : 18, // 地图缩放级别
+					center : location, // 使用獲取的緯度和經度
+					mapId : "DEMO_MAP_ID",
+					disableDefaultUI : true, // 禁用所有默認控件
+					zoomControl : false, // 禁用縮放控件
+					draggable : false, // 禁用地圖移動
+					scrollwheel : false, // 禁用滾輪縮放
+					disableDoubleClickZoom : true
+				// 禁用雙擊縮放
+				});
+		        map.addListener('tilesloaded', function() {
+					 // **成功获取位置后**
+	                $("#loading-spinner").hide(); // 隐藏加载动画
+	                $("#map").removeAttr('hidden').show(); // **显示地图**
+		          });
+				// 創建圓形
+				var circle = new google.maps.Circle({
+					strokeColor : '#FF0000',
+					strokeOpacity : 0.8,
+					strokeWeight : 2,
+					fillColor : '#FF0000',
+					fillOpacity : 0.35,
+					map : map,
+					center : location, // 圓形中心點
+					radius : 60
+				// 半徑（以米為單位）
+				});
+				// 在当前位置添加标记
+				var marker = new google.maps.marker.AdvancedMarkerElement({
+					position : location,
+					map : map,
+					title : "Here we are",
+				});
 		}
 
 		// 获取用户的地理位置
 		function getLocation() {
+		    // 显示加载动画，隐藏地图 & 错误提示
+		    $("#loading-spinner").removeAttr('hidden').show();
+		    $("#map").hide();
+		    $("#map-error").hide();
 			if (navigator.geolocation) {
 				navigator.geolocation.getCurrentPosition(function(position) {
 					let lat = position.coords.latitude;
@@ -192,6 +208,14 @@
 					initMap(lat, lng);
 				}, function(error) {
 					console.error('Error getting location:', error);
+	                $("#loading-spinner").hide();
+	                if (error.code === error.TIMEOUT) {
+	                    $("#map-error").text("time out. Please try again later").removeAttr('hidden').show();
+	                } else if (error.code === error.PERMISSION_DENIED) {
+	                    $("#map-error").text("You are not authorized").removeAttr('hidden').show();
+	                } else {
+	                    $("#map-error").text("cannot get location").removeAttr('hidden').show();
+	                }
 				}, {
 					enableHighAccuracy : true,
 					timeout : 5000, // 5 秒超時
@@ -200,6 +224,8 @@
 				});
 			} else {
 				console.error('Geolocation is not supported by this browser.');
+		        $("#loading-spinner").hide();
+		        $("#map-error").text("Geolocation is not supported by this browser.").removeAttr('hidden').show();
 			}
 		}
 
