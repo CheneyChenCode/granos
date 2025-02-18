@@ -651,7 +651,7 @@ public class AttendanceService {
 				}
 				// date code
 				if (countDay != at.getDay()) {
-					if (totalWorkHours > 0 || (dayCode != 3 && dayCode != 4)) {
+					if (totalWorkHours > 0 || (!"DCF".equals(shiftName) && (dayCode != 3 && dayCode != 4))) {
 						countDay = at.getDay();
 						accumulateWorkDay = accumulateWorkDay + 1;
 						accumulateWorkDayInPeriod = accumulateWorkDayInPeriod + 1;
