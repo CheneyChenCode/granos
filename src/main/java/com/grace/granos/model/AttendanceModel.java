@@ -1,11 +1,29 @@
 package com.grace.granos.model;
 
 import java.sql.Timestamp;
+import java.util.Objects;
+
 import org.springframework.stereotype.Component;
 
 @Component
 public class AttendanceModel {
 	
+	@Override
+	public int hashCode() {
+		return Objects.hash(day, dayCode, empId, month, seq, shift, year);
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		AttendanceModel other = (AttendanceModel) obj;
+		return day == other.day && dayCode == other.dayCode && empId == other.empId && month == other.month
+				&& seq == other.seq && Objects.equals(shift, other.shift) && year == other.year;
+	}
 	private int seq;
 	private int dayCode;
 	private int week;
@@ -34,7 +52,14 @@ public class AttendanceModel {
 	private Timestamp overStartDatetime;
 	private Timestamp overEndDatetime;
 	private String abnormalCode;
+	private float taxFree;
 	
+	public float getTaxFree() {
+		return taxFree;
+	}
+	public void setTaxFree(float taxFree) {
+		this.taxFree = taxFree;
+	}
 	public String getAbnormalCode() {
 		return abnormalCode;
 	}

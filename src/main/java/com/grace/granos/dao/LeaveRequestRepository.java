@@ -20,15 +20,123 @@ public class LeaveRequestRepository {
 	private static final Logger logger = LoggerFactory.getLogger(LeaveRequestRepository.class);
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
+	public List<LeaveRequestModel> findAllLeaveRequestByUser(int empId){
+		String sql = " SELECT "
+						   + " emp_id, year, month, day, seq, shift, from_time, to_time, hours, status, reason, note, source, requester, approved_by, approved_time"
+						   + " FROM "
+						   + " leave_requests"
+						   + " WHERE status=1"
+						   + " and emp_id = ?"
+						   + " order by year, month,day,from_time,to_time";
+		List<LeaveRequestModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<LeaveRequestModel>(LeaveRequestModel.class), new Object[] { empId });
+		if(result != null && result.size() > 0) {
+			return result;
+		}
+		return null;
+	}
+	public List<LeaveRequestModel> findMSLRequestByYear(LeaveRequestModel lr){
+		String sql = " SELECT "
+				   + " emp_id, year, month, day, seq, shift, from_time, to_time, hours, status, reason, note, source, requester, approved_by, approved_time"
+				   + " FROM "
+				   + " leave_requests"
+				   + " WHERE status=1"
+				   + " and year = ? and emp_id = ?"
+				   + " and shift='MSL'"
+				   + " order by month,day,seq,from_time,to_time";
+		List<LeaveRequestModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<LeaveRequestModel>(LeaveRequestModel.class), new Object[] { lr.getYear(),lr.getEmpId()});
+		if(result != null && result.size() > 0) {
+			return result;
+		}
+		return null;
+	}
+	public List<LeaveRequestModel> findAllMSLRequestByYear(LeaveRequestModel lr){
+		String sql = " SELECT "
+				   + " emp_id, year, month, day, seq, shift, from_time, to_time, hours, status, reason, note, source, requester, approved_by, approved_time"
+				   + " FROM "
+				   + " leave_requests"
+				   + " WHERE status=1"
+				   + " and year = ?"
+				   + " and shift='MSL'"
+				   + " order by emp_id, month,day,seq,from_time,to_time";
+		List<LeaveRequestModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<LeaveRequestModel>(LeaveRequestModel.class), new Object[] { lr.getYear()});
+		if(result != null && result.size() > 0) {
+			return result;
+		}
+		return null;
+	}
+	public List<LeaveRequestModel> findAllMSLRequestByMon(LeaveRequestModel lr){
+		String sql = " SELECT "
+				   + " emp_id, year, month, day, seq, shift, from_time, to_time, hours, status, reason, note, source, requester, approved_by, approved_time"
+				   + " FROM "
+				   + " leave_requests"
+				   + " WHERE status=1"
+				   + " and year = ?"
+				   + " and shift='MSL' and month = ?"
+				   + " order by day,seq,from_time,to_time";
+		List<LeaveRequestModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<LeaveRequestModel>(LeaveRequestModel.class), new Object[] { lr.getYear(),lr.getMonth()});
+		if(result != null && result.size() > 0) {
+			return result;
+		}
+		return null;
+	}
+	public List<LeaveRequestModel> findMSLRequestByMon(LeaveRequestModel lr){
+		String sql = " SELECT "
+				   + " emp_id, year, month, day, seq, shift, from_time, to_time, hours, status, reason, note, source, requester, approved_by, approved_time"
+				   + " FROM "
+				   + " leave_requests"
+				   + " WHERE status=1"
+				   + " and emp_id = ? and year = ?"
+				   + " and shift='MSL' and month = ?"
+				   + " order by day,seq,from_time,to_time";
+		List<LeaveRequestModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<LeaveRequestModel>(LeaveRequestModel.class), new Object[] { lr.getEmpId(),lr.getYear(),lr.getMonth()});
+		if(result != null && result.size() > 0) {
+			return result;
+		}
+		return null;
+	}
 	public List<LeaveRequestModel> findLastLeaveRequest(LeaveRequestModel lr){
 		String sql = " SELECT "
 						   + " emp_id, year, month, day, seq, shift, from_time, to_time, hours, status, reason, note, source, requester, approved_by, approved_time"
 						   + " FROM "
 						   + " leave_requests"
 						   + " WHERE "
-						   + " status >= 1 and emp_id = ? and ((year = ? and month > ?) || year > ?)"
+						   + " status = 1 and emp_id = ? and (year > ? || (year =? and month >= ?))"
+						   + " and from_time <= current_timestamp() and to_time <= current_timestamp()"
 						   + " order by year, month,day,from_time,to_time";
-		List<LeaveRequestModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<LeaveRequestModel>(LeaveRequestModel.class), new Object[] { lr.getEmpId(),lr.getYear(),lr.getMonth(),lr.getYear()});
+		List<LeaveRequestModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<LeaveRequestModel>(LeaveRequestModel.class), new Object[] { lr.getEmpId(),lr.getYear(),lr.getYear(),lr.getMonth()});
+		if(result != null && result.size() > 0) {
+			return result;
+		}
+		return null;
+	}
+
+	public List<LeaveRequestModel> findLastNewBalancesRequestByUser(LeaveRequestModel lr){
+		String sql = " SELECT "
+						   + " emp_id, year, month, day, seq, shift, from_time, to_time, hours, status, reason, note, source, requester, approved_by, approved_time"
+						   + " FROM "
+						   + " leave_requests"
+						   + " WHERE status=1"
+						   + " and (year > ? || (year = ? and month >= ?))  and emp_id = ?"
+						   + " and source = 'balances' and note = 'reset'"
+						   + " order by year, month,day,seq,from_time,to_time";
+
+		List<LeaveRequestModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<LeaveRequestModel>(LeaveRequestModel.class), new Object[] { lr.getYear(),lr.getYear(),lr.getMonth(),lr.getEmpId()});
+		if(result != null && result.size() > 0) {
+			return result;
+		}
+		return null;
+	}
+	public List<LeaveRequestModel> findAllNewBalancesRequestByYear(LeaveRequestModel lr){
+		String sql = " SELECT "
+						   + " emp_id, year, month, day, seq, shift, from_time, to_time, hours, status, reason, note, source, requester, approved_by, approved_time"
+						   + " FROM "
+						   + " leave_requests"
+						   + " WHERE status=1"
+						   + " and year = ? "
+						   + " and source = 'balances' and note = 'reset'"
+						   + " order by emp_id, month,day,seq,from_time,to_time";
+
+		List<LeaveRequestModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<LeaveRequestModel>(LeaveRequestModel.class), new Object[] { lr.getYear()});
 		if(result != null && result.size() > 0) {
 			return result;
 		}
@@ -39,8 +147,10 @@ public class LeaveRequestRepository {
 						   + " emp_id, year, month, day, seq, shift, from_time, to_time, hours, status, reason, note, source, requester, approved_by, approved_time"
 						   + " FROM "
 						   + " leave_requests"
-						   + " WHERE "
-						   + " year = ? and emp_id = ? order by month,day,seq,from_time,to_time";
+						   + " WHERE status=1"
+						   + " and year = ? and emp_id = ?"
+						   + " and from_time <= current_timestamp() and to_time <= current_timestamp() "
+						   + " order by month,day,seq,from_time,to_time";
 
 		List<LeaveRequestModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<LeaveRequestModel>(LeaveRequestModel.class), new Object[] { lr.getYear(),lr.getEmpId()});
 		if(result != null && result.size() > 0) {
@@ -53,8 +163,10 @@ public class LeaveRequestRepository {
 						   + " emp_id, year, month, day, seq, shift, from_time, to_time, hours, status, reason, note, source, requester, approved_by, approved_time"
 						   + " FROM "
 						   + " leave_requests"
-						   + " WHERE "
-						   + " year = ? and month = ? and emp_id = ? order by from_time,to_time";
+						   + " WHERE status=1"
+						   + " and year = ? and month = ? and emp_id = ?"
+						   + " and from_time <= current_timestamp() and to_time <= current_timestamp()"
+						   + " order by from_time,to_time";
 
 		List<LeaveRequestModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<LeaveRequestModel>(LeaveRequestModel.class), new Object[] { lr.getYear(),lr.getMonth(),lr.getEmpId()});
 		if(result != null && result.size() > 0) {
@@ -62,12 +174,24 @@ public class LeaveRequestRepository {
 		}
 		return null;
 	}
+	public int deleteLeaveSumRequestByMon(LeaveRequestModel lr){
+		String sql = " DELETE "
+						   + " FROM "
+						   + " leave_requests"
+						   + " WHERE status=1"
+						   + " and source = 'balances'"
+						   + " and hours < 0"
+						   + " and (year > ? || (year = ? and month >= ?)) and emp_id = ?";
+		int result = jdbcTemplate.update(sql, lr.getYear(),lr.getYear(),lr.getMonth(),lr.getEmpId());
+		return result;
+	}
+	
 	public int deleteLeaveRequestByUserMon(LeaveRequestModel lr){
 		String sql = " DELETE "
 						   + " FROM "
 						   + " leave_requests"
-						   + " WHERE"
-						   + " year = ? and month = ? and emp_id = ? and source=?";
+						   + " WHERE status=1"
+						   + " and year = ? and month = ? and emp_id = ? and source=?";
 		int result = jdbcTemplate.update(sql, lr.getYear(),lr.getMonth(),lr.getEmpId(),lr.getSource());
 		return result;
 	}

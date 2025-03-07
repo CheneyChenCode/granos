@@ -92,7 +92,7 @@ public class Payroll {
 	public ResponseEntity<?> exportUsersToExcel(@RequestParam("year") int year,
 			@RequestParam("month") int month, HttpServletRequest request) {
 		User user=staffService.getUser(request);
-		String finlename = String.valueOf(year) + StringUtils.leftPad(String.valueOf(month), 2, "0")
+		String finlename = user.getCharacter().getNameEn()+user.getCharacter().getLastNameEn()+"_PayRoll_"+String.valueOf(year) + StringUtils.leftPad(String.valueOf(month), 2, "0")
 				+ StringUtils.leftPad(String.valueOf(user.getCharacter().getEmpId()), 4, "0");
 		ByteArrayOutputStream out;
 		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
@@ -118,28 +118,24 @@ public class Payroll {
 
 	public List<PayrollDataTableModel> PayrollModelToDataTable(List<PayrollModel> pls,Locale locale) {
 		List<PayrollDataTableModel> payrollDataTable = new ArrayList<>();
-		Map<Integer, Double> payCodeMap = pls.stream().collect(
-				Collectors.groupingBy(PayrollModel::getPayCode, Collectors.summingDouble(PayrollModel::getHours)));
-		Map<Integer, Double> taxFreeMap = pls.stream().collect(Collectors.groupingBy(PayrollModel::getPayCode,
-				Collectors.summingDouble(PayrollModel::getTaxFreeHours)));
-		List<PayrollModel> distinctPayrolls = pls.stream().distinct().collect(Collectors.toList());
+//		Map<Integer, Double> payCodeMap = pls.stream().collect(
+//				Collectors.groupingBy(PayrollModel::getPayCode, Collectors.summingDouble(PayrollModel::getHours)));
+//		Map<Integer, Double> taxFreeMap = pls.stream().collect(Collectors.groupingBy(PayrollModel::getPayCode,
+//				Collectors.summingDouble(PayrollModel::getTaxFreeHours)));
+//		List<PayrollModel> distinctPayrolls = pls.stream().distinct().collect(Collectors.toList());
 		
 		String[] monStr = { "Jan", "Feb", "Wed", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-		for (PayrollModel pl : distinctPayrolls) {
+		for (PayrollModel pl : pls) {
 			PayrollDataTableModel pld = new PayrollDataTableModel();
 			payrollDataTable.add(pld);
 			pld.setYear(pl.getYear());
 			pld.setEmpId(pl.getEmpId());
 			pld.setMonth(monStr[pl.getMonth() - 1]);
 			pld.setPayCode(pl.getPayCode());
-			pld.setHours(payCodeMap.get(pl.getPayCode()).floatValue());
-			pld.setTaxFreeOverTime(taxFreeMap.get(pl.getPayCode()).floatValue());
+			pld.setHours(pl.getHours());
+			pld.setTaxFreeOverTime(pl.getTaxFreeHours());
 			String payDescription=messageSource.getMessage("paycode."+pl.getPayCode(), null,locale);
-			if(StringUtils.isNotBlank(payDescription)) {
-				pld.setTitle(payDescription);
-			}else {
-				pld.setTitle(pl.getTitle());
-			}
+			pld.setTitle(payDescription);
 			pld.setWeighted(pld.getHours() * pl.getCoefficient());
 			pld.setTaxFreeOverTimeWeighted(pld.getTaxFreeOverTime() * pl.getCoefficient());
 		}

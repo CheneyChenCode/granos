@@ -46,7 +46,7 @@ public class Administrator {
 	@RequestMapping("/exportPayroll")
 	public ResponseEntity<?> exportPayroll(@RequestParam("year") int year,
 			@RequestParam("month") int month, HttpServletRequest request) {
-		String finlename = String.valueOf(year) + StringUtils.leftPad(String.valueOf(month), 2, "0");
+		String finlename = "AllPayRoll_"+String.valueOf(year) + StringUtils.leftPad(String.valueOf(month), 2, "0");
 		ByteArrayOutputStream out;
 		Locale locale = (Locale) request.getAttribute(CookieLocaleResolver.class.getName() + ".LOCALE");
 		try {

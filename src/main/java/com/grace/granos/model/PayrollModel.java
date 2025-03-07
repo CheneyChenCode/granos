@@ -107,15 +107,20 @@ public class PayrollModel {
 		this.creater = creater;
 	}
 	@Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        PayrollModel that = (PayrollModel) o;
-        return that.payCode==payCode && that.year==year && that.month==month;
-    }
+	public int hashCode() {
+		return Objects.hash(day, empId, month, payCode, year);
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PayrollModel other = (PayrollModel) obj;
+		return day == other.day && empId == other.empId && month == other.month && payCode == other.payCode
+				&& year == other.year;
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(year, month,payCode);
-    }
 }

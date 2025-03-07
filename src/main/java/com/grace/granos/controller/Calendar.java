@@ -1,10 +1,14 @@
 package com.grace.granos.controller;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -18,16 +22,20 @@ import com.grace.granos.model.CalendarEvent;
 import com.grace.granos.model.JsonResponse;
 import com.grace.granos.service.CalendarService;
 
-
+@PropertySource("classpath:application.properties") // 指定属性文件的位置
 @Controller
 public class Calendar {
 	private static final Logger logger = LoggerFactory.getLogger(Calendar.class);
+	@Value("${spring.time.zone}")
+	private String zoneName;
     @Autowired
 	CalendarService calendarService;
     
     @GetMapping("/importTwCalendar")
-	public ResponseEntity<JsonResponse> importTwCalendar(@RequestParam("year") String year){
-    	JsonResponse result=calendarService.importTwCalendar(year);
+	public ResponseEntity<JsonResponse> importTwCalendar(){
+		// 获取当前日期
+		LocalDateTime currentDate = LocalDateTime.now(ZoneId.of(zoneName));
+    	JsonResponse result=calendarService.importTwCalendar(String.valueOf(currentDate.getYear()));
 		if(result.getStatus()>0) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
 		}else {

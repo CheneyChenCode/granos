@@ -37,8 +37,8 @@ public class AttendanceRepository {
 
 	public List<AttendanceModel> findAttendanceForPayByUserMon(AttendanceModel att) {
 		String sql = " SELECT "
-				+ " emp_id,year,month,day,seq,work_hours,overtime,shift,day_code,remain_tax_free,paid_leave" + " FROM "
-				+ " attendance" + " WHERE " + " year = ? and month = ? and emp_id = ? order by day,seq";
+				+ " emp_id,year,month,day,day_code,shift,seq, work_hours,overtime,paid_leave,tax_free" + " FROM "
+				+ " attendance" + " WHERE " + " year = ? and month = ? and emp_id = ? order by day,seq,day_code,shift";
 
 		List<AttendanceModel> result = jdbcTemplate.query(sql,
 				new BeanPropertyRowMapper<AttendanceModel>(AttendanceModel.class),
@@ -51,7 +51,7 @@ public class AttendanceRepository {
 
 	public List<AttendanceModel> findAttendanceByUserMon(AttendanceModel att) {
 		String sql = " SELECT "
-				+ " emp_id,year,month,day,seq,start_datetime,week,arrival_datetime,end_datetime,leave_datetime,work_hours,overtime,approval,note,reason,shift,day_code,status,comp_reason,comp_time,paid_leave,period,remain_tax_free,over_start_datetime,over_end_datetime,abnormal_code"
+				+ " emp_id,year,month,day,seq,start_datetime,week,arrival_datetime,end_datetime,leave_datetime,work_hours,overtime,approval,note,reason,shift,day_code,status,comp_reason,comp_time,paid_leave,period,remain_tax_free,over_start_datetime,over_end_datetime,abnormal_code,tax_free"
 				+ " FROM " + " attendance" + " WHERE" + " year = ? and month = ? and emp_id = ? order by day,seq";
 
 		List<AttendanceModel> result = jdbcTemplate.query(sql,
@@ -76,7 +76,7 @@ public class AttendanceRepository {
 		int result = 0;
 		if (att.getMonth() - 1 == 0) {
 			result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear()-1, 12, att.getEmpId(),
-					att.getYear(), att.getMonth() - 1, att.getEmpId());
+					att.getYear()-1, 12, att.getEmpId());
 		}else {
 			result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(), att.getMonth() - 1, att.getEmpId(),
 					att.getYear(), att.getMonth() - 1, att.getEmpId());
@@ -92,7 +92,7 @@ public class AttendanceRepository {
 		int result = 0;
 		if (att.getMonth() - 1 == 0) {
 		result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear()-1, 12, att.getEmpId(),
-				att.getYear(), att.getMonth() - 1, att.getEmpId());
+				att.getYear()-1, 12, att.getEmpId());
 		}else {
 			result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(), att.getMonth() - 1, att.getEmpId(),
 					att.getYear(), att.getMonth() - 1, att.getEmpId());
@@ -107,7 +107,7 @@ public class AttendanceRepository {
 		int result = 0;
 		if (att.getMonth() - 1 == 0) {
 			result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear()-1, 12, att.getEmpId(),
-					att.getYear(), att.getMonth() - 1, att.getEmpId());
+					att.getYear()-1, 12, att.getEmpId());
 		}else {
 			result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(), att.getMonth() - 1, att.getEmpId(),
 					att.getYear(), att.getMonth() - 1, att.getEmpId());
@@ -119,11 +119,11 @@ public class AttendanceRepository {
 	public int findLastAccumulateWdPeByUserMon(AttendanceModel att) {
 		String sql = " SELECT " + " COUNT(0)" + " FROM " + " attendance" + " WHERE"
 				+ " year = ? and month = ? and emp_id = ? and day_code <> 3 and day_code <> 4"
-				+ " AND day >= (select MAX(day) from attendance where year = ? and month = ? and emp_id = ? and work_hours > 0 and period=1) and period >=1";
+				+ " AND day >= (select MAX(day) from attendance where year = ? and month = ? and emp_id = ? and (work_hours > 0 || paid_leave > 0)  and period=1) and period >=1";
 		int result = 0;
 		if (att.getMonth() - 1 == 0) {
 			result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear()-1, 12, att.getEmpId(),
-					att.getYear(), att.getMonth() - 1, att.getEmpId());
+					att.getYear()-1, 12, att.getEmpId());
 		}else {
 			result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(), att.getMonth() - 1, att.getEmpId(),
 					att.getYear(), att.getMonth() - 1, att.getEmpId());
@@ -141,7 +141,7 @@ public class AttendanceRepository {
 		try {
 			if(att.getMonth() - 1==0) {
 				result = jdbcTemplate.queryForObject(sql, String.class, att.getYear()-1, 12, att.getEmpId(),
-						att.getYear(), att.getMonth() - 1, att.getEmpId());
+						att.getYear()-1, 12, att.getEmpId());
 			}else {
 				result = jdbcTemplate.queryForObject(sql, String.class, att.getYear(), att.getMonth() - 1, att.getEmpId(),
 						att.getYear(), att.getMonth() - 1, att.getEmpId());
@@ -155,7 +155,7 @@ public class AttendanceRepository {
 
 	public AttendanceModel findLastAttByUserMon(AttendanceModel att) {
 		String sql = " SELECT "
-				+ " emp_id,year,month,day,seq,start_datetime,week,arrival_datetime,end_datetime,leave_datetime,work_hours,overtime,approval,note,reason,shift,day_code,status,comp_reason,comp_time,paid_leave,period,remain_tax_free,over_start_datetime,over_end_datetime"
+				+ " emp_id,year,month,day,seq,start_datetime,week,arrival_datetime,end_datetime,leave_datetime,work_hours,overtime,approval,note,reason,shift,day_code,status,comp_reason,comp_time,paid_leave,period,remain_tax_free,tax_free,over_start_datetime,over_end_datetime"
 				+ " FROM " + " attendance" + " WHERE" + " year = ? and month = ? and emp_id = ?"
 				+ " ORDER BY day DESC, seq DESC limit 1";
 		AttendanceModel result = null;
@@ -183,9 +183,9 @@ public class AttendanceRepository {
 				+ "		day, seq, arrival_datetime, leave_datetime," + "work_hours, note, approval,"
 				+ "		creater, day_code, " + "overtime, start_datetime, end_datetime, week,"
 				+ "		reason, shift, status,comp_time,comp_reason,"
-				+ "		period,paid_leave,remain_tax_free,over_start_datetime," + "over_end_datetime,abnormal_code" + " ) "
+				+ "		period,paid_leave,remain_tax_free,over_start_datetime," + "over_end_datetime,abnormal_code,tax_free" + " ) "
 				+ " VALUES ( " + "?, ?, ?, " + "?, ?, ?, " + "?, ?, ?, " + "?, ?, ?, "
-				+ "		?, ?, ?, " + "?, ?, ?, " + "?, ?, ?, " + "		?, ?, ?, " + "?, ?,?" + " ) ";
+				+ "		?, ?, ?, " + "?, ?, ?, " + "?, ?, ?, " + "		?, ?, ?, " + "?, ?,?,?" + " ) ";
 		return jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
 			@Override
@@ -254,6 +254,7 @@ public class AttendanceRepository {
 					ps.setTimestamp(26, null);//overEndDatetime
 				}
 				ps.setString(27, models.get(i).getAbnormalCode());//abnormal_code
+				ps.setFloat(28, models.get(i).getTaxFree());// tax_free
 			}
 
 			@Override

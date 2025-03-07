@@ -74,6 +74,10 @@ public class StaffService {
 				user.setLastNameEn(ss.getLastNameEn());
 				user.setNameCn(ss.getNameCn());
 				user.setUsername(ss.getUsername());
+				user.setGender(ss.getGender());
+				user.setJobId(ss.getJobId());
+				user.setPosition(ss.getTitle());
+				user.setOrganization(ss.getOrganization());
 				userN.add(user);
 			}
 		}

@@ -1,6 +1,5 @@
 package com.grace.granos.controller;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -8,10 +7,14 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +39,7 @@ import com.grace.granos.model.CustomException;
 import com.grace.granos.model.JsonResponse;
 import com.grace.granos.model.LeaveBalanceModel;
 import com.grace.granos.model.LeaveRequestModel;
+import com.grace.granos.model.PayrollModel;
 import com.grace.granos.model.ShiftModel;
 import com.grace.granos.model.User;
 import com.grace.granos.service.AttendanceService;
@@ -185,35 +189,35 @@ public class Attendance {
 			caledarEvent.setNote(att.getNote());
 			caledarEvent.setDayCode(att.getDayCode());
 			caledarEvent.setPeriod(att.getPeriod());
-			long taxFreeOverHours = 0;
-			long taxFreeOverMinutes = 0;
-			if (att.getRemainTaxFree() > 0) {
-				if (att.getDayCode() != 1 && att.getDayCode() != 5) {
-					taxFreeOverHours = (int) att.getWorkHours();
-					taxFreeOverMinutes = Math.round((att.getWorkHours() - taxFreeOverHours) * 60);
-				} else {
-					taxFreeOverHours = (int) att.getOvertime();
-					taxFreeOverMinutes = Math.round((att.getOvertime() - taxFreeOverHours) * 60);
-				}
-			} else {
-				if (att.getDayCode() != 1 && att.getDayCode() != 5) {
-					taxFreeOverHours = (int) (att.getRemainTaxFree() + att.getWorkHours());
-					if (taxFreeOverHours > 0) {
-						taxFreeOverMinutes = Math
-								.round((att.getRemainTaxFree() + att.getWorkHours() - taxFreeOverHours) * 60);
-					} else {
-						taxFreeOverHours = 0;
-					}
-				} else {
-					taxFreeOverHours = (int) (att.getRemainTaxFree() + att.getOvertime());
-					if (taxFreeOverHours > 0) {
-						taxFreeOverMinutes = Math
-								.round((att.getRemainTaxFree() + att.getOvertime() - taxFreeOverHours) * 60);
-					} else {
-						taxFreeOverHours = 0;
-					}
-				}
-			}
+			int taxFreeOverHours = (int) att.getTaxFree();
+			int taxFreeOverMinutes = Math.round((att.getTaxFree() - taxFreeOverHours) * 60);
+//			if (att.getRemainTaxFree() > 0) {
+//				if (att.getDayCode() != 1 && att.getDayCode() != 5) {
+//					taxFreeOverHours = (int) att.getWorkHours();
+//					taxFreeOverMinutes = Math.round((att.getWorkHours() - taxFreeOverHours) * 60);
+//				} else {
+//					taxFreeOverHours = (int) att.getOvertime();
+//					taxFreeOverMinutes = Math.round((att.getOvertime() - taxFreeOverHours) * 60);
+//				}
+//			} else {
+//				if (att.getDayCode() != 1 && att.getDayCode() != 5) {
+//					taxFreeOverHours = (int) (att.getRemainTaxFree() + att.getWorkHours());
+//					if (taxFreeOverHours > 0) {
+//						taxFreeOverMinutes = Math
+//								.round((att.getRemainTaxFree() + att.getWorkHours() - taxFreeOverHours) * 60);
+//					} else {
+//						taxFreeOverHours = 0;
+//					}
+//				} else {
+//					taxFreeOverHours = (int) (att.getRemainTaxFree() + att.getOvertime());
+//					if (taxFreeOverHours > 0) {
+//						taxFreeOverMinutes = Math
+//								.round((att.getRemainTaxFree() + att.getOvertime() - taxFreeOverHours) * 60);
+//					} else {
+//						taxFreeOverHours = 0;
+//					}
+//				}
+//			}
 			caledarEvent.setTaxFreeOverTime(df.format(taxFreeOverHours) + ":" + df.format(taxFreeOverMinutes));
 		}
 		
@@ -326,62 +330,100 @@ public class Attendance {
 				lr.setMonth(month);
 				lr.setSource("attendance");
 				leaveBanlanceService.deleteLeaveRequests(lr);
+				leaveBanlanceService.deleteLeaveSumRequestByMon(lr);
 				LeaveBalanceModel lb=new LeaveBalanceModel();
 				lb.setYear(year);
 				lb.setMonth(month);
 				lb.setEmpId(user.getCharacter().getEmpId());
-				leaveBanlanceService.deleteLeaveBalance(lb);
+				leaveBanlanceService.deleteLeaveBalance(lb);;
+				leaveBanlanceService.resetBalancesByUser(year,month, currentDate, zoneName,user);
 				if(!CollectionUtils.isEmpty(leaves)) {
 					leaveBanlanceService.addLeaveRequests(leaves);
 				}
 				Map<String, ShiftModel> shiftModelMap = shiftService.getshiftModelMap();
-				List<LeaveBalanceModel> lastBalance=leaveBanlanceService.findLastLeaveBalances(user.getCharacter().getEmpId(),year);
+				
+				List<LeaveBalanceModel> lastBalance=leaveBanlanceService.findLastLeaveBalanceByMon(lb);
 				if(CollectionUtils.isEmpty(lastBalance)) {
-					rs.setStatus(4001);
-					rs.setMessage(messageSource.getMessage("4001", null, locale));
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
-				}
-				int cMon= lastBalance.get(0).getMonth();
-				int cYear=lastBalance.get(0).getYear();
-				lr.setEmpId(user.getCharacter().getEmpId());
-				lr.setYear(cYear);
-				lr.setMonth(cMon);
-				List<LeaveRequestModel> lrs=leaveBanlanceService.findLastLeaveRequest(lr);
-				int diffMon=0;
-				if(currentDate.getYear()>lastBalance.get(0).getYear()) {
-					diffMon=12-lastBalance.get(0).getMonth()+currentDate.getMonthValue();
-				}else {
-					diffMon=currentDate.getMonthValue()-lastBalance.get(0).getMonth();
-				}
-				for(int i=1;i<=diffMon;i++) {
-					cMon=cMon+1;
-					if(cMon>12) {
-						cYear=cYear+1;
-						cMon=1;
+//					rs.setStatus(4001);
+//					rs.setMessage(messageSource.getMessage("4001", null, locale));
+//					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
+					List<LeaveRequestModel> lrs=leaveBanlanceService.findAllLeaveRequestByUser(empid);
+					int cMon= lrs.get(0).getMonth();
+					int cYear=lrs.get(0).getYear();
+					if(cYear > year || (cYear==year && cMon>month)) {
+						cMon=month;
+						cYear=year;
 					}
-					lastBalance=leaveBanlanceService.calculateBalancesPreMon(cYear, cMon, user, lastBalance, shiftModelMap, lrs);
+					int diffMon=0;
+					if(currentDate.getYear()>cYear) {
+						int diffYear=currentDate.getYear()-cYear;
+						diffMon=(diffYear-1)*12+12-cMon+currentDate.getMonthValue();
+					}else {
+						diffMon=currentDate.getMonthValue()-cMon;
+					}
+					for(int i=1;i<=diffMon;i++) {
+						lastBalance=leaveBanlanceService.calculateBalancesPreMonByRequest(cYear, cMon, user, lastBalance, shiftModelMap, lrs,currentDate);
+						cMon=cMon+1;
+						if(cMon>12) {
+							cYear=cYear+1;
+							cMon=1;
+						}
+					}
+				}else {
+			        Optional<LeaveBalanceModel> maxBalance = lastBalance.stream().filter(x -> x.getYear()<year || (x.getYear()==year && x.getMonth() < month))
+			                .max(Comparator.comparingInt(LeaveBalanceModel::getYear)
+			                    .thenComparingInt(LeaveBalanceModel::getMonth));
+			        if (maxBalance.isPresent()) {
+			            int maxYear = maxBalance.get().getYear();
+			            int maxMonth = maxBalance.get().getMonth();
+
+			            // 筛选所有 year == maxYear 且 month == maxMonth 的记录
+			            lastBalance = lastBalance.stream()
+			                .filter(x -> x.getYear() == maxYear && x.getMonth() == maxMonth)
+			                .collect(Collectors.toList());
+			        }
+					int cMon= lastBalance.get(0).getMonth();
+					int cYear=lastBalance.get(0).getYear();
+					lr.setEmpId(user.getCharacter().getEmpId());
+					lr.setYear(cYear);
+					lr.setMonth(cMon);
+					List<LeaveRequestModel> lrs=leaveBanlanceService.findLastLeaveRequest(lr);
+					int diffMon=0;
+					if(currentDate.getYear()>cYear) {
+						int diffYear=currentDate.getYear()-cYear;
+						diffMon=(diffYear-1)*12+12-cMon+currentDate.getMonthValue();
+					}else {
+						diffMon=currentDate.getMonthValue()-cMon;
+					}
+					for(int i=1;i<diffMon;i++) {
+						cMon=cMon+1;
+						if(cMon>12) {
+							cYear=cYear+1;
+							cMon=1;
+						}
+						lastBalance=leaveBanlanceService.calculateBalancesPreMon(cYear, cMon, user, lastBalance, shiftModelMap, lrs,currentDate);
+					}
 				}
 				if (StringUtil.isNotBlank(abnormalMessage)) {
 					rs.setData(messageSource.getMessage("2006", null, locale) + abnormalMessage);
+				}else {
+					List<PayrollModel> payRolls = payrollService.calculatePayroll(year, month,user);
+					if(CollectionUtils.isEmpty(payRolls)) {
+						rs.setData(messageSource.getMessage("2024", null, locale));
+					}
 				}
 			}
 		} catch (CustomException e) {
-			if(e.getStatus()>0) {
-				rs.setStatus(e.getStatus());
-				rs.setMessage(uploadMonth+messageSource.getMessage(String.valueOf(e.getStatus()), null, locale));
-			}else {
-				rs.setStatus(2003);
-				rs.setMessage(uploadMonth+messageSource.getMessage("2003", null, locale)+e.getCause().getMessage());
-				rs.setData(e.getMessage());
-			}
-
+			rs.setStatus(e.getStatus());
+			rs.setMessage(uploadMonth+messageSource.getMessage("2003", null, locale)+e.getCause().getMessage());
+			rs.setData(e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
-		} catch (IOException e) {
+		}catch (Exception e) {
 			rs.setStatus(2003);
 			rs.setMessage(uploadMonth+messageSource.getMessage("2003", null, locale)+e.getMessage());
 			rs.setData(e.getMessage());
-		}
-
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rs);
+		} 
 		// 将数据存储到数据库或执行其他操作
 		// attendanceService.saveAttendances(attendances);
 

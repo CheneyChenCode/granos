@@ -34,10 +34,10 @@ public class PayrollRepository {
 		return null;
 	}
 	public List<PayrollModel> findPayrollByUserMon(PayrollModel pay) {
-		String sql = " SELECT " + " r.emp_id,r.year,r.month,r.day,r.pay_code,p.title,SUM(r.hours) hours,p.coefficient,SUM(r.tax_free_hours) tax_free_hours"
+		String sql = " SELECT " + " r.emp_id,r.year,r.month,r.pay_code,p.title,SUM(r.hours) hours,p.coefficient,SUM(r.tax_free_hours) tax_free_hours"
 				+ " FROM " + " payroll r inner join pay_code p on p.id=r.pay_code" + " WHERE"
 				+ " r.year = ? and r.month = ? and r.emp_id = ?"
-				+ " GROUP BY r.emp_id,r.year,r.month,r.day,r.pay_code,p.title,p.coefficient" + " order by r.pay_code";
+				+ " GROUP BY r.emp_id,r.year,r.month,r.pay_code,p.title,p.coefficient" + " order by r.pay_code";
 
 		List<PayrollModel> result = jdbcTemplate.query(sql, new BeanPropertyRowMapper<PayrollModel>(PayrollModel.class),
 				new Object[] { pay.getYear(), pay.getMonth(), pay.getEmpId() });

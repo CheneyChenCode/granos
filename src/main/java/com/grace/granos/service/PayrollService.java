@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -74,79 +76,109 @@ public class PayrollService {
 			return payrolls;
 		}
 		List<DayCodeModel> dayCodes = payCodeRepository.findPayCodeByNow();
-		float totalWorkhours = 0;
-		float totalPaidLeave = 0;
-		int day = 0;
-		for (AttendanceModel att : atts) {
-			float workHours = att.getWorkHours();
-			float paidLeave = att.getPaidLeave();
-			if (day != att.getDay()) {
-				day = att.getDay();
-				totalWorkhours = workHours;
-				totalPaidLeave = paidLeave;
-			} else {
-				totalWorkhours = totalWorkhours + workHours;
-				totalPaidLeave = totalPaidLeave + paidLeave;
-			}
-			List<DayCodeModel> filAttsByDc = dayCodes.stream().filter(x -> att.getDayCode() == x.getDayCode())
-					.collect(Collectors.toList());
-			for (DayCodeModel dc : filAttsByDc) {
-				List<PayCodeModel> filAttsByShift = dc.getPayCode().stream()
-						.filter(x -> att.getDayCode() == x.getDayCode() && att.getShift().equals(x.getShift()))
-						.collect(Collectors.toList());
-				for (PayCodeModel pc : filAttsByShift) {
-					// float hours=0;
-					float currentHourPartGreater = StringUtils.isNotEmpty(pc.getHourPartGreater())
-							? Float.parseFloat(pc.getHourPartGreater())
-							: 0;
-					float currentHourPartLess = StringUtils.isNotEmpty(pc.getHourPartLess())
-							? Float.parseFloat(pc.getHourPartLess())
-							: Float.MAX_VALUE;
-					if (paidLeave > 0 && totalPaidLeave > currentHourPartGreater) {
-						PayrollModel pl = createPayrollModel(payrolls, totalPaidLeave, att, pc, currentHourPartGreater,
-								currentHourPartLess, user);
-						if (pl == null) {
-							continue;
-						}
-						logger.info("month:" + pl.getMonth() + ",day:" + pl.getDay() + ",seq" + att.getSeq() + ",shift:"
-								+ pc.getShift() + ",payCode:" + pl.getPayCode());
-						logger.info("workHours:" + pl.getHours() + ",TaxFreeHours:" + pl.getTaxFreeHours());
-						continue;
-					}
+		Map<Integer, Map<Integer, Map<String, List<AttendanceModel>>>> groupedAtts = atts.stream()
+				.collect(Collectors.groupingBy(AttendanceModel::getDay, // 第一级分组：按 day
+						LinkedHashMap::new, // 让 day 维持插入顺序
+						Collectors.groupingBy(AttendanceModel::getDayCode, // 第二级分组：按 dayCode
+								LinkedHashMap::new, // 让 dayCode 维持插入顺序
+								Collectors.groupingBy(AttendanceModel::getShift, LinkedHashMap::new,
+										Collectors.toList()) // 第三级分组：按 shift
+						)));
+		for (Entry<Integer, Map<Integer, Map<String, List<AttendanceModel>>>> entry : groupedAtts.entrySet()) {
+			Map<Integer, Map<String, List<AttendanceModel>>> dayMap = entry.getValue();
+			List<AttendanceModel> dayAttendances = dayMap.values().stream()
+					.flatMap(innerMap -> innerMap.values().stream()).flatMap(List::stream).collect(Collectors.toList());
+			for (Entry<Integer, Map<String, List<AttendanceModel>>> entry2 : dayMap.entrySet()) {
+				int dayCode = entry2.getKey();
+				Optional<DayCodeModel> filAttsByDc = dayCodes.stream().filter(x -> dayCode == x.getDayCode())
+						.findFirst();
+				if (filAttsByDc.isPresent()) {
+					List<PayCodeModel> filAttsByShift = filAttsByDc.get().getPayCode();
+					Map<String, List<AttendanceModel>> shiftMap = entry2.getValue();
+					for (Entry<String, List<AttendanceModel>> entry3 : shiftMap.entrySet()) {
+						String shift = entry3.getKey();
+						List<AttendanceModel> dayShiftAtts = entry3.getValue();
+						float totalTax= (float) dayShiftAtts.stream()
+							    .mapToDouble(AttendanceModel::getTaxFree)
+							    .sum();
+						List<PayCodeModel> pces = filAttsByShift.stream().filter(x -> x.getShift().equals(shift))
+								.toList();
+						if (!CollectionUtils.isEmpty(pces)) {
+							for(PayCodeModel pc:pces) {
+								float currentHourPartGreater = StringUtils.isNotEmpty(pc.getHourPartGreater())
+										? Float.parseFloat(pc.getHourPartGreater())
+										: 0;// 0
+								float currentHourPartLess = StringUtils.isNotEmpty(pc.getHourPartLess())
+										? Float.parseFloat(pc.getHourPartLess())
+										: Float.MAX_VALUE;// 8
+								float totalHours=0;
+								float payHours=0;
+								float tax=0;
+								for (AttendanceModel att : dayAttendances) {
+									float from = totalHours;
+									totalHours = totalHours + att.getWorkHours() + att.getPaidLeave();
+									float to = totalHours;		
 
-					if (totalWorkhours > currentHourPartGreater) {
-						PayrollModel pl = createPayrollModel(payrolls, totalWorkhours, att, pc, currentHourPartGreater,
-								currentHourPartLess, user);
-						if (pl == null) {
-							continue;
-						}
-						float taxFreeOverTime = pl.getHours();
-						if (currentHourPartGreater == 0 && currentHourPartLess == 8
-								&& (pc.getDayCode() == 1 || pc.getDayCode() == 5)) {
-							taxFreeOverTime = 0;
-						} else {
-							if (att.getRemainTaxFree() < 0) {
-								// Sum the salaries where the condition is met
-								float totalRemainTaxFree = (float) payrolls.stream()
-										.filter(x -> x.getDay() == att.getDay() && x.getYear() == att.getYear()
-												&& x.getMonth() == att.getMonth()) // condition: only include if
-																					// overtime is true
-										.mapToDouble(PayrollModel::getTaxFreeHours).sum();
-								if (taxFreeOverTime + (att.getRemainTaxFree() + totalRemainTaxFree) >= 0) {
-									taxFreeOverTime = taxFreeOverTime + (att.getRemainTaxFree() + totalRemainTaxFree);
-								} else {
-									taxFreeOverTime = 0;
+									if(dayShiftAtts.contains(att)) {
+										if (from <= currentHourPartGreater) {
+											from=currentHourPartGreater;
+											if (to <= currentHourPartGreater) {
+												to=0;
+											}else {
+												if (to > currentHourPartLess) {
+													to=currentHourPartLess;
+												}
+											}
+										}else {
+											if (to > currentHourPartLess) {
+												to=currentHourPartLess;
+											}
+										}
+										payHours=to-from;
+										if (payHours > 0) {
+											if (currentHourPartGreater >= 8 || (pc.getDayCode() != 1 && pc.getDayCode() != 5)) {
+												if(totalTax>0) {
+													if(payHours>totalTax) {
+														tax=totalTax;
+													}else {
+														tax=payHours;
+													}
+													totalTax=totalTax-tax;
+												}
+											}
+											Optional<PayrollModel> pcPre=payrolls.stream().filter(x->x.getDay()==att.getDay() && x.getMonth()==att.getMonth() && x.getPayCode()==pc.getId()).findFirst();
+											if(pcPre.isPresent()) {
+												PayrollModel pl=pcPre.get();
+												pl.setToHour(to);
+												pl.setHours(pl.getHours()+payHours);
+												pl.setTaxFreeHours(pl.getTaxFreeHours()+tax);
+											}else {
+												PayrollModel pl = new PayrollModel();
+												payrolls.add(pl);
+												pl.setEmpId(att.getEmpId());
+												pl.setDay(att.getDay());
+												pl.setMonth(att.getMonth());
+												pl.setCreater(user.getUsername());
+												pl.setPayCode(pc.getId());
+												pl.setYear(att.getYear());
+												pl.setTitle(pc.getTitle());
+												pl.setCoefficient(pc.getCoefficient());
+												pl.setFromHour(from);
+												pl.setToHour(to);
+												pl.setHours(payHours);
+												pl.setTaxFreeHours(tax);
+											}
+										}
+									}else {
+										continue;
+									}
 								}
 							}
 						}
-						pl.setTaxFreeHours(taxFreeOverTime);
-						logger.info("month:" + pl.getMonth() + ",day:" + pl.getDay() + ",seq" + att.getSeq() + ",shift:"
-								+ pc.getShift() + ",payCode:" + pl.getPayCode());
-						logger.info("workHours:" + pl.getHours() + ",TaxFreeHours:" + pl.getTaxFreeHours());
 					}
-
 				}
 			}
+
 		}
 		if (payrolls.isEmpty()) {
 			return payrolls;
@@ -154,49 +186,6 @@ public class PayrollService {
 		deletePayroll(year, month, user.getCharacter().getEmpId());
 		addPayroll(payrolls);
 		return payrolls;
-	}
-
-	private PayrollModel createPayrollModel(List<PayrollModel> payrolls, float totalHours, AttendanceModel att,
-			PayCodeModel pc, float currentHourPartGreater, float currentHourPartLess, User user) {
-		if (totalHours < currentHourPartLess) {
-			currentHourPartLess = totalHours;
-		}
-		float hours = 0;
-		hours = currentHourPartLess - currentHourPartGreater;
-		PayrollModel pl = null;
-		if (att.getSeq() > 1) {
-			List<PayrollModel> matchingPayrolls = payrolls.stream()
-					.filter(p -> p.getPayCode() != pc.getId() && p.getDay() == att.getDay())
-					.collect(Collectors.toList());
-
-			if (!matchingPayrolls.isEmpty()) {
-				for (PayrollModel matchingPl : matchingPayrolls) {
-					if (matchingPl.getToHour() > currentHourPartGreater) {
-						currentHourPartGreater = matchingPl.getToHour();
-					}
-					logger.info("minus:" + matchingPl.getPayCode() + ",day: " + matchingPl.getDay() + ", month: "
-							+ matchingPl.getMonth() + ",from:" + matchingPl.getFromHour() + ",to:"
-							+ matchingPl.getToHour());
-					hours = currentHourPartLess - currentHourPartGreater;
-				}
-			}
-		}
-		if (hours > 0) {
-			pl = new PayrollModel();
-			payrolls.add(pl);
-			pl.setEmpId(att.getEmpId());
-			pl.setDay(att.getDay());
-			pl.setMonth(att.getMonth());
-			pl.setCreater(user.getUsername());
-			pl.setPayCode(pc.getId());
-			pl.setYear(att.getYear());
-			pl.setTitle(pc.getTitle());
-			pl.setCoefficient(pc.getCoefficient());
-			pl.setFromHour(currentHourPartGreater);
-			pl.setToHour(currentHourPartLess);
-			pl.setHours(hours);
-		}
-		return pl;
 	}
 
 	public List<PayrollModel> getPayroll(int year, int month, int empId) {
@@ -333,7 +322,7 @@ public class PayrollService {
 
 			// 設置圖表數據範圍
 			XDDFDataSource<String> categories = XDDFDataSourcesFactory.fromStringCellRange(sheet1,
-					new CellRangeAddress(1, rowNum - 1, 0, 1));
+					new CellRangeAddress(1, rowNum - 1, 1, 1));
 			XDDFNumericalDataSource<Double> totalHours = XDDFDataSourcesFactory.fromNumericCellRange(sheet1,
 					new CellRangeAddress(1, rowNum - 1, index, index));
 			XDDFNumericalDataSource<Double> totalpreHours = XDDFDataSourcesFactory.fromNumericCellRange(sheet1,
