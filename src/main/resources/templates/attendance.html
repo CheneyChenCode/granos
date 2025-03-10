@@ -269,7 +269,7 @@ $(document).ready(function() {
 				 cardCol2Row1Label.style.color = 'deepskyblue';
 				 cardCol2Row1Text.style.color = 'deepskyblue';
 			}
-			if(data.dayCode>3 && data.shift && data.shift.length < 3){
+			if((data.dayCode>3||data.dayCode===2) && data.shift && data.shift.length < 3){
 				 cardCol2Row1Label.style.color = 'orangered';
 				 cardCol2Row1Text.style.color = 'orangered';
 			}
