@@ -240,8 +240,10 @@ $(document).ready(function() {
 	// 等待 DataTable 加载完成
 	table.on('draw.dt', function () {
 		// 获取数据
+		let table2 = $('#table2');
 		const tableData = table.rows().data().toArray();
 		if (tableData.length === 0) {
+			table2.empty().append('<div class="text-center p-3" style="background-color: #eaebed; color: #000;">No matching records found</div>');
 		    return;
 		}
 		let previousCellValue; // 聲明 previousCellValue 變量
@@ -457,7 +459,6 @@ $(document).ready(function() {
 			}
 
 		});
-		let table2 = $('#table2');
 		table2.empty().append(newRow);
 	});
 	table.on('draw', function () {

@@ -179,7 +179,9 @@
 											// 获取数据
 											const tableData = table.rows()
 													.data().toArray();
+											let table2 = $('#table2');
 											if (tableData.length === 0) {
+												table2.empty().append('<div class="text-center p-3" style="background-color: #eaebed; color: #000;">No matching records found</div>');
 											    return;
 											}
 											let previousCellValue; // 聲明 previousCellValue 變量
@@ -305,7 +307,6 @@
 														newRow
 																.appendChild(newCol);
 													});
-											let table2 = $('#table2');
 											table2.empty().append(newRow);
 										});
 						if (isMobileDevice()) {
