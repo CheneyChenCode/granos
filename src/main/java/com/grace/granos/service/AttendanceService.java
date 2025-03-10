@@ -677,7 +677,7 @@ public class AttendanceService {
 					// 比较两个时间字符串
 					long comparisonResult = ChronoUnit.SECONDS.between(at.getStartDatetime().toLocalDateTime(), at
 							.getArrivalDatetime().toLocalDateTime().truncatedTo(java.time.temporal.ChronoUnit.MINUTES));
-					if (comparisonResult > 0) {
+//					if (comparisonResult > 0) {
 						at.setStartDatetime(at.getArrivalDatetime());
 						arriveLate = comparisonResult;
 						at.setEndDatetime(
@@ -685,7 +685,7 @@ public class AttendanceService {
 						if (shiftName.length() == 2 && comparisonResult > 3600) {
 							//setAbnormalAttendance(at, 2016);
 						}
-					}
+//					}
 				}
 				AttendanceModel at2 = null;
 				float totalWorkHours = 0;
