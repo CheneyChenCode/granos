@@ -713,6 +713,9 @@ public class AttendanceService {
 							}
 						}
 						if (dayCode != endDayCode && (dayCode == 5 || endDayCode == 5)) {
+							if(endDayCode!=5) {
+								endDayCode=1;
+							}
 							at2 = new AttendanceModel();
 							attendanceDatas.add(at2);
 							seq = seq + 1;
@@ -743,7 +746,7 @@ public class AttendanceService {
 							at2.setArrivalDatetime(at.getLeaveDatetime());
 							at2.setStartDatetime(at.getLeaveDatetime());
 							at.setEndDatetime(at.getLeaveDatetime());
-							float workHours2 = calculateWork(formulaEvaluator, row, at2, shift,shiftCurrentMonthShift);
+							float workHours2 = calculateWork(formulaEvaluator, row, at2, shift,shiftCurrentMonthShift,dayCode);
 							// paid leave
 							if (at2.getShift().length() > 2) {
 								paidLeaveHours = paidLeaveHours + workHours2;
@@ -754,11 +757,10 @@ public class AttendanceService {
 									at2.setWorkHours(workHours2);
 									totalWorkHours = totalWorkHours + workHours2;
 								}else {
-									String at2Dayoff=checkDayoffName(endInHoliday, endDayCode);
-									if(StringUtils.isNotBlank(at2Dayoff)) {
-										at2.setShift(at2Dayoff);
+									if(endDayCode==5) {
+										at2.setShift("DSF");
 										at2.setLeaveDatetime(at2.getEndDatetime());
-										at2.setWorkHours(calculateWork(formulaEvaluator, row, at2, shift,shiftCurrentMonthShift));
+										at2.setWorkHours(calculateWork(formulaEvaluator, row, at2, shift,shiftCurrentMonthShift,endDayCode));
 										if(at2.getStatus()==2&&"2020".equals(at2.getAbnormalCode())) {
 											at2.setStatus(1);
 											at2.setAbnormalCode(null);
@@ -770,7 +772,7 @@ public class AttendanceService {
 					}
 				}
 
-				float workHours = calculateWork(formulaEvaluator, row, at, shift,shiftCurrentMonthShift);
+				float workHours = calculateWork(formulaEvaluator, row, at, shift,shiftCurrentMonthShift,dayCode);
 				// paid leave
 				if (shiftName.length() > 2) {
 					paidLeaveHours = paidLeaveHours + workHours;
@@ -986,7 +988,7 @@ public class AttendanceService {
 		}
 	}
 
-	private float calculateWork(FormulaEvaluator formulaEvaluator, Row row, AttendanceModel at, ShiftModel shift,ShiftModel shiftCount) {
+	private float calculateWork(FormulaEvaluator formulaEvaluator, Row row, AttendanceModel at, ShiftModel shift,ShiftModel shiftCount,int dayCode) {
 		float hours = 0;
 		if (at.getArrivalDatetime() == null || at.getLeaveDatetime() == null) {
 			if (shift.getName().length() > 2 && at.getArrivalDatetime() == null && at.getLeaveDatetime() == null) {
@@ -1012,7 +1014,9 @@ public class AttendanceService {
 			} else {
 				hours = (float) comparisonResult / 60;
 			}
-
+			if(dayCode==2&&hours<shift.getBaseHours()) {
+				hours = shift.getBaseHours();
+			}
 		}
 		if(hours<0) {
 			setAbnormalAttendance(at, 2020);
