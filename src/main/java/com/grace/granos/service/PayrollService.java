@@ -52,6 +52,7 @@ import com.grace.granos.model.AttendanceModel;
 import com.grace.granos.model.DayCodeModel;
 import com.grace.granos.model.PayCodeModel;
 import com.grace.granos.model.PayrollModel;
+import com.grace.granos.model.ShiftModel;
 import com.grace.granos.model.User;
 
 @Service
@@ -64,6 +65,19 @@ public class PayrollService {
 	@Autowired
 	private AttendanceRepository attendanceRepository;
 
+	public Map<String, Map<Integer, PayCodeModel>> getLeavePayCodeMap(){
+		List<PayCodeModel> leavePayCode = payCodeRepository.findLeavePayCode();
+		Map<String, Map<Integer, PayCodeModel>> leavePayCodeMap = leavePayCode.stream()
+			    .collect(Collectors.groupingBy(
+			        PayCodeModel::getShift,   // 一级分组：shift
+			        Collectors.toMap(
+			            PayCodeModel::getDayCode,  // 二级分组：day_code
+			            x -> x,  // 直接存 PayCodeModel
+			            (existing, replacement) -> replacement // 取最新的 PayCodeModel
+			        )
+			    ));
+		return leavePayCodeMap;
+	}
 	public List<PayrollModel> calculatePayroll(int year, int month, User user) {
 		logger.info("Service:calculatePayroll[" + year + "/" + month + "]");
 		List<PayrollModel> payrolls = new ArrayList<PayrollModel>();

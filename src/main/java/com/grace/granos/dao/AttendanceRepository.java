@@ -101,7 +101,7 @@ public class AttendanceRepository {
 	}
 
 	public int findLastAccumulateWdByUserMon(AttendanceModel att) {
-		String sql = " SELECT " + " COUNT(0)" + " FROM " + " attendance" + " WHERE"
+		String sql = " SELECT " + "count(distinct day)" + " FROM " + " attendance" + " WHERE"
 				+ " year = ? and month = ? and emp_id = ? and work_hours <> 0"
 				+ " AND day >= (select MAX(day) from attendance where year = ? and month = ? and emp_id = ? and work_hours = 0)";
 		int result = 0;
@@ -116,17 +116,23 @@ public class AttendanceRepository {
 		return result;
 	}
 
-	public int findLastAccumulateWdPeByUserMon(AttendanceModel att) {
-		String sql = " SELECT " + " COUNT(0)" + " FROM " + " attendance" + " WHERE"
-				+ " year = ? and month = ? and emp_id = ? and day_code <> 3 and day_code <> 4"
-				+ " AND day >= (select MAX(day) from attendance where year = ? and month = ? and emp_id = ? and (work_hours > 0 || paid_leave > 0)  and period=1) and period >=1";
-		int result = 0;
+	public List<AttendanceModel>  findLastAccumulateWdPeByUserMon(AttendanceModel att) {
+		String sql = " SELECT " 
+				+ " emp_id,year,month,day,seq,start_datetime,week,arrival_datetime,end_datetime,leave_datetime,work_hours,overtime,approval,note,reason,shift,day_code,status,comp_reason,comp_time,paid_leave,period,remain_tax_free,over_start_datetime,over_end_datetime,abnormal_code,tax_free"
+				+ " FROM" + " attendance" 
+				+ " where year = ? and month = ? and emp_id = ? and period >=1" 
+				+ " AND day >= (select MAX(day) from attendance where year = ? and month = ? and emp_id = ? and period=1)";
+		List<AttendanceModel>  result =null;
 		if (att.getMonth() - 1 == 0) {
-			result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear()-1, 12, att.getEmpId(),
-					att.getYear()-1, 12, att.getEmpId());
+			result = jdbcTemplate.query(sql,
+					new BeanPropertyRowMapper<AttendanceModel>(AttendanceModel.class),
+					new Object[] { att.getYear()-1, 12, att.getEmpId(),
+							att.getYear()-1, 12, att.getEmpId() });
 		}else {
-			result = jdbcTemplate.queryForObject(sql, Integer.class, att.getYear(), att.getMonth() - 1, att.getEmpId(),
-					att.getYear(), att.getMonth() - 1, att.getEmpId());
+			result = jdbcTemplate.query(sql,
+					new BeanPropertyRowMapper<AttendanceModel>(AttendanceModel.class),
+					new Object[] { att.getYear(), att.getMonth() - 1, att.getEmpId(),
+							att.getYear(), att.getMonth() - 1, att.getEmpId() });
 		}
 		
 		return result;
@@ -135,7 +141,7 @@ public class AttendanceRepository {
 	public String findLastWdShiftByUserMon(AttendanceModel att) {
 		String sql = " SELECT " + " shift" + " FROM " + " attendance" + " WHERE"
 				+ " year = ? and month = ? and emp_id = ?"
-				+ " AND day = (select MAX(day) from attendance where char_length(shift)=2 and year = ? and month = ? and emp_id = ?)";
+				+ " AND day = (select MAX(day) from attendance where char_length(shift)=2 and year = ? and month = ? and emp_id = ?) ORDER BY day DESC, seq DESC limit 1";
 
 		String result = null;
 		try {
