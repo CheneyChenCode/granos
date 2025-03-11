@@ -852,6 +852,8 @@ public class AttendanceService {
 					if(endDayCode != 5) {
 						endDayCode = dayCode;
 					}
+					preMonWdAtt=at;
+					preMonWdAtt2=at2;
 				}
 				at.setDayCode(dayCode);
 				if (at.getWorkHours() > 0) {
