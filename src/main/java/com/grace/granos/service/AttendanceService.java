@@ -11,6 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -751,7 +752,7 @@ public class AttendanceService {
 							if (at2.getShift().length() > 2) {
 								paidLeaveHours = paidLeaveHours + workHours2;
 								at2.setPaidLeave(workHours2);
-								checkLeaveBalances(leaveBalanceModelMap, at2, workHours2,leacesRequest,endInHoliday,endDayCode,leavePayCodeMap);
+								checkLeaveBalances(leaveBalanceModelMap, at2, leacesRequest,workHours2,endInHoliday,endDayCode,leavePayCodeMap);
 							} else {
 								if(workHours2>0) {
 									at2.setWorkHours(workHours2);
@@ -777,7 +778,7 @@ public class AttendanceService {
 				if (shiftName.length() > 2) {
 					paidLeaveHours = paidLeaveHours + workHours;
 					at.setPaidLeave(workHours);
-					checkLeaveBalances(leaveBalanceModelMap, at, workHours,leacesRequest,inHoliday,dayCode,leavePayCodeMap);
+					checkLeaveBalances(leaveBalanceModelMap, at, leacesRequest,workHours,inHoliday,dayCode,leavePayCodeMap);
 				} else {
 					at.setWorkHours(workHours);
 					totalWorkHours = totalWorkHours + workHours;
@@ -954,7 +955,7 @@ public class AttendanceService {
 	}
 
 	private void checkLeaveBalances(Map<String, LeaveBalanceModel> leaveBalanceModelMap, AttendanceModel at,
-			float workHours,List<LeaveRequestModel> leacesRequest,boolean inHoliday,int dayCode,Map<String, Map<Integer, PayCodeModel>> leavePayCodeMap) {
+			List<LeaveRequestModel> leacesRequest,float workHours,boolean inHoliday,int dayCode,Map<String, Map<Integer, PayCodeModel>> leavePayCodeMap) {
 		boolean check = true;
 		if ("L".equals(StringUtils.right(at.getShift(), 1))) {
 			String dayoffName=checkDayoffName(inHoliday,dayCode);
@@ -968,19 +969,32 @@ public class AttendanceService {
 					return;
 				}
 			}
-			float oldBlances=0;
-			float newBlances=0;
-			if(!CollectionUtils.isEmpty(leacesRequest)) {
-				newBlances= (float) leacesRequest.stream().filter(x->"balances".equals(x.getSource())&&x.getShift().equals(at.getShift())&&x.getFromTime().before(at.getStartDatetime())).mapToDouble(LeaveRequestModel::getHours).sum();
-			}
+			LeaveBalanceModel lbm;
 			if(leaveBalanceModelMap!=null) {
-				LeaveBalanceModel lbm = leaveBalanceModelMap.get(at.getShift());
-				if (lbm != null) {
-					oldBlances=lbm.getRemainingHours();
-				} 
+				lbm = leaveBalanceModelMap.get(at.getShift());
+			}else {
+				lbm=new LeaveBalanceModel();
+				lbm.setShift(dayoffName);
+				lbm.setRemainingHours(0);
+				leaveBalanceModelMap=new HashMap<>();
+				leaveBalanceModelMap.put(at.getShift(), lbm);
 			}
-			if(oldBlances+newBlances<workHours) {
+			List<LeaveRequestModel> newRequests;
+			if(!CollectionUtils.isEmpty(leacesRequest)) {
+				newRequests= leacesRequest.stream().filter(x->"balances".equals(x.getSource())&&x.getShift().equals(at.getShift())&&x.getFromTime().before(at.getStartDatetime())).toList();
+				if(!CollectionUtils.isEmpty(newRequests)) {
+					for(LeaveRequestModel lq:newRequests) {
+						lbm.setRemainingHours(lbm.getRemainingHours()+lq.getHours());
+						lq.setHours(0);
+					}
+				}
+			}
+			float oldBlances=lbm.getRemainingHours();
+			if(oldBlances<workHours) {
 				check = false;
+				lbm.setRemainingHours(0);
+			}else {
+				lbm.setRemainingHours(oldBlances-workHours);
 			}
 		}
 		if (check == false) {
